@@ -7,12 +7,12 @@ from trezor.messages.CardanoSignedTx import CardanoSignedTx
 from trezor.messages.CardanoTxAck import CardanoTxAck
 from trezor.messages.CardanoTxRequest import CardanoTxRequest
 
-from apps.cardano import CURVE, seed
+from apps.cardano import CURVE, seed, BYRON_SEED_NAMESPACE
 from apps.cardano.address import (
     derive_address_and_node,
-    is_safe_output_address,
     validate_full_path,
 )
+from apps.cardano.bootstrap_address import is_safe_output_address
 from apps.cardano.layout import confirm_sending, confirm_transaction, progress
 from apps.common import cbor
 from apps.common.paths import validate_path
@@ -114,7 +114,7 @@ async def sign_tx(ctx, msg, keychain: seed.Keychain):
         transaction.output_addresses,
         transaction.outgoing_coins,
         transaction.fee,
-        transaction.network_name,
+        "Shelley -- " + transaction.network_name,
         transaction.inputs,
         transaction.outputs,
     )
