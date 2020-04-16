@@ -24,9 +24,15 @@ REQUIRED_FIELDS_INPUT = ("path", "prev_hash", "prev_index", "type")
 
 
 @expect(messages.CardanoAddress, field="address")
-def get_address(client, address_n, show_display=False):
+def get_address(
+    client, address_parameters, show_display=False, network_id=0,
+):
     return client.call(
-        messages.CardanoGetAddress(address_n=address_n, show_display=show_display)
+        messages.CardanoGetAddress(
+            address_parameters=address_parameters,
+            show_display=show_display,
+            network_id=network_id,
+        )
     )
 
 
@@ -60,6 +66,31 @@ def sign_tx(
         response = client.call(ack_message)
 
     return response
+
+
+def create_certificate_pointer(
+    block_index: int, tx_index: int, certificate_index: int
+) -> messages.CardanoCertificatePointerType:
+    if block_index is None or tx_index is None or certificate_index is None:
+        raise ValueError("Invalid pointer parameters")
+
+    return messages.CardanoCertificatePointerType(
+        block_index=block_index, tx_index=tx_index, certificate_index=certificate_index
+    )
+
+
+def create_address_parameters(
+    address_type: messages.CardanoAddressType,
+    address_n: list,
+    certificate_pointer: messages.CardanoCertificatePointerType = None,
+    staking_key_hash: bytes = None,
+) -> messages.CardanoAddressParametersType:
+    return messages.CardanoAddressParametersType(
+        address_type=address_type,
+        address_n=address_n,
+        certificate_pointer=certificate_pointer,
+        staking_key_hash=staking_key_hash,
+    )
 
 
 def create_input(input) -> messages.CardanoTxInputType:
