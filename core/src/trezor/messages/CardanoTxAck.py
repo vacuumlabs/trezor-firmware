@@ -6,6 +6,7 @@ if __debug__:
     try:
         from typing import Dict, List  # noqa: F401
         from typing_extensions import Literal  # noqa: F401
+        EnumTypeCardanoVersion = Literal[0, 1]
     except ImportError:
         pass
 
@@ -16,11 +17,14 @@ class CardanoTxAck(p.MessageType):
     def __init__(
         self,
         transaction: bytes = None,
+        version: EnumTypeCardanoVersion = None,
     ) -> None:
         self.transaction = transaction
+        self.version = version
 
     @classmethod
     def get_fields(cls) -> Dict:
         return {
             1: ('transaction', p.BytesType, 0),
+            2: ('version', p.EnumType("CardanoVersion", (0, 1)), 0),
         }
