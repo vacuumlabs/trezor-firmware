@@ -24,12 +24,16 @@ class CardanoSignTx(p.MessageType):
         transactions_count: int = None,
         protocol_magic: int = None,
         version: EnumTypeCardanoVersion = None,
+        fee: int = None,
+        ttl: int = None,
     ) -> None:
         self.inputs = inputs if inputs is not None else []
         self.outputs = outputs if outputs is not None else []
         self.transactions_count = transactions_count
         self.protocol_magic = protocol_magic
         self.version = version
+        self.fee = fee
+        self.ttl = ttl
 
     @classmethod
     def get_fields(cls) -> Dict:
@@ -39,4 +43,6 @@ class CardanoSignTx(p.MessageType):
             3: ('transactions_count', p.UVarintType, 0),
             5: ('protocol_magic', p.UVarintType, 0),
             6: ('version', p.EnumType("CardanoVersion", (0, 1)), 0),
+            7: ('fee', p.UVarintType, 0),
+            8: ('ttl', p.UVarintType, 0),
         }

@@ -3,6 +3,7 @@ import apps.cardano.byron.sign_tx as byron
 import apps.cardano.shelley.sign_tx as shelley
 
 
+# todo: rename
 async def sign_tx(ctx, msg):
     if msg.version is None or msg.version == CardanoVersion.BYRON:
         return await byron.sign_tx(ctx, msg)

@@ -66,6 +66,9 @@ message CardanoSignTx {
     optional uint32 transactions_count = 3;     // transactions count
     optional uint32 protocol_magic = 5;         // network's protocol magic
     optional CardanoVersion version = 6;
+    optional uint32 fee = 7;                    // transaction fee - added in shelley
+    optional uint32 ttl = 8;                    // transaction ttl - added in shelley
+    // todo: add certificates, withdrawals, update, metadata and metadata hash?
     /**
      * Structure representing cardano transaction input
      */

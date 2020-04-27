@@ -55,6 +55,34 @@ def sign_tx(client, file, network):
     }
 
 
+# todo: merge with sign_tx
+@cli.command()
+@click.option(
+    "-f",
+    "--file",
+    type=click.File("r"),
+    required=True,
+    help="Transaction in JSON format",
+)
+@click.option("-N", "--network", type=int, default=1)
+@with_client
+def sign_tx_shelley(client, file, network):
+    """Sign Cardano shelley transaction."""
+    transaction = json.load(file)
+
+    inputs = [cardano.create_input(input) for input in transaction["inputs"]]
+    outputs = [cardano.create_output(output) for output in transaction["outputs"]]
+    fee = transaction["fee"]
+    ttl = transaction["ttl"]
+
+    signed_transaction = cardano.sign_tx_shelley(client, inputs, outputs, fee, ttl, network)
+
+    return {
+        "tx_hash": signed_transaction.tx_hash.hex(),
+        "tx_body": signed_transaction.tx_body.hex(),
+    }
+
+
 @cli.command()
 @click.option("-n", "--address", required=True, help=PATH_HELP)
 @click.option("-d", "--show-display", is_flag=True)
@@ -67,8 +95,27 @@ def get_address(client, address, show_display):
 
 @cli.command()
 @click.option("-n", "--address", required=True, help=PATH_HELP)
+@click.option("-d", "--show-display", is_flag=True)
+@with_client
+def get_address_shelley(client, address, show_display):
+    """Get Cardano shelley address."""
+    address_n = tools.parse_path(address)
+    return cardano.get_address_shelley(client, address_n, show_display)
+
+
+@cli.command()
+@click.option("-n", "--address", required=True, help=PATH_HELP)
 @with_client
 def get_public_key(client, address):
     """Get Cardano public key."""
     address_n = tools.parse_path(address)
     return cardano.get_public_key(client, address_n)
+
+
+@cli.command()
+@click.option("-n", "--address", required=True, help=PATH_HELP)
+@with_client
+def get_public_key_shelley(client, address):
+    """Get Cardano shelley public key."""
+    address_n = tools.parse_path(address)
+    return cardano.get_public_key_shelley(client, address_n)

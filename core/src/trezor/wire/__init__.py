@@ -228,10 +228,12 @@ class Context:
     async def write(self, msg: protobuf.MessageType) -> None:
         writer = self.make_writer()
 
-        if __debug__:
-            log.debug(
-                __name__, "%s:%x write: %s", self.iface.iface_num(), self.sid, msg
-            )
+        #if __debug__:
+        log.debug(
+            __name__, "%s:%x write: %s", self.iface.iface_num(), self.sid, msg
+        )
+
+        #print(msg)
 
         # get the message size
         fields = msg.get_fields()
@@ -443,6 +445,8 @@ def import_workflow(pkgname: str, modname: str) -> Any:
     modpath = "%s.%s" % (pkgname, modname)
     module = __import__(modpath, None, None, (modname,), 0)
     handler = getattr(module, modname)
+    print("module", module)
+    print("modname", modname)
     return handler
 
 

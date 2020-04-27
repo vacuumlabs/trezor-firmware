@@ -30,9 +30,21 @@ def get_address(client, address_n, show_display=False):
     )
 
 
+@expect(messages.CardanoAddress, field="address")
+def get_address_shelley(client, address_n, show_display=False):
+    return client.call(
+        messages.CardanoGetAddress(address_n=address_n, show_display=show_display, version=messages.CardanoVersion.SHELLEY)
+    )
+
+
 @expect(messages.CardanoPublicKey)
 def get_public_key(client, address_n):
     return client.call(messages.CardanoGetPublicKey(address_n=address_n))
+
+
+@expect(messages.CardanoPublicKey)
+def get_public_key_shelley(client, address_n):
+    return client.call(messages.CardanoGetPublicKey(address_n=address_n, version=messages.CardanoVersion.SHELLEY))
 
 
 @session
@@ -54,10 +66,36 @@ def sign_tx(
 
     while isinstance(response, messages.CardanoTxRequest):
         tx_index = response.tx_index
-
+        print(tx_index)
         transaction_data = bytes.fromhex(transactions[tx_index])
         ack_message = messages.CardanoTxAck(transaction=transaction_data)
         response = client.call(ack_message)
+
+    return response
+
+
+# todo: merge with sign_tx
+@session
+def sign_tx_shelley(
+    client,
+    inputs: List[messages.CardanoTxInputType],
+    outputs: List[messages.CardanoTxOutputType],
+    fee,
+    ttl,
+    cert,
+    protocol_magic,
+):
+    print("calling")
+    response = client.call(
+        messages.CardanoSignTx(
+            inputs=inputs,
+            outputs=outputs,
+            protocol_magic=protocol_magic,
+            version=messages.CardanoVersion.SHELLEY,
+            fee=fee,
+            ttl=ttl,
+        )
+    )
 
     return response
 

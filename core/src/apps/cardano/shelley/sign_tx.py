@@ -1,4 +1,5 @@
 from micropython import const
+from ubinascii import hexlify, unhexlify
 
 from trezor import log, wire
 from trezor.crypto import base58, hashlib
@@ -70,35 +71,52 @@ async def request_transaction(ctx, tx_req: CardanoTxRequest, index: int):
 async def sign_tx(ctx, msg):
     keychain = await seed.get_keychain(ctx)
 
-    progress.init(msg.transactions_count, "Loading data")
+    # progress.init(msg.transactions_count, "Loading data")
 
+    print("QQQ: Transaction count:", msg.transactions_count)
+
+    # tx = unhexlify('83a400d90102818244b45c4891000181840044cfb2c4144476394f7a0a02185e030aa10081821a6753449f824489ec679d1a6753449f80')
+    # print(tx)
+    # tx_decoded = cbor.decode(tx)
+    # print(tx_decoded)
+    # outputs = tx_decoded[0][1]
+    # sum = 0
+    # for i in range(len(outputs)):
+    #     print(outputs[i])
+    #     print(len(outputs[i]))
+    #     print(sum)
+    #     sum += outputs[i][len(outputs[i]) - 1]
+    # print(sum)
+    # raise wire.ProcessError("Signing failed")
     try:
-        attested = len(msg.inputs) * [False]
-        input_coins_sum = 0
+        # attested = len(msg.inputs) * [False]
+        # input_coins_sum = 0
         # request transactions
-        tx_req = CardanoTxRequest()
+        # tx_req = CardanoTxRequest()
 
-        for index in range(msg.transactions_count):
-            progress.advance()
-            tx_ack = await request_transaction(ctx, tx_req, index)
-            tx_hash = hashlib.blake2b(
-                data=bytes(tx_ack.transaction), outlen=32
-            ).digest()
-            tx_decoded = cbor.decode(tx_ack.transaction)
-            for i, input in enumerate(msg.inputs):
-                if not attested[i] and input.prev_hash == tx_hash:
-                    attested[i] = True
-                    outputs = tx_decoded[1]
-                    amount = outputs[input.prev_index][1]
-                    input_coins_sum += amount
+        # for index in range(msg.transactions_count):
+        #     print("QQQ: handling tx", index)
+        #     progress.advance()
+        #     tx_ack = await request_transaction(ctx, tx_req, index)
+        #     tx_hash = hashlib.blake2b(
+        #         data=bytes(tx_ack.transaction), outlen=32
+        #     ).digest()
+        #     tx_decoded = cbor.decode(tx_ack.transaction)
+        #     for i, input in enumerate(msg.inputs):
+        #         print("QQQ: attested", i, attested[i])
+        #         if not attested[i] and input.prev_hash == tx_hash:
+        #             attested[i] = True
+        #             outputs = tx_decoded[1]
+        #             amount = outputs[input.prev_index][1]
+        #             input_coins_sum += amount
 
-        if not all(attested):
-            raise wire.ProcessError(
-                "No tx data sent for input " + str(attested.index(False))
-            )
+        # if not all(attested):
+        #     raise wire.ProcessError(
+        #         "No tx data sent for input " + str(attested.index(False))
+        #     )
 
         transaction = Transaction(
-            msg.inputs, msg.outputs, keychain, msg.protocol_magic, input_coins_sum
+            msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl
         )
 
         for i in msg.inputs:
@@ -119,7 +137,7 @@ async def sign_tx(ctx, msg):
         transaction.output_addresses,
         transaction.outgoing_coins,
         transaction.fee,
-        "Shelley -- " + transaction.network_name,
+        transaction.network_name,
         transaction.inputs,
         transaction.outputs,
     ):
@@ -135,17 +153,17 @@ class Transaction:
         outputs: list,
         keychain,
         protocol_magic: int,
-        input_coins_sum: int,
+        fee,
+        ttl
     ):
         self.inputs = inputs
         self.outputs = outputs
         self.keychain = keychain
-        # attributes have to be always empty in current Cardano
-        self.attributes = {}
+        self.fee = fee
+        self.ttl = ttl
 
         self.network_name = KNOWN_PROTOCOL_MAGICS.get(protocol_magic, "Unknown")
         self.protocol_magic = protocol_magic
-        self.input_coins_sum = input_coins_sum
 
     def _process_outputs(self):
         change_addresses = []
@@ -199,13 +217,6 @@ class Transaction:
 
         return witnesses
 
-    @staticmethod
-    def compute_fee(input_coins_sum: int, outgoing_coins: list, change_coins: list):
-        outgoing_coins_sum = sum(outgoing_coins)
-        change_coins_sum = sum(change_coins)
-
-        return input_coins_sum - outgoing_coins_sum - change_coins_sum
-
     def serialise_tx(self):
 
         self._process_outputs()
@@ -215,33 +226,38 @@ class Transaction:
             inputs_cbor.append(
                 [
                     (input.type or 0),
-                    cbor.Tagged(24, cbor.encode([input.prev_hash, input.prev_index])),
+                    [input.prev_hash, input.prev_index],
+                    # todo: the line above or the one below?
+                    # cbor.Tagged(24, cbor.encode([input.prev_hash, input.prev_index])),
                 ]
             )
 
+        # todo: cbor.Set
         inputs_cbor = cbor.IndefiniteLengthArray(inputs_cbor)
 
         outputs_cbor = []
         for index, address in enumerate(self.output_addresses):
             outputs_cbor.append(
+                # todo: bech32?
                 [cbor.Raw(base58.decode(address)), self.outgoing_coins[index]]
             )
 
         for index, address in enumerate(self.change_addresses):
             outputs_cbor.append(
+                # todo: bech32?
                 [cbor.Raw(base58.decode(address)), self.change_coins[index]]
             )
 
         outputs_cbor = cbor.IndefiniteLengthArray(outputs_cbor)
 
-        tx_aux_cbor = [inputs_cbor, outputs_cbor, self.attributes]
+        # todo: certificates, withdrawals, update, metadata
+        tx_aux_cbor = [inputs_cbor, outputs_cbor, self.fee, self.ttl]
         tx_hash = hashlib.blake2b(data=cbor.encode(tx_aux_cbor), outlen=32).digest()
 
         witnesses = self._build_witnesses(tx_hash)
         tx_body = cbor.encode([tx_aux_cbor, witnesses])
 
-        self.fee = self.compute_fee(
-            self.input_coins_sum, self.outgoing_coins, self.change_coins
-        )
+        print("tx_body: ", tx_body)
+        print("tx_hash:", tx_hash)
 
         return tx_body, tx_hash
