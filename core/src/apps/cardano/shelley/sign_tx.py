@@ -221,14 +221,9 @@ class Transaction:
             extended_public_key = (
                 remove_ed25519_prefix(node.public_key()) + node.chain_code()
             )
-            witnesses.append(
-                [
-                    (input.type or 0),
-                    cbor.Tagged(24, cbor.encode([extended_public_key, signature])),
-                ]
-            )
+            witnesses.append([extended_public_key, signature])
 
-        return witnesses
+        return {0: witnesses}
 
     def serialise_tx(self):
 
@@ -236,17 +231,10 @@ class Transaction:
 
         inputs_cbor = []
         for input in self.inputs:
-            inputs_cbor.append(
-                [
-                    (input.type or 0),
-                    [input.prev_hash, input.prev_index],
-                    # todo: the line above or the one below?
-                    # cbor.Tagged(24, cbor.encode([input.prev_hash, input.prev_index])),
-                ]
-            )
+            inputs_cbor.append([input.prev_hash, input.prev_index])
 
         # todo: cbor.Set
-        inputs_cbor = cbor.IndefiniteLengthArray(inputs_cbor)
+        inputs_cbor = cbor.Set(inputs_cbor)
 
         outputs_cbor = []
         for index, address in enumerate(self.output_addresses):
@@ -267,13 +255,12 @@ class Transaction:
             certificates_cbor = []
             for index, certificate in enumerate(self.certificates):
                 _, node = derive_address_and_node(self.keychain, certificate.path)
-                cert_hash = hashlib.blake2b(data=node.public_key(), outlen=32).digest()
-                cert_cbor = cbor.encode(cert_hash)
-                certificates_cbor.append(cert_cbor)
-            #tx_aux_cbor.append(certificates_cbor)
+                public_key_hash = hashlib.blake2b(data=node.public_key(), outlen=32).digest()
+                # todo: 0 deppends on cert type
+                certificates_cbor.append([0, public_key_hash])
 
         # todo: certificates, withdrawals, update, metadata
-        tx_aux_cbor = [inputs_cbor, outputs_cbor, self.fee, self.ttl, certificates_cbor]
+        tx_aux_cbor = {0:inputs_cbor, 1:outputs_cbor, 2:self.fee, 3:self.ttl, 4:certificates_cbor}
 
         tx_hash = hashlib.blake2b(data=cbor.encode(tx_aux_cbor), outlen=32).digest()
 
