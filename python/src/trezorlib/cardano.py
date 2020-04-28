@@ -82,10 +82,9 @@ def sign_tx_shelley(
     outputs: List[messages.CardanoTxOutputType],
     fee,
     ttl,
-    cert,
+    certificates: List[messages.CardanoTxCertificate],
     protocol_magic,
 ):
-    print("calling")
     response = client.call(
         messages.CardanoSignTx(
             inputs=inputs,
@@ -94,6 +93,7 @@ def sign_tx_shelley(
             version=messages.CardanoVersion.SHELLEY,
             fee=fee,
             ttl=ttl,
+            certificates=certificates,
         )
     )
 
@@ -128,3 +128,11 @@ def create_output(output) -> messages.CardanoTxOutputType:
     return messages.CardanoTxOutputType(
         address=output["address"], amount=int(output["amount"])
     )
+
+
+def create_certificate(certificate) -> messages.CardanoTxCertificate:
+    # todo: some validation, checks
+    # todo: other certificates
+    path = certificate["path"]
+
+    return messages.CardanoTxCertificate(type=certificate["type"], path=tools.parse_path(path))

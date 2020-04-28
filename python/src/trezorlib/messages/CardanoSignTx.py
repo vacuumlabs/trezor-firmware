@@ -2,6 +2,7 @@
 # fmt: off
 from .. import protobuf as p
 
+from .CardanoTxCertificate import CardanoTxCertificate
 from .CardanoTxInputType import CardanoTxInputType
 from .CardanoTxOutputType import CardanoTxOutputType
 
@@ -26,6 +27,7 @@ class CardanoSignTx(p.MessageType):
         version: EnumTypeCardanoVersion = None,
         fee: int = None,
         ttl: int = None,
+        certificates: List[CardanoTxCertificate] = None,
     ) -> None:
         self.inputs = inputs if inputs is not None else []
         self.outputs = outputs if outputs is not None else []
@@ -34,6 +36,7 @@ class CardanoSignTx(p.MessageType):
         self.version = version
         self.fee = fee
         self.ttl = ttl
+        self.certificates = certificates if certificates is not None else []
 
     @classmethod
     def get_fields(cls) -> Dict:
@@ -45,4 +48,5 @@ class CardanoSignTx(p.MessageType):
             6: ('version', p.EnumType("CardanoVersion", (0, 1)), 0),
             7: ('fee', p.UVarintType, 0),
             8: ('ttl', p.UVarintType, 0),
+            9: ('certificates', CardanoTxCertificate, p.FLAG_REPEATED),
         }

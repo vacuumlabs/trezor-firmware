@@ -61,13 +61,14 @@ message CardanoPublicKey {
  * @next Failure
  */
 message CardanoSignTx {
-    repeated CardanoTxInputType inputs = 1;     // inputs to be used in transaction
-    repeated CardanoTxOutputType outputs = 2;   // outputs to be used in transaction
-    optional uint32 transactions_count = 3;     // transactions count
-    optional uint32 protocol_magic = 5;         // network's protocol magic
+    repeated CardanoTxInputType inputs = 1;         // inputs to be used in transaction
+    repeated CardanoTxOutputType outputs = 2;       // outputs to be used in transaction
+    optional uint32 transactions_count = 3;         // transactions count
+    optional uint32 protocol_magic = 5;             // network's protocol magic
     optional CardanoVersion version = 6;
-    optional uint32 fee = 7;                    // transaction fee - added in shelley
-    optional uint32 ttl = 8;                    // transaction ttl - added in shelley
+    optional uint32 fee = 7;                        // transaction fee - added in shelley
+    optional uint32 ttl = 8;                        // transaction ttl - added in shelley
+    repeated CardanoTxCertificate certificates = 9; // transaction certificates - added in shelley
     // todo: add certificates, withdrawals, update, metadata and metadata hash?
     /**
      * Structure representing cardano transaction input
@@ -85,6 +86,11 @@ message CardanoSignTx {
         optional string address = 1;    // target coin address in Base58 encoding
         repeated uint32 address_n = 2;  // BIP-32 path to derive the key from master node; has higher priority than "address"
         optional uint64 amount = 3;     // amount to spend
+    }
+
+    message CardanoTxCertificate {
+        optional string type = 1;       // certificate type
+        repeated uint32 path = 2;       // BIP-32 path to derive (staking) key
     }
 }
 

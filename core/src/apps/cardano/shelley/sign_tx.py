@@ -14,7 +14,7 @@ from apps.cardano.byron.address import (
     is_safe_output_address,
     validate_full_path,
 )
-from apps.cardano.layout import confirm_sending, confirm_transaction, progress
+from apps.cardano.layout import confirm_sending, confirm_certificate, confirm_transaction, progress
 from apps.common import cbor
 from apps.common.paths import validate_path
 from apps.common.seed import remove_ed25519_prefix
@@ -48,12 +48,17 @@ async def show_tx(
     network_name: str,
     raw_inputs: list,
     raw_outputs: list,
+    certificates: list,
 ) -> bool:
     for index, output in enumerate(outputs):
         if is_change(raw_outputs[index].address_n, raw_inputs):
             continue
 
         if not await confirm_sending(ctx, outcoins[index], output):
+            return False
+
+    for index, certificate in enumerate(certificates):
+        if not await confirm_certificate(ctx, certificate):
             return False
 
     total_amount = sum(outcoins)
@@ -71,9 +76,7 @@ async def request_transaction(ctx, tx_req: CardanoTxRequest, index: int):
 async def sign_tx(ctx, msg):
     keychain = await seed.get_keychain(ctx)
 
-    # progress.init(msg.transactions_count, "Loading data")
-
-    print("QQQ: Transaction count:", msg.transactions_count)
+    # progress.init(msg.transactions_count, "Loading data")    
 
     # tx = unhexlify('83a400d90102818244b45c4891000181840044cfb2c4144476394f7a0a02185e030aa10081821a6753449f824489ec679d1a6753449f80')
     # print(tx)
@@ -115,8 +118,10 @@ async def sign_tx(ctx, msg):
         #         "No tx data sent for input " + str(attested.index(False))
         #     )
 
+        print("Certs count:", len(msg.certificates))
+
         transaction = Transaction(
-            msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl
+            msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl, msg.certificates
         )
 
         for i in msg.inputs:
@@ -140,6 +145,7 @@ async def sign_tx(ctx, msg):
         transaction.network_name,
         transaction.inputs,
         transaction.outputs,
+        transaction.certificates,
     ):
         raise wire.ActionCancelled("Signing cancelled")
 
@@ -154,13 +160,15 @@ class Transaction:
         keychain,
         protocol_magic: int,
         fee,
-        ttl
+        ttl,
+        certificates: list,
     ):
         self.inputs = inputs
         self.outputs = outputs
         self.keychain = keychain
         self.fee = fee
         self.ttl = ttl
+        self.certificates = certificates
 
         self.network_name = KNOWN_PROTOCOL_MAGICS.get(protocol_magic, "Unknown")
         self.protocol_magic = protocol_magic
@@ -194,6 +202,7 @@ class Transaction:
         self.outgoing_coins = outgoing_coins
         self.change_coins = change_coins
         self.change_derivation_paths = change_derivation_paths
+
 
     def _build_witnesses(self, tx_aux_hash: str):
         witnesses = []
@@ -252,6 +261,14 @@ class Transaction:
 
         # todo: certificates, withdrawals, update, metadata
         tx_aux_cbor = [inputs_cbor, outputs_cbor, self.fee, self.ttl]
+
+        if len(self.certificates) > 0:
+            certificates_cbor = []
+            for index, certificate in enumerate(self.certificates):
+                _, node = derive_address_and_node(self.keychain, certificate.path)
+                certificates_cbor.append([cbor.Raw(node.public_key())])
+            #tx_aux_cbor.append(certificates_cbor)
+
         tx_hash = hashlib.blake2b(data=cbor.encode(tx_aux_cbor), outlen=32).digest()
 
         witnesses = self._build_witnesses(tx_hash)

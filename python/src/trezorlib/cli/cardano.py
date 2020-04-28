@@ -74,8 +74,9 @@ def sign_tx_shelley(client, file, network):
     outputs = [cardano.create_output(output) for output in transaction["outputs"]]
     fee = transaction["fee"]
     ttl = transaction["ttl"]
+    certificates = [cardano.create_certificate(certificate) for certificate in transaction["certificates"]]
 
-    signed_transaction = cardano.sign_tx_shelley(client, inputs, outputs, fee, ttl, network)
+    signed_transaction = cardano.sign_tx_shelley(client, inputs, outputs, fee, ttl, certificates, network)
 
     return {
         "tx_hash": signed_transaction.tx_hash.hex(),

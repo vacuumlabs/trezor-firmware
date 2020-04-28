@@ -35,6 +35,29 @@ async def confirm_sending(ctx, amount, to):
     return await confirm(ctx, Paginated(pages))
 
 
+def format_certificate_type(certificate_type):
+    if certificate_type == 'stake_registration':
+        return "Stake key registration"
+
+    # todo: other certificates
+
+    return "Some unknown certificate"
+
+
+async def confirm_certificate(ctx, certificate):
+    t1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    t1.normal("Confirm certificate:")
+    t1.bold(format_certificate_type(certificate.type))
+    t1.normal("for address:")
+    print(certificate.path)
+    # todo: Staking key path
+    t1.bold("Here be staking key PATH")
+
+    # todo: other certificates might require other fields
+
+    return await confirm(ctx, t1)
+
+
 async def confirm_transaction(ctx, amount, fee, network_name):
     t1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     t1.normal("Total amount:")
