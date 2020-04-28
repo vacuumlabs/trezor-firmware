@@ -27,6 +27,7 @@ class CardanoSignTx(p.MessageType):
         version: EnumTypeCardanoVersion = None,
         fee: int = None,
         ttl: int = None,
+        deposit: int = None,
         certificates: List[CardanoTxCertificate] = None,
     ) -> None:
         self.inputs = inputs if inputs is not None else []
@@ -36,6 +37,7 @@ class CardanoSignTx(p.MessageType):
         self.version = version
         self.fee = fee
         self.ttl = ttl
+        self.deposit = deposit
         self.certificates = certificates if certificates is not None else []
 
     @classmethod
@@ -48,5 +50,6 @@ class CardanoSignTx(p.MessageType):
             6: ('version', p.EnumType("CardanoVersion", (0, 1)), 0),
             7: ('fee', p.UVarintType, 0),
             8: ('ttl', p.UVarintType, 0),
-            9: ('certificates', CardanoTxCertificate, p.FLAG_REPEATED),
+            9: ('deposit', p.UVarintType, 0),
+            10: ('certificates', CardanoTxCertificate, p.FLAG_REPEATED),
         }

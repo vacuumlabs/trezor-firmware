@@ -58,7 +58,7 @@ async def confirm_certificate(ctx, certificate):
     return await confirm(ctx, t1)
 
 
-async def confirm_transaction(ctx, amount, fee, network_name):
+async def confirm_transaction(ctx, amount, fee, deposit, network_name):
     t1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     t1.normal("Total amount:")
     t1.bold(format_coin_amount(amount))
@@ -66,6 +66,11 @@ async def confirm_transaction(ctx, amount, fee, network_name):
     t1.bold(format_coin_amount(fee))
 
     t2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    
+    if (deposit > 0):
+        t2.normal("including deposit:")
+        t2.bold(format_coin_amount(deposit))
+
     t2.normal("Network:")
     t2.bold(network_name)
 

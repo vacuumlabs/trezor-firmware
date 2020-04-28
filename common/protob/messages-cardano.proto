@@ -68,7 +68,8 @@ message CardanoSignTx {
     optional CardanoVersion version = 6;
     optional uint32 fee = 7;                        // transaction fee - added in shelley
     optional uint32 ttl = 8;                        // transaction ttl - added in shelley
-    repeated CardanoTxCertificate certificates = 9; // transaction certificates - added in shelley
+    optional uint32 deposit = 9;                    // transaction deposit (used with stake registration cert) - added in shelley
+    repeated CardanoTxCertificate certificates = 10;// transaction certificates - added in shelley
     // todo: add certificates, withdrawals, update, metadata and metadata hash?
     /**
      * Structure representing cardano transaction input

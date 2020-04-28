@@ -49,6 +49,7 @@ async def show_tx(
     raw_inputs: list,
     raw_outputs: list,
     certificates: list,
+    deposit: int,
 ) -> bool:
     for index, output in enumerate(outputs):
         if is_change(raw_outputs[index].address_n, raw_inputs):
@@ -62,7 +63,7 @@ async def show_tx(
             return False
 
     total_amount = sum(outcoins)
-    if not await confirm_transaction(ctx, total_amount, fee, network_name):
+    if not await confirm_transaction(ctx, total_amount, fee, deposit, network_name):
         return False
 
     return True
@@ -121,7 +122,7 @@ async def sign_tx(ctx, msg):
         print("Certs count:", len(msg.certificates))
 
         transaction = Transaction(
-            msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl, msg.certificates
+            msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl, msg.deposit, msg.certificates
         )
 
         for i in msg.inputs:
@@ -146,6 +147,7 @@ async def sign_tx(ctx, msg):
         transaction.inputs,
         transaction.outputs,
         transaction.certificates,
+        transaction.deposit,
     ):
         raise wire.ActionCancelled("Signing cancelled")
 
@@ -161,6 +163,7 @@ class Transaction:
         protocol_magic: int,
         fee,
         ttl,
+        deposit,
         certificates: list,
     ):
         self.inputs = inputs
@@ -168,6 +171,7 @@ class Transaction:
         self.keychain = keychain
         self.fee = fee
         self.ttl = ttl
+        self.deposit = deposit
         self.certificates = certificates
 
         self.network_name = KNOWN_PROTOCOL_MAGICS.get(protocol_magic, "Unknown")
