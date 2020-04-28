@@ -263,15 +263,17 @@ class Transaction:
 
         outputs_cbor = cbor.IndefiniteLengthArray(outputs_cbor)
 
-        # todo: certificates, withdrawals, update, metadata
-        tx_aux_cbor = [inputs_cbor, outputs_cbor, self.fee, self.ttl]
-
         if len(self.certificates) > 0:
             certificates_cbor = []
             for index, certificate in enumerate(self.certificates):
                 _, node = derive_address_and_node(self.keychain, certificate.path)
-                certificates_cbor.append([cbor.Raw(node.public_key())])
+                cert_hash = hashlib.blake2b(data=node.public_key(), outlen=32).digest()
+                cert_cbor = cbor.encode(cert_hash)
+                certificates_cbor.append(cert_cbor)
             #tx_aux_cbor.append(certificates_cbor)
+
+        # todo: certificates, withdrawals, update, metadata
+        tx_aux_cbor = [inputs_cbor, outputs_cbor, self.fee, self.ttl, certificates_cbor]
 
         tx_hash = hashlib.blake2b(data=cbor.encode(tx_aux_cbor), outlen=32).digest()
 
