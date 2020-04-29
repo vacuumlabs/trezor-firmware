@@ -16,13 +16,16 @@ class CardanoTxCertificate(p.MessageType):
         self,
         type: str = None,
         path: List[int] = None,
+        pool: str = None,
     ) -> None:
         self.type = type
         self.path = path if path is not None else []
+        self.pool = pool
 
     @classmethod
     def get_fields(cls) -> Dict:
         return {
             1: ('type', p.UnicodeType, 0),
             2: ('path', p.UVarintType, p.FLAG_REPEATED),
+            3: ('pool', p.UnicodeType, 0),
         }

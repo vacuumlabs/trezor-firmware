@@ -38,6 +38,10 @@ async def confirm_sending(ctx, amount, to):
 def format_certificate_type(certificate_type):
     if certificate_type == 'stake_registration':
         return "Stake key registration"
+    if certificate_type == 'stake_deregistration':
+        return "Stake key deregistration"
+    if certificate_type == 'stake_delegation':
+        return "Stake delegation"
 
     # todo: other certificates
 
@@ -49,9 +53,16 @@ async def confirm_certificate(ctx, certificate):
     t1.normal("Confirm certificate:")
     t1.bold(format_certificate_type(certificate.type))
     t1.normal("for address:")
-    print(certificate.path)
     # todo: Staking key path
     t1.bold("Here be staking key PATH")
+
+    if (certificate.type == 'stake_delegation'):
+        t2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+        t2.normal("delegating to pool:")
+        # todo: Staking key path
+        t2.bold(certificate.pool)
+
+        return await confirm(ctx, Paginated([t1, t2]))
 
     # todo: other certificates might require other fields
 

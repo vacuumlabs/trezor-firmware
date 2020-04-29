@@ -77,50 +77,7 @@ async def request_transaction(ctx, tx_req: CardanoTxRequest, index: int):
 async def sign_tx(ctx, msg):
     keychain = await seed.get_keychain(ctx)
 
-    # progress.init(msg.transactions_count, "Loading data")    
-
-    # tx = unhexlify('83a400d90102818244b45c4891000181840044cfb2c4144476394f7a0a02185e030aa10081821a6753449f824489ec679d1a6753449f80')
-    # print(tx)
-    # tx_decoded = cbor.decode(tx)
-    # print(tx_decoded)
-    # outputs = tx_decoded[0][1]
-    # sum = 0
-    # for i in range(len(outputs)):
-    #     print(outputs[i])
-    #     print(len(outputs[i]))
-    #     print(sum)
-    #     sum += outputs[i][len(outputs[i]) - 1]
-    # print(sum)
-    # raise wire.ProcessError("Signing failed")
     try:
-        # attested = len(msg.inputs) * [False]
-        # input_coins_sum = 0
-        # request transactions
-        # tx_req = CardanoTxRequest()
-
-        # for index in range(msg.transactions_count):
-        #     print("QQQ: handling tx", index)
-        #     progress.advance()
-        #     tx_ack = await request_transaction(ctx, tx_req, index)
-        #     tx_hash = hashlib.blake2b(
-        #         data=bytes(tx_ack.transaction), outlen=32
-        #     ).digest()
-        #     tx_decoded = cbor.decode(tx_ack.transaction)
-        #     for i, input in enumerate(msg.inputs):
-        #         print("QQQ: attested", i, attested[i])
-        #         if not attested[i] and input.prev_hash == tx_hash:
-        #             attested[i] = True
-        #             outputs = tx_decoded[1]
-        #             amount = outputs[input.prev_index][1]
-        #             input_coins_sum += amount
-
-        # if not all(attested):
-        #     raise wire.ProcessError(
-        #         "No tx data sent for input " + str(attested.index(False))
-        #     )
-
-        print("Certs count:", len(msg.certificates))
-
         transaction = Transaction(
             msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl, msg.deposit, msg.certificates
         )
@@ -207,7 +164,6 @@ class Transaction:
         self.change_coins = change_coins
         self.change_derivation_paths = change_derivation_paths
 
-
     def _build_witnesses(self, tx_aux_hash: str):
         witnesses = []
         for input in self.inputs:
@@ -223,7 +179,38 @@ class Transaction:
             )
             witnesses.append([extended_public_key, signature])
 
+        for certificate in self.certificates:
+            # todo: add other certificates without witnesses + refactor
+            if (certificate.type == "stake_registration"):
+                continue
+
+            _, node = derive_address_and_node(self.keychain, certificate.path)
+            message = (
+                b"\x01" + cbor.encode(self.protocol_magic) + b"\x58\x20" + tx_aux_hash
+            )
+            signature = ed25519.sign_ext(
+                node.private_key(), node.private_key_ext(), message
+            )
+            extended_public_key = (
+                remove_ed25519_prefix(node.public_key()) + node.chain_code()
+            )
+            witnesses.append([extended_public_key, signature])
+
+
         return {0: witnesses}
+
+
+    # todo: move?
+    def certificate_type_to_type_id(self, certificate_type):
+        if certificate_type == 'stake_registration':
+            return 0
+        if certificate_type == 'stake_deregistration':
+            return 1
+        if certificate_type == 'stake_delegation':
+            return 2
+        
+        raise ValueError("Unsupported certificate type '%s'" % certificate_type)
+
 
     def serialise_tx(self):
 
@@ -257,10 +244,11 @@ class Transaction:
                 _, node = derive_address_and_node(self.keychain, certificate.path)
                 public_key_hash = hashlib.blake2b(data=node.public_key(), outlen=32).digest()
                 # todo: 0 deppends on cert type
-                certificates_cbor.append([0, public_key_hash])
+                cert_type_id = self.certificate_type_to_type_id(certificate.type)
+                certificates_cbor.append([cert_type_id, public_key_hash])
 
         # todo: certificates, withdrawals, update, metadata
-        tx_aux_cbor = {0:inputs_cbor, 1:outputs_cbor, 2:self.fee, 3:self.ttl, 4:certificates_cbor}
+        tx_aux_cbor = {0: inputs_cbor, 1: outputs_cbor, 2: self.fee, 3: self.ttl, 4: certificates_cbor}
 
         tx_hash = hashlib.blake2b(data=cbor.encode(tx_aux_cbor), outlen=32).digest()
 

@@ -92,6 +92,7 @@ message CardanoSignTx {
     message CardanoTxCertificate {
         optional string type = 1;       // certificate type
         repeated uint32 path = 2;       // BIP-32 path to derive (staking) key
+        optional string pool = 3;       // pool hash
     }
 }
 

@@ -136,5 +136,12 @@ def create_certificate(certificate) -> messages.CardanoTxCertificate:
     # todo: some validation, checks
     # todo: other certificates
     path = certificate["path"]
+    if certificate.get("pool"):
+        pool = certificate["pool"]
+        # todo: refactor
+        return messages.CardanoTxCertificate(
+            type=certificate["type"], 
+            path=tools.parse_path(path),
+            pool=pool)
 
     return messages.CardanoTxCertificate(type=certificate["type"], path=tools.parse_path(path))
