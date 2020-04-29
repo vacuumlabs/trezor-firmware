@@ -14,7 +14,7 @@ from apps.cardano.byron.address import (
     is_safe_output_address,
     validate_full_path,
 )
-from apps.cardano.layout import confirm_sending, confirm_certificate, confirm_transaction, progress
+from apps.cardano.layout import confirm_sending, confirm_certificate, confirm_shelley_transaction, progress
 from apps.common import cbor
 from apps.common.paths import validate_path
 from apps.common.seed import remove_ed25519_prefix
@@ -63,7 +63,7 @@ async def show_tx(
             return False
 
     total_amount = sum(outcoins)
-    if not await confirm_transaction(ctx, total_amount, fee, deposit, network_name):
+    if not await confirm_shelley_transaction(ctx, total_amount, fee, deposit, network_name):
         return False
 
     return True
