@@ -1,0 +1,23 @@
+{
+  "inputs": [
+      {
+          "path": "m/44'/1815'/0'/0/1",
+          "prev_hash": "1af8fa0b754ff99253d983894e63a2b09cbb56c833ba18c3384210163f63dcfc",
+          "prev_index": 0,
+          "type": 0
+      }
+  ],
+  "outputs": [
+      {
+          "address": "Ae2tdPwUPEZCanmBz5g2GEwFqKTKpNJcGYPKfDxoNeKZ8bRHr8366kseiK2",
+          "amount": "3003112"
+      },
+      {
+          "path": "m/44'/1815'/0'/0/1",
+          "amount": "7120787"
+      }
+  ],
+  "fee": 10000,
+  "ttl": 10,
+  "protocol_magic": 764824073
+}
