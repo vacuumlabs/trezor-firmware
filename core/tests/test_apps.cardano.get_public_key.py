@@ -1,7 +1,7 @@
 from common import *
 
 from apps.cardano.seed import Keychain
-from apps.cardano.get_public_key import _get_public_key
+from apps.cardano.byron.get_public_key import _get_public_key
 from trezor.crypto import bip32, slip39
 
 
