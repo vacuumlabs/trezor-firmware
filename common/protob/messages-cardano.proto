@@ -103,7 +103,6 @@ message CardanoTxRequest {
  */
 message CardanoTxAck {
     optional bytes transaction = 1;
-    optional CardanoVersion version = 2;
 }
 
 /**
