@@ -83,7 +83,7 @@ async def confirm_transaction(ctx, amount, fee, network_name):
     return await hold_to_confirm(ctx, Paginated([t1, t2]))
 
     
-async def confirm_shelley_transaction(ctx, amount, fee, deposit, network_name):
+async def confirm_shelley_transaction(ctx, amount, fee, network_name):
     t1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     t1.normal("Total amount:")
     t1.bold(format_coin_amount(amount))
@@ -92,9 +92,10 @@ async def confirm_shelley_transaction(ctx, amount, fee, deposit, network_name):
 
     t2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     
-    if (deposit > 0):
-        t2.normal("including deposit:")
-        t2.bold(format_coin_amount(deposit))
+    # todo: deposit??
+    # if (deposit > 0):
+    #     t2.normal("including deposit:")
+    #     t2.bold(format_coin_amount(deposit))
 
     t2.normal("Network:")
     t2.bold(network_name)

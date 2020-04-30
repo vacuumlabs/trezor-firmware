@@ -49,7 +49,6 @@ async def show_tx(
     raw_inputs: list,
     raw_outputs: list,
     certificates: list,
-    deposit: int,
 ) -> bool:
     for index, output in enumerate(outputs):
         if is_change(raw_outputs[index].address_n, raw_inputs):
@@ -63,7 +62,7 @@ async def show_tx(
             return False
 
     total_amount = sum(outcoins)
-    if not await confirm_shelley_transaction(ctx, total_amount, fee, deposit, network_name):
+    if not await confirm_shelley_transaction(ctx, total_amount, fee, network_name):
         return False
 
     return True
@@ -79,7 +78,7 @@ async def sign_tx(ctx, msg):
 
     try:
         transaction = Transaction(
-            msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl, msg.deposit, msg.certificates
+            msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl, msg.certificates
         )
 
         for i in msg.inputs:
@@ -104,7 +103,6 @@ async def sign_tx(ctx, msg):
         transaction.inputs,
         transaction.outputs,
         transaction.certificates,
-        transaction.deposit,
     ):
         raise wire.ActionCancelled("Signing cancelled")
 
@@ -120,7 +118,6 @@ class Transaction:
         protocol_magic: int,
         fee,
         ttl,
-        deposit,
         certificates: list,
     ):
         self.inputs = inputs
@@ -128,7 +125,6 @@ class Transaction:
         self.keychain = keychain
         self.fee = fee
         self.ttl = ttl
-        self.deposit = deposit
         self.certificates = certificates
 
         self.network_name = KNOWN_PROTOCOL_MAGICS.get(protocol_magic, "Unknown")
@@ -164,38 +160,34 @@ class Transaction:
         self.change_coins = change_coins
         self.change_derivation_paths = change_derivation_paths
 
+
+    def _build_witness(self, keychain, protocol_magic, tx_aux_hash, address_path):
+        _, node = derive_address_and_node(keychain, address_path)
+        message = (
+            b"\x01" + cbor.encode(protocol_magic) + b"\x58\x20" + tx_aux_hash
+        )
+        signature = ed25519.sign_ext(
+            node.private_key(), node.private_key_ext(), message
+        )
+        extended_public_key = (
+            remove_ed25519_prefix(node.public_key()) + node.chain_code()
+        )
+        return [extended_public_key, signature]
+
+
     def _build_witnesses(self, tx_aux_hash: str):
         witnesses = []
         for input in self.inputs:
-            _, node = derive_address_and_node(self.keychain, input.address_n)
-            message = (
-                b"\x01" + cbor.encode(self.protocol_magic) + b"\x58\x20" + tx_aux_hash
-            )
-            signature = ed25519.sign_ext(
-                node.private_key(), node.private_key_ext(), message
-            )
-            extended_public_key = (
-                remove_ed25519_prefix(node.public_key()) + node.chain_code()
-            )
-            witnesses.append([extended_public_key, signature])
+            witness = self._build_witness(self.keychain, self.protocol_magic, tx_aux_hash, input.address_n)
+            witnesses.append(witness)
 
         for certificate in self.certificates:
             # todo: add other certificates without witnesses + refactor
             if (certificate.type == "stake_registration"):
                 continue
 
-            _, node = derive_address_and_node(self.keychain, certificate.path)
-            message = (
-                b"\x01" + cbor.encode(self.protocol_magic) + b"\x58\x20" + tx_aux_hash
-            )
-            signature = ed25519.sign_ext(
-                node.private_key(), node.private_key_ext(), message
-            )
-            extended_public_key = (
-                remove_ed25519_prefix(node.public_key()) + node.chain_code()
-            )
-            witnesses.append([extended_public_key, signature])
-
+            witness = self._build_witness(self.keychain, self.protocol_magic, tx_aux_hash, certificate.path)
+            witnesses.append(witness)
 
         return {0: witnesses}
 
@@ -238,6 +230,9 @@ class Transaction:
 
         outputs_cbor = cbor.IndefiniteLengthArray(outputs_cbor)
 
+        # todo: certificates, withdrawals, update, metadata
+        tx_aux_cbor = {0: inputs_cbor, 1: outputs_cbor, 2: self.fee, 3: self.ttl}
+
         if len(self.certificates) > 0:
             certificates_cbor = []
             for index, certificate in enumerate(self.certificates):
@@ -247,8 +242,7 @@ class Transaction:
                 cert_type_id = self.certificate_type_to_type_id(certificate.type)
                 certificates_cbor.append([cert_type_id, public_key_hash])
 
-        # todo: certificates, withdrawals, update, metadata
-        tx_aux_cbor = {0: inputs_cbor, 1: outputs_cbor, 2: self.fee, 3: self.ttl, 4: certificates_cbor}
+            tx_aux_cbor[4] = certificates_cbor
 
         tx_hash = hashlib.blake2b(data=cbor.encode(tx_aux_cbor), outlen=32).digest()
 

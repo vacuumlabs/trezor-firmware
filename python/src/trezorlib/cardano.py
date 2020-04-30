@@ -82,7 +82,6 @@ def sign_tx_shelley(
     outputs: List[messages.CardanoTxOutputType],
     fee,
     ttl,
-    deposit,
     certificates: List[messages.CardanoTxCertificate],
     protocol_magic,
 ):
@@ -94,7 +93,6 @@ def sign_tx_shelley(
             version=messages.CardanoVersion.SHELLEY,
             fee=fee,
             ttl=ttl,
-            deposit=deposit,
             certificates=certificates,
         )
     )

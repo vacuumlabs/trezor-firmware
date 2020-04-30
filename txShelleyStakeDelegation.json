@@ -19,7 +19,6 @@
   ],
   "fee": 10000,
   "ttl": 10,
-  "deposit": 11111,
   "certificates": [
       {
         "type": "stake_delegation",
