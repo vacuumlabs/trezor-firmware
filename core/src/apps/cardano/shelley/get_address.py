@@ -1,8 +1,8 @@
 from trezor import log, wire
 from trezor.messages.CardanoAddress import CardanoAddress
 
-from apps.cardano import CURVE, seed
-from apps.cardano.address import derive_address_and_node, validate_full_path
+from apps.cardano.shelley import CURVE, seed
+from apps.cardano.shelley.address import validate_full_path, address_human
 from apps.common import paths
 from apps.common.layout import address_n_to_str, show_address, show_qr
 
@@ -13,7 +13,7 @@ async def get_address(ctx, msg):
     await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
 
     try:
-        address, _ = derive_address_and_node(keychain, msg.address_n)
+        address = address_human(keychain, msg.address_n)
     except ValueError as e:
         if __debug__:
             log.exception(__name__, e)
@@ -26,5 +26,4 @@ async def get_address(ctx, msg):
             if await show_qr(ctx, address, desc=desc):
                 break
 
-    # todo: remove "shelley"
-    return CardanoAddress(address="shelley"+address)
+    return CardanoAddress(address=address)

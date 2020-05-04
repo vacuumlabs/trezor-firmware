@@ -4,8 +4,8 @@ from trezor import log, wire
 from trezor.messages.CardanoPublicKey import CardanoPublicKey
 from trezor.messages.HDNodeType import HDNodeType
 
-from apps.cardano import CURVE, seed
-from apps.cardano.address import derive_address_and_node
+from apps.cardano.byron import CURVE, seed
+from apps.cardano.byron.address import derive_address_and_node
 from apps.common import layout, paths
 from apps.common.seed import remove_ed25519_prefix
 

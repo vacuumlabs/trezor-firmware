@@ -1,8 +1,8 @@
 from trezor import log, wire
 from trezor.messages.CardanoAddress import CardanoAddress
 
-from apps.cardano import CURVE, seed
-from apps.cardano.address import derive_address_and_node, validate_full_path
+from apps.cardano.byron import CURVE, seed
+from apps.cardano.byron.address import derive_address_and_node, validate_full_path
 from apps.common import paths
 from apps.common.layout import address_n_to_str, show_address, show_qr
 

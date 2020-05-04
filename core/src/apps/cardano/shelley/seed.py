@@ -3,7 +3,7 @@ from storage import cache
 from trezor import wire
 from trezor.crypto import bip32
 
-from apps.cardano import CURVE, SEED_NAMESPACE
+from apps.cardano.shelley import CURVE, SEED_NAMESPACE
 from apps.common import mnemonic
 from apps.common.passphrase import get as get_passphrase
 

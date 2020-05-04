@@ -1,0 +1,4 @@
+from apps.common import HARDENED
+
+CURVE = "ed25519"
+SEED_NAMESPACE = [HARDENED | 1852, HARDENED | 1815]
