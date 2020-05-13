@@ -1,9 +1,12 @@
-from trezor.crypto import bech32, hashlib
+from trezor.crypto import hashlib
 
+from trezor.messages import CardanoAddressType
 from apps.common import HARDENED
 from apps.common.seed import remove_ed25519_prefix
 from apps.cardano.shelley import CURVE
 from apps.common import paths
+from apps.cardano.shelley.bech32 import bech32_decode, bech32_encode
+from apps.cardano.shelley.utils import variable_length_encode
 
 
 def validate_full_path(path: list) -> bool:
@@ -32,22 +35,68 @@ async def validate_address_path(ctx, msg, keychain):
     await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
 
 
-def address_bytes(keychain, path: list):
-    # TODO incomplete
-    spending_node = keychain.derive(path)
-    spending_key = remove_ed25519_prefix(spending_node.public_key)  # not sure if remove_ed25519_prefix should be used
-    spending_part = hashlib.blake2b(data=spending_key, outlen=28).digest()
+def address_human(address):
+    return bech32_encode("addr", address)
 
-    staking_path = path[:3]
-    staking_path.append([2, 0])
+
+def get_spending_part(keychain, path):
+    spending_node = keychain.derive(path)
+    spending_key = remove_ed25519_prefix(spending_node.public_key())
+    return hashlib.blake2b(data=spending_key, outlen=28).digest()
+
+
+def path_to_staking_path(path):
+    return path[:3] + [2, 0]
+
+
+def get_base_address(keychain, path: list, network_id):
+    spending_part = get_spending_part(keychain, path)
+
+    staking_path = path_to_staking_path(path)
     staking_node = keychain.derive(staking_path)
-    staking_key = remove_ed25519_prefix(staking_node.public_key)  # not sure if remove_ed25519_prefix should be used
+    staking_key = remove_ed25519_prefix(staking_node.public_key())
     staking_part = hashlib.blake2b(data=staking_key, outlen=28).digest()
 
-    return spending_part + staking_part
+    address_header = get_address_header(CardanoAddressType.BASE_ADDRESS, network_id)
+    address = address_header + spending_part + staking_part
+
+    return address
 
 
-def address_human(keychain, path: list):
-    addr = address_bytes(keychain, path)
-    convertedbits = bech32.convertbits(addr, 8, 5)
-    return bech32.bech32_encode("ca", convertedbits)
+def get_pointer_address(keychain, path: list, network_id, block_index, tx_index, certificate_index):
+    spending_part = get_spending_part(keychain, path)
+
+    address_header = get_address_header(CardanoAddressType.POINTER_ADDRESS, network_id)
+    encoded_pointer = encode_pointer(block_index, tx_index, certificate_index)
+    address = address_header + spending_part + encoded_pointer
+
+    return address
+
+
+def get_enterprise_address(keychain, path: list, network_id):
+    spending_part = get_spending_part(keychain, path)
+
+    address_header = get_address_header(CardanoAddressType.ENTERPRISE_ADDRESS, network_id)
+    address = address_header + spending_part
+
+    return address
+
+
+def get_address_header(address_type, network_id):
+    # todo: GK - script and other addresses
+    if address_type == CardanoAddressType.BASE_ADDRESS:
+        header = network_id
+    elif address_type == CardanoAddressType.POINTER_ADDRESS:
+        header = (4 << 4) | network_id
+    elif address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
+        header = (6 << 4) | network_id
+
+    return bytes([header])
+
+
+def encode_pointer(block_index, tx_index, certificate_index):
+    block_index = variable_length_encode(block_index)
+    tx_index = variable_length_encode(tx_index)
+    certificate_index = variable_length_encode(certificate_index)
+
+    return bytes(block_index + tx_index + certificate_index)

@@ -1,8 +1,9 @@
 from trezor import log, wire
 from trezor.messages.CardanoAddress import CardanoAddress
+from trezor.messages import CardanoAddressType
 
 from apps.cardano.shelley import CURVE, seed
-from apps.cardano.shelley.address import validate_full_path, address_human
+from apps.cardano.shelley.address import validate_full_path, address_human, get_base_address, get_enterprise_address, get_pointer_address
 from apps.common import paths
 from apps.common.layout import address_n_to_str, show_address, show_qr
 
@@ -13,7 +14,8 @@ async def get_address(ctx, msg):
     await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
 
     try:
-        address = address_human(keychain, msg.address_n)
+        address_bytes = _get_address(keychain, msg)
+        address = address_human(address_bytes)
     except ValueError as e:
         if __debug__:
             log.exception(__name__, e)
@@ -27,3 +29,12 @@ async def get_address(ctx, msg):
                 break
 
     return CardanoAddress(address=address)
+
+
+def _get_address(keychain, msg):
+    if msg.address_type == CardanoAddressType.BASE_ADDRESS:
+        return get_base_address(keychain, msg.address_n, msg.network_id)
+    if msg.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
+        return get_enterprise_address(keychain, msg.address_n, msg.network_id)
+    if msg.address_type == CardanoAddressType.POINTER_ADDRESS:
+        return get_pointer_address(keychain, msg.address_n, msg.network_id, msg.block_index, msg.tx_index, msg.certificate_index)

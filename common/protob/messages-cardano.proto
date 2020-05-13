@@ -12,6 +12,13 @@ enum CardanoVersion {
     SHELLEY = 1;
 }
 
+enum CardanoAddressType {
+    BASE_ADDRESS = 0;
+    POINTER_ADDRESS = 1;
+    ENTERPRISE_ADDRESS = 2;
+    // todo: add other type
+}
+
 /**
  * Request: Ask device for Cardano address
  * @start
@@ -22,6 +29,11 @@ message CardanoGetAddress {
     repeated uint32 address_n = 1;  // BIP-32-style path to derive the key from master node
     optional bool show_display = 2; // optionally prompt for confirmation on trezor display
     optional CardanoVersion version = 3;
+    optional CardanoAddressType address_type = 4;
+    optional uint32 network_id = 5;
+    optional uint32 block_index = 6;
+    optional uint32 tx_index = 7;
+    optional uint32 certificate_index = 8;
 }
 
 /**
