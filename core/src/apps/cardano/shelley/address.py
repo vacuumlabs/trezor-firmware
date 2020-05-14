@@ -35,7 +35,7 @@ async def validate_address_path(ctx, msg, keychain):
     await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
 
 
-def address_human(address):
+def get_human_readable_address(address):
     return bech32_encode("addr", address)
 
 
@@ -60,7 +60,7 @@ def get_base_address(keychain, path: list, network_id):
     address_header = get_address_header(CardanoAddressType.BASE_ADDRESS, network_id)
     address = address_header + spending_part + staking_part
 
-    return address
+    return get_human_readable_address(address)
 
 
 def get_pointer_address(keychain, path: list, network_id, block_index, tx_index, certificate_index):
@@ -70,7 +70,7 @@ def get_pointer_address(keychain, path: list, network_id, block_index, tx_index,
     encoded_pointer = encode_pointer(block_index, tx_index, certificate_index)
     address = address_header + spending_part + encoded_pointer
 
-    return address
+    return get_human_readable_address(address)
 
 
 def get_enterprise_address(keychain, path: list, network_id):
@@ -79,7 +79,7 @@ def get_enterprise_address(keychain, path: list, network_id):
     address_header = get_address_header(CardanoAddressType.ENTERPRISE_ADDRESS, network_id)
     address = address_header + spending_part
 
-    return address
+    return get_human_readable_address(address)
 
 
 def get_address_header(address_type, network_id):

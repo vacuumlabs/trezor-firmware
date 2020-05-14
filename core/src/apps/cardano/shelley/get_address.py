@@ -3,7 +3,7 @@ from trezor.messages.CardanoAddress import CardanoAddress
 from trezor.messages import CardanoAddressType
 
 from apps.cardano.shelley import CURVE, seed
-from apps.cardano.shelley.address import validate_full_path, address_human, get_base_address, get_enterprise_address, get_pointer_address
+from apps.cardano.shelley.address import validate_full_path, get_base_address, get_enterprise_address, get_pointer_address
 from apps.common import paths
 from apps.common.layout import address_n_to_str, show_address, show_qr
 
@@ -14,8 +14,7 @@ async def get_address(ctx, msg):
     await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
 
     try:
-        address_bytes = _get_address(keychain, msg)
-        address = address_human(address_bytes)
+        address = _get_address(keychain, msg)
     except ValueError as e:
         if __debug__:
             log.exception(__name__, e)

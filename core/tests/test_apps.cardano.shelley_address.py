@@ -8,7 +8,6 @@ if not utils.BITCOIN_ONLY:
         get_base_address,
         get_enterprise_address,
         get_pointer_address,
-        address_human
     )
     from apps.cardano.shelley.seed import Keychain
 
@@ -33,8 +32,7 @@ class TestCardanoAddress(unittest.TestCase):
         for expected in test_vectors:
             expected_address = expected[1]
 
-            address_bytes = get_base_address(keychain, [0x80000000 | 1852, 0x80000000 | 1815, 0x80000000 | 0, 0, 0], expected[0])
-            actual_address = address_human(address_bytes)
+            actual_address = get_base_address(keychain, [0x80000000 | 1852, 0x80000000 | 1815, 0x80000000 | 0, 0, 0], expected[0])
 
             self.assertEqual(actual_address, expected_address)
     
@@ -57,12 +55,9 @@ class TestCardanoAddress(unittest.TestCase):
         for expected in test_vectors:
             expected_address = expected[1]
 
-            address_bytes = get_enterprise_address(keychain, [0x80000000 | 1852, 0x80000000 | 1815, 0x80000000 | 0, 0, 0], expected[0])
-            actual_address = address_human(address_bytes)
+            actual_address = get_enterprise_address(keychain, [0x80000000 | 1852, 0x80000000 | 1815, 0x80000000 | 0, 0, 0], expected[0])
 
             self.assertEqual(actual_address, expected_address)
-
-        self.assertEqual(actual_address, expected_address)
     
 
     def test_pointer_address(self):
@@ -83,8 +78,7 @@ class TestCardanoAddress(unittest.TestCase):
         for expected in test_vectors:
             expected_address = expected[4]
             
-            address_bytes = get_pointer_address(keychain, [0x80000000 | 1852, 0x80000000 | 1815, 0x80000000 | 0, 0, 0], expected[0], expected[1], expected[2], expected[3])
-            actual_address = address_human(address_bytes)
+            actual_address = get_pointer_address(keychain, [0x80000000 | 1852, 0x80000000 | 1815, 0x80000000 | 0, 0, 0], expected[0], expected[1], expected[2], expected[3])
 
             self.assertEqual(actual_address, expected_address)
 
