@@ -273,6 +273,7 @@ from . import BinanceOrderType
 from . import BinanceTimeInForce
 from . import ButtonRequestType
 from . import Capability
+from . import CardanoAddressType
 from . import CardanoVersion
 from . import DebugLinkShowTextStyle
 from . import DebugSwipeDirection

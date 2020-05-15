@@ -30,6 +30,31 @@ def get_address(client, address_n, show_display=False):
     )
 
 
+@expect(messages.CardanoAddress, field="address")
+def get_shelley_address(
+    client,
+    address_n,
+    show_display=False,
+    address_type=messages.CardanoAddressType.BASE_ADDRESS,
+    network=0,
+    block_index=0,
+    tx_index=0,
+    certificate_index=0,
+):
+    return client.call(
+        messages.CardanoGetAddress(
+            address_n=address_n,
+            show_display=show_display,
+            version=messages.CardanoVersion.SHELLEY,
+            address_type=address_type,
+            network_id=network,
+            block_index=block_index,
+            tx_index=tx_index,
+            certificate_index=certificate_index,
+        )
+    )
+
+
 @expect(messages.CardanoPublicKey)
 def get_public_key(client, address_n):
     return client.call(messages.CardanoGetPublicKey(address_n=address_n))

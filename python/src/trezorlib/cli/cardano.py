@@ -18,7 +18,7 @@ import json
 
 import click
 
-from .. import cardano, tools
+from .. import cardano, messages, tools
 from . import with_client
 
 PATH_HELP = "BIP-32 path to key, e.g. m/44'/1815'/0'/0/0"
@@ -63,6 +63,41 @@ def get_address(client, address, show_display):
     """Get Cardano address."""
     address_n = tools.parse_path(address)
     return cardano.get_address(client, address_n, show_display)
+
+
+@cli.command()
+@click.option("-n", "--address", required=True, help=PATH_HELP)
+@click.option("-d", "--show-display", is_flag=True)
+@click.option(
+    "-t", "--address_type", type=int, default=messages.CardanoAddressType.BASE_ADDRESS
+)
+@click.option("-N", "--network", type=int, default=0)
+@click.option("-b", "--block_index", type=int, default=0)
+@click.option("-x", "--tx_index", type=int, default=0)
+@click.option("-c", "--certificate_index", type=int, default=0)
+@with_client
+def get_shelley_address(
+    client,
+    address,
+    show_display,
+    address_type,
+    network,
+    block_index,
+    tx_index,
+    certificate_index,
+):
+    """Get Cardano Shelley address."""
+    address_n = tools.parse_path(address)
+    return cardano.get_shelley_address(
+        client,
+        address_n,
+        show_display,
+        address_type,
+        network,
+        block_index,
+        tx_index,
+        certificate_index,
+    )
 
 
 @cli.command()

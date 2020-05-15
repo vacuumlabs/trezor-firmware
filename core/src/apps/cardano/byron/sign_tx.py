@@ -7,8 +7,8 @@ from trezor.messages.CardanoSignedTx import CardanoSignedTx
 from trezor.messages.CardanoTxAck import CardanoTxAck
 from trezor.messages.CardanoTxRequest import CardanoTxRequest
 
-from apps.cardano import CURVE, seed
-from apps.cardano.address import (
+from apps.cardano.byron import CURVE, seed
+from apps.cardano.byron.address import (
     derive_address_and_node,
     is_safe_output_address,
     validate_full_path,
