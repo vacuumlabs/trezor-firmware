@@ -32,6 +32,10 @@ def validate_full_path(path: list) -> bool:
     return True
 
 
+def _validate_shelley_address_path(path: list) -> bool:
+    return path[0] == 1852 | HARDENED
+
+
 def _validate_bootstrap_address_path(path: list) -> bool:
     return path[0] == 44 | HARDENED
 
@@ -56,6 +60,9 @@ def path_to_staking_path(path):
 
 
 def get_base_address(keychain, path: list, network_id):
+    if not _validate_shelley_address_path(path):
+        raise wire.DataError("Invalid path for base address")
+
     spending_part = get_spending_part(keychain, path)
 
     staking_path = path_to_staking_path(path)
@@ -70,6 +77,9 @@ def get_base_address(keychain, path: list, network_id):
 
 
 def get_pointer_address(keychain, path: list, network_id, block_index, tx_index, certificate_index):
+    if not _validate_shelley_address_path(path):
+        raise wire.DataError("Invalid path for pointer address")
+
     spending_part = get_spending_part(keychain, path)
 
     address_header = get_address_header(CardanoAddressType.POINTER_ADDRESS, network_id)
@@ -80,6 +90,9 @@ def get_pointer_address(keychain, path: list, network_id, block_index, tx_index,
 
 
 def get_enterprise_address(keychain, path: list, network_id):
+    if not _validate_shelley_address_path(path):
+        raise wire.DataError("Invalid path for enterprise address")
+
     spending_part = get_spending_part(keychain, path)
 
     address_header = get_address_header(CardanoAddressType.ENTERPRISE_ADDRESS, network_id)
