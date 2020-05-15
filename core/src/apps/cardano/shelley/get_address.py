@@ -3,13 +3,13 @@ from trezor.messages.CardanoAddress import CardanoAddress
 from trezor.messages import CardanoAddressType
 
 from apps.cardano.shelley import CURVE, seed
-from apps.cardano.shelley.address import validate_full_path, get_base_address, get_enterprise_address, get_pointer_address
+from apps.cardano.shelley.address import validate_full_path, get_base_address, get_enterprise_address, get_pointer_address, get_bootstrap_address
 from apps.common import paths
 from apps.common.layout import address_n_to_str, show_address, show_qr
 
 
 async def get_address(ctx, msg):
-    keychain = await seed.get_keychain(ctx)
+    keychain = await seed.get_keychain(ctx, msg.address_n[:2])
 
     await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
 
@@ -37,3 +37,5 @@ def _get_address(keychain, msg):
         return get_enterprise_address(keychain, msg.address_n, msg.network_id)
     if msg.address_type == CardanoAddressType.POINTER_ADDRESS:
         return get_pointer_address(keychain, msg.address_n, msg.network_id, msg.block_index, msg.tx_index, msg.certificate_index)
+    if msg.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
+        return get_bootstrap_address(keychain, msg.address_n)

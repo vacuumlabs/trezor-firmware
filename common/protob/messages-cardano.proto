@@ -16,6 +16,7 @@ enum CardanoAddressType {
     BASE_ADDRESS = 0;
     POINTER_ADDRESS = 1;
     ENTERPRISE_ADDRESS = 2;
+    BOOTSTRAP_ADDRESS = 3;
     // todo: add other type
 }
 

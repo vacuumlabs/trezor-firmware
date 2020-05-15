@@ -12,7 +12,7 @@ from apps.common.seed import remove_ed25519_prefix
 
 async def get_public_key(ctx, msg):
     # TODO is this what we want for public staking keys as well?
-    keychain = await seed.get_keychain(ctx)
+    keychain = await seed.get_keychain(ctx, msg.address_n[:2])
 
     await paths.validate_path(
         ctx,

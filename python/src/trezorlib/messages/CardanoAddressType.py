@@ -6,3 +6,4 @@ if False:
 BASE_ADDRESS = 0  # type: Literal[0]
 POINTER_ADDRESS = 1  # type: Literal[1]
 ENTERPRISE_ADDRESS = 2  # type: Literal[2]
+BOOTSTRAP_ADDRESS = 3  # type: Literal[3]
