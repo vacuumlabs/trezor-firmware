@@ -39,7 +39,7 @@ def get_shelley_address(
     network=0,
     block_index=0,
     tx_index=0,
-    certificate_index=0
+    certificate_index=0,
 ):
     return client.call(
         messages.CardanoGetAddress(
@@ -50,7 +50,8 @@ def get_shelley_address(
             network_id=network,
             block_index=block_index,
             tx_index=tx_index,
-            certificate_index=certificate_index)
+            certificate_index=certificate_index,
+        )
     )
 
 

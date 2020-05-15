@@ -1,14 +1,13 @@
-from trezor.crypto import hashlib
-
-from trezor.messages import CardanoAddressType
 from trezor import wire
-from apps.common import HARDENED
-from apps.common.seed import remove_ed25519_prefix
+from trezor.crypto import hashlib
+from trezor.messages import CardanoAddressType
+
 from apps.cardano.shelley import CURVE
-from apps.common import paths
-from apps.cardano.shelley.bech32 import bech32_decode, bech32_encode
-from apps.cardano.shelley.utils import variable_length_encode
+from apps.cardano.shelley.bech32 import bech32_encode
 from apps.cardano.shelley.bootstrap_address import derive_address_and_node
+from apps.cardano.shelley.utils import variable_length_encode
+from apps.common import HARDENED, paths
+from apps.common.seed import remove_ed25519_prefix
 
 
 def validate_full_path(path: list) -> bool:
@@ -23,7 +22,9 @@ def validate_full_path(path: list) -> bool:
         return False
     if path[1] != 1815 | HARDENED:
         return False
-    if path[2] < HARDENED or path[2] > 20 | HARDENED:  # TODO do we still limit it to 20 accounts?
+    if (
+        path[2] < HARDENED or path[2] > 20 | HARDENED
+    ):  # TODO do we still limit it to 20 accounts?
         return False
     if path[3] != 0 and path[3] != 1:
         return False
@@ -58,7 +59,9 @@ def get_base_address(keychain, path: list, network_id):
     return get_human_readable_address(address)
 
 
-def get_pointer_address(keychain, path: list, network_id, block_index, tx_index, certificate_index):
+def get_pointer_address(
+    keychain, path: list, network_id, block_index, tx_index, certificate_index
+):
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for pointer address")
 
@@ -77,7 +80,9 @@ def get_enterprise_address(keychain, path: list, network_id):
 
     spending_part = _get_spending_part(keychain, path)
 
-    address_header = _get_address_header(CardanoAddressType.ENTERPRISE_ADDRESS, network_id)
+    address_header = _get_address_header(
+        CardanoAddressType.ENTERPRISE_ADDRESS, network_id
+    )
     address = address_header + spending_part
 
     return get_human_readable_address(address)

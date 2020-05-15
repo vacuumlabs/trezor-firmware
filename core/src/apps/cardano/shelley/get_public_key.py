@@ -1,4 +1,3 @@
-from apps.common.paths import is_hardened
 from ubinascii import hexlify
 
 from trezor import log, wire
@@ -6,7 +5,8 @@ from trezor.messages.CardanoPublicKey import CardanoPublicKey
 from trezor.messages.HDNodeType import HDNodeType
 
 from apps.cardano.shelley import CURVE, seed
-from apps.common import layout, paths, HARDENED
+from apps.common import HARDENED, layout, paths
+from apps.common.paths import is_hardened
 from apps.common.seed import remove_ed25519_prefix
 
 

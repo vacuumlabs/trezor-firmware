@@ -1,6 +1,6 @@
 from common import *
 
-from apps.cardano.shelley.bech32 import bech32_encode, bech32_decode
+from apps.cardano.shelley.bech32 import bech32_decode, bech32_encode
 
 
 # todo: GK - other tests? Encode, Decode separately

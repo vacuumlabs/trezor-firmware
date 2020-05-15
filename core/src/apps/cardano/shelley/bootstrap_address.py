@@ -1,7 +1,7 @@
 from trezor import log
 from trezor.crypto import base58, crc, hashlib
 
-from apps.common import HARDENED, cbor
+from apps.common import cbor
 from apps.common.seed import remove_ed25519_prefix
 
 

@@ -1,8 +1,8 @@
 from common import *
-from apps.common import seed
-
-from apps.common import HARDENED
 from trezor.crypto import bip32, slip39
+
+from apps.common import HARDENED, seed
+
 if not utils.BITCOIN_ONLY:
     from apps.cardano.byron.address import (
         _get_address_root,

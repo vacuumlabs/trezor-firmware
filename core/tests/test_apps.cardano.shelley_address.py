@@ -1,9 +1,9 @@
 from common import *
-from apps.common import seed
-
-from apps.common import HARDENED
 from trezor import wire
 from trezor.crypto import bip32, slip39
+
+from apps.common import HARDENED, seed
+
 if not utils.BITCOIN_ONLY:
     from apps.cardano.shelley.address import (
         get_base_address,
