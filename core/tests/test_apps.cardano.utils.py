@@ -5,7 +5,7 @@ if not utils.BITCOIN_ONLY:
 
 
 @unittest.skipUnless(not utils.BITCOIN_ONLY, "altcoin")
-class TestCardanoUtils(unittest.TestCase):    
+class TestCardanoUtils(unittest.TestCase):
     def test_variable_length_encode(self):
         test_vectors = [
             (0, bytes([0x00])), 
@@ -19,9 +19,14 @@ class TestCardanoUtils(unittest.TestCase):
             (16384, bytes([0x81, 0x80, 0x00])),
         ]
 
-        for expected in test_vectors:
-            actual = variable_length_encode(expected[0])
-            self.assertEqual(actual, expected[1])
+        for number, expected in test_vectors:
+            actual = variable_length_encode(number)
+            self.assertEqual(actual, expected)
+
+
+    def test_variable_length_encode_negative_number(self):
+        with self.assertRaises(ValueError):
+            variable_length_encode(-1)
 
 
 if __name__ == '__main__':

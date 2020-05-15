@@ -7,7 +7,7 @@ from apps.cardano.shelley.bech32 import bech32_encode, bech32_decode
 @unittest.skipUnless(not utils.BITCOIN_ONLY, "altcoin")
 class TestCardanoBech32(unittest.TestCase):
     def test_decode_and_encode(self):
-        valid_bechs = [
+        expected_bechs = [
             # human readable part, bech32
             ("a", "a12uel5l"),
             ("an83characterlonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio",
@@ -17,14 +17,11 @@ class TestCardanoBech32(unittest.TestCase):
             ("split", "split1checkupstagehandshakeupstreamerranterredcaperred2y9e3w"),
         ]
 
-        for valid_bech_tuple in valid_bechs:
-            valid_hrp = valid_bech_tuple[0]
-            valid_bech = valid_bech_tuple[1]
+        for expected_human_readable_part, expected_bech in expected_bechs:
+            decoded = bech32_decode(expected_human_readable_part, expected_bech)
+            actual_bech = bech32_encode(expected_human_readable_part, decoded)
 
-            decoded = bech32_decode(valid_hrp, valid_bech)
-            encoded = bech32_encode(valid_hrp, decoded)
-
-            self.assertEqual(encoded, valid_bech)
+            self.assertEqual(actual_bech, expected_bech)
 
 
 if __name__ == '__main__':
