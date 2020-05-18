@@ -1,12 +1,54 @@
-from trezor.messages import CardanoVersion
-import apps.cardano.byron.get_address as byron
-import apps.cardano.shelley.get_address as shelley
+from trezor import log, wire
+from trezor.messages import CardanoAddressType
+from trezor.messages.CardanoAddress import CardanoAddress
+
+from apps.cardano import CURVE, seed
+from apps.cardano.address import (
+    get_base_address,
+    get_bootstrap_address,
+    get_enterprise_address,
+    get_pointer_address,
+    validate_full_path,
+)
+from apps.common import paths
+from apps.common.layout import address_n_to_str, show_address, show_qr
 
 
 async def get_address(ctx, msg):
-    if msg.version is None or msg.version == CardanoVersion.BYRON:
-        return await byron.get_address(ctx, msg)
-    elif msg.version == CardanoVersion.SHELLEY:
-        return await shelley.get_address(ctx, msg)
+    keychain = await seed.get_keychain(ctx, msg.address_n[:2])
 
-    raise ValueError("Unsupported Cardano version '%s'" % msg.version)
+    await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
+
+    try:
+        address = _get_address(keychain, msg)
+    except ValueError as e:
+        if __debug__:
+            log.exception(__name__, e)
+        raise wire.ProcessError("Deriving address failed")
+    if msg.show_display:
+        desc = address_n_to_str(msg.address_n)
+        while True:
+            if await show_address(ctx, address, desc=desc):
+                break
+            if await show_qr(ctx, address, desc=desc):
+                break
+
+    return CardanoAddress(address=address)
+
+
+def _get_address(keychain, msg):
+    if msg.address_type == CardanoAddressType.BASE_ADDRESS:
+        return get_base_address(keychain, msg.address_n, msg.network_id)
+    if msg.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
+        return get_enterprise_address(keychain, msg.address_n, msg.network_id)
+    if msg.address_type == CardanoAddressType.POINTER_ADDRESS:
+        return get_pointer_address(
+            keychain,
+            msg.address_n,
+            msg.network_id,
+            msg.block_index,
+            msg.tx_index,
+            msg.certificate_index,
+        )
+    if msg.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
+        return get_bootstrap_address(keychain, msg.address_n)

@@ -1,5 +1,12 @@
 from trezor import wire
 from trezor.messages import MessageType
+from apps.common import HARDENED
+
+
+CURVE = "ed25519"
+
+BYRON_SEED_NAMESPACE = [44 | HARDENED, 1815 | HARDENED]
+SHELLEY_SEED_NAMESPACE = [1852 | HARDENED, 1815 | HARDENED]
 
 
 def boot() -> None:

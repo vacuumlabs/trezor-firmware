@@ -1,7 +1,7 @@
 from common import *
 
 if not utils.BITCOIN_ONLY:
-    from apps.cardano.shelley.utils import variable_length_encode
+    from apps.cardano.utils import variable_length_encode
 
 
 @unittest.skipUnless(not utils.BITCOIN_ONLY, "altcoin")

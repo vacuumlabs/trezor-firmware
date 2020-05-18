@@ -24,19 +24,12 @@ REQUIRED_FIELDS_INPUT = ("path", "prev_hash", "prev_index", "type")
 
 
 @expect(messages.CardanoAddress, field="address")
-def get_address(client, address_n, show_display=False):
-    return client.call(
-        messages.CardanoGetAddress(address_n=address_n, show_display=show_display)
-    )
-
-
-@expect(messages.CardanoAddress, field="address")
-def get_shelley_address(
+def get_address(
     client,
     address_n,
     show_display=False,
     address_type=messages.CardanoAddressType.BASE_ADDRESS,
-    network=0,
+    network_id=0,
     block_index=0,
     tx_index=0,
     certificate_index=0,
@@ -45,9 +38,8 @@ def get_shelley_address(
         messages.CardanoGetAddress(
             address_n=address_n,
             show_display=show_display,
-            version=messages.CardanoVersion.SHELLEY,
             address_type=address_type,
-            network_id=network,
+            network_id=network_id,
             block_index=block_index,
             tx_index=tx_index,
             certificate_index=certificate_index,
