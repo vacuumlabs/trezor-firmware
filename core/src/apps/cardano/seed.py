@@ -7,9 +7,6 @@ from apps.cardano import BYRON_SEED_NAMESPACE, CURVE, SHELLEY_SEED_NAMESPACE
 from apps.common import mnemonic
 from apps.common.passphrase import get as get_passphrase
 
-BYRON_ROOT_DICT_KEY = 0
-SHELLEY_ROOT_DICT_KEY = 1
-
 
 class Keychain:
     def __init__(self, path: list, root: bip32.HDNode):
@@ -65,32 +62,20 @@ async def get_keychain(ctx: wire.Context, namespace) -> Keychain:
     return keychain
 
 
-def _get_root_dict_key(namespace):
+def _get_root_cache_key(namespace):
     if namespace == BYRON_SEED_NAMESPACE:
-        return BYRON_ROOT_DICT_KEY
-    if namespace == SHELLEY_SEED_NAMESPACE:
-        return SHELLEY_ROOT_DICT_KEY
+        return cache.APP_CARDANO_BYRON_ROOT
+    elif namespace == SHELLEY_SEED_NAMESPACE:
+        return cache.APP_CARDANO_SHELLEY_ROOT
 
     raise wire.DataError("Invalid namespace")
 
 
 def _get_root_from_cache(namespace):
-    roots = cache.get(cache.APP_CARDANO_ROOT)
-
-    if roots is None:
-        roots = {BYRON_ROOT_DICT_KEY: None, SHELLEY_ROOT_DICT_KEY: None}
-
-    root_dict_key = _get_root_dict_key(namespace)
-    return roots[root_dict_key]
+    cache_key = _get_root_cache_key(namespace)
+    return cache.get(cache_key)
 
 
 def _set_root_in_cache(namespace, root):
-    roots = cache.get(cache.APP_CARDANO_ROOT)
-
-    root_dict_key = _get_root_dict_key(namespace)
-
-    if roots is None:
-        roots = {BYRON_ROOT_DICT_KEY: None, SHELLEY_ROOT_DICT_KEY: None}
-
-    roots[root_dict_key] = root
-    storage.cache.set(cache.APP_CARDANO_ROOT, roots)
+    cache_key = _get_root_cache_key(namespace)
+    cache.set(cache_key, root)
