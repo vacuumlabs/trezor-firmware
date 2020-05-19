@@ -162,6 +162,16 @@ class TestCardanoAddress(unittest.TestCase):
             [HARDENED | 44, HARDENED | 1815, HARDENED | 0],
             [HARDENED | 44, HARDENED | 1815, HARDENED | 1815, 1, 1],
             [HARDENED | 44, HARDENED | 1815, HARDENED | 1815, 0, 0],  # a too large
+            [HARDENED | 1852],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815],            [HARDENED | 43, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815],
+            [HARDENED | 1852, HARDENED | 1816, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815],
+            [HARDENED | 1851, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815],
+            [HARDENED | 1852, HARDENED | 1815, 0],
+            [HARDENED | 1852, HARDENED | 1815, 0, 0],
+            [HARDENED | 1852, HARDENED | 1815],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 0],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 1815, 1, 1],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 1815, 0, 0],  # a too large
         ]
         correct_derivation_paths = [
             [HARDENED | 44, HARDENED | 1815, HARDENED | 0, 0, 1],
@@ -169,6 +179,11 @@ class TestCardanoAddress(unittest.TestCase):
             [HARDENED | 44, HARDENED | 1815, HARDENED | 0, 0, 9],
             [HARDENED | 44, HARDENED | 1815, HARDENED | 0, 1, 1],
             [HARDENED | 44, HARDENED | 1815, HARDENED | 0, 1, 9],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 0, 0, 1],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 9, 0, 4],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 0, 0, 9],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 0, 1, 1],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 0, 1, 9],
         ]
 
         for path in incorrect_derivation_paths:
