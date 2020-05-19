@@ -394,6 +394,26 @@ class TestCardanoAddress(unittest.TestCase):
 
             self.assertEqual(actual_address, expected_address)
 
+
+    def test_shelley_address_with_byron_namespace(self):
+        mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
+        passphrase = ""
+        node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
+        node.derive_cardano(0x80000000 | 44)
+        node.derive_cardano(0x80000000 | 1815)
+
+        keychain = Keychain([0x80000000 | 44, 0x80000000 | 1815], node)
+
+        with self.assertRaises(wire.DataError):
+            get_base_address(keychain, [0x80000000 | 44, 0x80000000 | 1815, 0x80000000, 0, 0], 0)
+
+        with self.assertRaises(wire.DataError):
+            get_pointer_address(keychain, [0x80000000 | 44, 0x80000000 | 1815, 0x80000000, 0, 0], 0, 0, 0, 0)
+
+        with self.assertRaises(wire.DataError):
+            get_enterprise_address(keychain, [0x80000000 | 44, 0x80000000 | 1815, 0x80000000, 0, 0], 0)
+
+
     def test_bootstrap_address(self):
         mnemonic = "all all all all all all all all all all all all"
         passphrase = ""
