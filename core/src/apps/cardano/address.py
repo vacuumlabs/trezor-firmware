@@ -2,10 +2,10 @@ from trezor import wire
 from trezor.crypto import hashlib
 from trezor.messages import CardanoAddressType
 
-from apps.cardano.shelley import CURVE
-from apps.cardano.shelley.bech32 import bech32_encode
-from apps.cardano.shelley.bootstrap_address import derive_address_and_node
-from apps.cardano.shelley.utils import variable_length_encode
+from apps.cardano import CURVE
+from apps.cardano.bech32 import bech32_encode
+from apps.cardano.bootstrap_address import derive_address_and_node
+from apps.cardano.utils import variable_length_encode
 from apps.common import HARDENED, paths
 from apps.common.seed import remove_ed25519_prefix
 
@@ -92,7 +92,8 @@ def get_bootstrap_address(keychain, path: list):
     if not _validate_bootstrap_address_path(path):
         raise wire.DataError("Invalid path for bootstrap address")
 
-    return derive_address_and_node(keychain, path)
+    address, _ = derive_address_and_node(keychain, path)
+    return address
 
 
 def _validate_shelley_address_path(path: list) -> bool:

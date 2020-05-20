@@ -16,6 +16,7 @@
 
 import pytest
 
+from trezorlib.messages import CardanoAddressType
 from trezorlib.cardano import get_address
 from trezorlib.tools import parse_path
 
@@ -49,5 +50,7 @@ def test_cardano_get_address(client, path, expected_address):
     assert client.features.passphrase_protection is True
     client.use_passphrase("TREZOR")
 
-    address = get_address(client, parse_path(path))
+    address = get_address(
+        client, parse_path(path), address_type=CardanoAddressType.BOOTSTRAP_ADDRESS
+    )
     assert address == expected_address

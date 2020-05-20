@@ -9,7 +9,6 @@ if __debug__:
     try:
         from typing import Dict, List  # noqa: F401
         from typing_extensions import Literal  # noqa: F401
-        EnumTypeCardanoVersion = Literal[0, 1]
     except ImportError:
         pass
 
@@ -23,13 +22,11 @@ class CardanoSignTx(p.MessageType):
         outputs: List[CardanoTxOutputType] = None,
         transactions_count: int = None,
         protocol_magic: int = None,
-        version: EnumTypeCardanoVersion = None,
     ) -> None:
         self.inputs = inputs if inputs is not None else []
         self.outputs = outputs if outputs is not None else []
         self.transactions_count = transactions_count
         self.protocol_magic = protocol_magic
-        self.version = version
 
     @classmethod
     def get_fields(cls) -> Dict:
@@ -38,5 +35,4 @@ class CardanoSignTx(p.MessageType):
             2: ('outputs', CardanoTxOutputType, p.FLAG_REPEATED),
             3: ('transactions_count', p.UVarintType, 0),
             5: ('protocol_magic', p.UVarintType, 0),
-            6: ('version', p.EnumType("CardanoVersion", (0, 1)), 0),
         }

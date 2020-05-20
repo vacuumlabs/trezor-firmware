@@ -6,7 +6,6 @@ if __debug__:
     try:
         from typing import Dict, List  # noqa: F401
         from typing_extensions import Literal  # noqa: F401
-        EnumTypeCardanoVersion = Literal[0, 1]
         EnumTypeCardanoAddressType = Literal[0, 1, 2, 3]
     except ImportError:
         pass
@@ -19,7 +18,6 @@ class CardanoGetAddress(p.MessageType):
         self,
         address_n: List[int] = None,
         show_display: bool = None,
-        version: EnumTypeCardanoVersion = None,
         address_type: EnumTypeCardanoAddressType = None,
         network_id: int = None,
         block_index: int = None,
@@ -28,7 +26,6 @@ class CardanoGetAddress(p.MessageType):
     ) -> None:
         self.address_n = address_n if address_n is not None else []
         self.show_display = show_display
-        self.version = version
         self.address_type = address_type
         self.network_id = network_id
         self.block_index = block_index
@@ -40,10 +37,9 @@ class CardanoGetAddress(p.MessageType):
         return {
             1: ('address_n', p.UVarintType, p.FLAG_REPEATED),
             2: ('show_display', p.BoolType, 0),
-            3: ('version', p.EnumType("CardanoVersion", (0, 1)), 0),
-            4: ('address_type', p.EnumType("CardanoAddressType", (0, 1, 2, 3)), 0),
-            5: ('network_id', p.UVarintType, 0),
-            6: ('block_index', p.UVarintType, 0),
-            7: ('tx_index', p.UVarintType, 0),
-            8: ('certificate_index', p.UVarintType, 0),
+            3: ('address_type', p.EnumType("CardanoAddressType", (0, 1, 2, 3)), 0),
+            4: ('network_id', p.UVarintType, 0),
+            5: ('block_index', p.UVarintType, 0),
+            6: ('tx_index', p.UVarintType, 0),
+            7: ('certificate_index', p.UVarintType, 0),
         }

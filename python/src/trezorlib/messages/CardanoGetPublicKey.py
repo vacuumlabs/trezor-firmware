@@ -6,7 +6,6 @@ if __debug__:
     try:
         from typing import Dict, List  # noqa: F401
         from typing_extensions import Literal  # noqa: F401
-        EnumTypeCardanoVersion = Literal[0, 1]
     except ImportError:
         pass
 
@@ -18,16 +17,13 @@ class CardanoGetPublicKey(p.MessageType):
         self,
         address_n: List[int] = None,
         show_display: bool = None,
-        version: EnumTypeCardanoVersion = None,
     ) -> None:
         self.address_n = address_n if address_n is not None else []
         self.show_display = show_display
-        self.version = version
 
     @classmethod
     def get_fields(cls) -> Dict:
         return {
             1: ('address_n', p.UVarintType, p.FLAG_REPEATED),
             2: ('show_display', p.BoolType, 0),
-            3: ('version', p.EnumType("CardanoVersion", (0, 1)), 0),
         }
