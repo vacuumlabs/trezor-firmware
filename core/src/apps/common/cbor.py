@@ -239,7 +239,7 @@ class Set:
         self.raise_if_duplicates(array)
         self.array = array
 
-    def raise_if_duplicates(self, array):
+    def raise_if_duplicates(self, array: List[Value]) -> None:
         for i in range(0, len(array)):
             for j in range(i + 1, len(array)):
                 if i == j:

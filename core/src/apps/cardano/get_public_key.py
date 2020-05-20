@@ -9,8 +9,13 @@ from apps.common import HARDENED, layout, paths
 from apps.common.paths import is_hardened
 from apps.common.seed import remove_ed25519_prefix
 
+if False:
+    from trezor.messages.CardanoGetPublicKey import CardanoGetPublicKey
 
-async def get_public_key(ctx, msg):
+
+async def get_public_key(
+    ctx: wire.Context, msg: CardanoGetPublicKey
+) -> CardanoPublicKey:
     # TODO is this what we want for public staking keys as well?
     keychain = await seed.get_keychain(ctx, msg.address_n[:2])
 
@@ -35,7 +40,7 @@ async def get_public_key(ctx, msg):
     return key
 
 
-def _get_public_key(keychain, derivation_path: list):
+def _get_public_key(keychain: seed.Keychain, derivation_path: list) -> CardanoPublicKey:
     node = keychain.derive(derivation_path)
 
     public_key = hexlify(remove_ed25519_prefix(node.public_key())).decode()

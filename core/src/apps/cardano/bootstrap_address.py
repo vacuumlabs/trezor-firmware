@@ -4,6 +4,11 @@ from trezor.crypto import base58, crc, hashlib
 from apps.common import cbor
 from apps.common.seed import remove_ed25519_prefix
 
+if False:
+    from trezor.crypto import bip32
+    from typing import Tuple, Dict
+    from apps.cardano import seed
+
 """
 This is the legacy implementation of Byron addresses (called
 bootstrap addresses in Shelley). Bootstrap addresses should
@@ -13,7 +18,7 @@ Byron addresses.
 """
 
 
-def _encode_address_raw(address_data_encoded):
+def _encode_address_raw(address_data_encoded: bytes) -> str:
     return base58.encode(
         cbor.encode(
             [cbor.Tagged(24, address_data_encoded), crc.crc32(address_data_encoded)]
@@ -21,7 +26,9 @@ def _encode_address_raw(address_data_encoded):
     )
 
 
-def derive_address_and_node(keychain, path: list):
+def derive_address_and_node(
+    keychain: seed.Keychain, path: list
+) -> Tuple[str, bip32.Node]:
     node = keychain.derive(path)
 
     address_payload = None
@@ -35,7 +42,7 @@ def derive_address_and_node(keychain, path: list):
     return (_encode_address_raw(address_data_encoded), node)
 
 
-def is_safe_output_address(address) -> bool:
+def is_safe_output_address(address: str) -> bool:
     """
     Determines whether it is safe to include the address as-is as
     a tx output, preventing unintended side effects (e.g. CBOR injection)
@@ -59,14 +66,14 @@ def is_safe_output_address(address) -> bool:
     return _encode_address_raw(address_data_encoded) == address
 
 
-def _address_hash(data) -> bytes:
+def _address_hash(data: list) -> bytes:
     data = cbor.encode(data)
     data = hashlib.sha3_256(data).digest()
     res = hashlib.blake2b(data=data, outlen=28).digest()
     return res
 
 
-def _get_address_root(node, payload):
+def _get_address_root(node: bip32.Node, payload: None) -> bytes:
     extpubkey = remove_ed25519_prefix(node.public_key()) + node.chain_code()
     if payload:
         payload = {1: cbor.encode(payload)}

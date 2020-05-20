@@ -8,12 +8,14 @@ from trezor.utils import chunks
 
 from apps.common.confirm import confirm, hold_to_confirm
 
+if False:
+    from trezor import wire
 
-def format_coin_amount(amount):
+def format_coin_amount(amount: int) -> str:
     return "%s %s" % (format_amount(amount, 6), "ADA")
 
 
-async def confirm_sending(ctx, amount, to):
+async def confirm_sending(ctx: wire.Context, amount: int, to: str) -> bool:
     to_lines = list(chunks(to, 17))
 
     t1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
@@ -35,7 +37,7 @@ async def confirm_sending(ctx, amount, to):
     return await confirm(ctx, Paginated(pages))
 
 
-async def confirm_transaction(ctx, amount, fee, network_name):
+async def confirm_transaction(ctx: wire.Context, amount: int, fee: int, network_name: str) -> bool:
     t1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     t1.normal("Total amount:")
     t1.bold(format_coin_amount(amount))

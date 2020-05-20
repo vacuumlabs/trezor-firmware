@@ -13,7 +13,7 @@ class Keychain:
         self.path = path
         self.root = root
 
-    def validate_path(self, checked_path: list, checked_curve: str):
+    def validate_path(self, checked_path: list, checked_curve: str) -> None:
         if checked_curve != CURVE:
             raise wire.DataError("Forbidden key path")
         if (
@@ -35,7 +35,7 @@ class Keychain:
         return node
 
 
-async def get_keychain(ctx: wire.Context, namespace) -> Keychain:
+async def get_keychain(ctx: wire.Context, namespace: list) -> Keychain:
     root = _get_root_from_cache(namespace)
 
     if not storage.is_initialized():
@@ -62,7 +62,7 @@ async def get_keychain(ctx: wire.Context, namespace) -> Keychain:
     return keychain
 
 
-def _get_root_cache_key(namespace):
+def _get_root_cache_key(namespace: list) -> int:
     if namespace == BYRON_SEED_NAMESPACE:
         return cache.APP_CARDANO_BYRON_ROOT
     elif namespace == SHELLEY_SEED_NAMESPACE:
@@ -71,11 +71,11 @@ def _get_root_cache_key(namespace):
     raise wire.DataError("Invalid namespace")
 
 
-def _get_root_from_cache(namespace):
+def _get_root_from_cache(namespace: list) -> bip32.HDNode:
     cache_key = _get_root_cache_key(namespace)
     return cache.get(cache_key)
 
 
-def _set_root_in_cache(namespace, root):
+def _set_root_in_cache(namespace: list, root: bip32.HDNode) -> None:
     cache_key = _get_root_cache_key(namespace)
     cache.set(cache_key, root)
