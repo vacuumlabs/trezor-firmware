@@ -2,7 +2,7 @@ from trezor import wire
 from trezor.crypto import hashlib
 from trezor.messages import CardanoAddressType
 
-from apps.cardano import CURVE
+from apps.cardano import BYRON_PURPOSE, CURVE, SHELLEY_PURPOSE
 from apps.cardano.bech32 import bech32_encode
 from apps.cardano.bootstrap_address import derive_address_and_node
 from apps.cardano.utils import variable_length_encode
@@ -22,7 +22,7 @@ def validate_full_path(path: list) -> bool:
     """
     if len(path) != 5:
         return False
-    if path[0] != 44 | HARDENED and path[0] != 1852 | HARDENED:
+    if path[0] != BYRON_PURPOSE and path[0] != SHELLEY_PURPOSE:
         return False
     if path[1] != 1815 | HARDENED:
         return False
@@ -106,11 +106,11 @@ def get_bootstrap_address(keychain: seed.Keychain, path: list) -> str:
 
 
 def _validate_shelley_address_path(path: list) -> bool:
-    return path[0] == 1852 | HARDENED
+    return path[0] == SHELLEY_PURPOSE
 
 
 def _validate_bootstrap_address_path(path: list) -> bool:
-    return path[0] == 44 | HARDENED
+    return path[0] == BYRON_PURPOSE
 
 
 def _get_spending_part(keychain: seed.Keychain, path: list) -> bytes:
