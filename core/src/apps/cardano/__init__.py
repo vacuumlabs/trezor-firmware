@@ -1,12 +1,17 @@
+from micropython import const
+
 from trezor import wire
 from trezor.messages import MessageType
-from apps.common import HARDENED
 
+from apps.common import HARDENED
 
 CURVE = "ed25519"
 
-BYRON_SEED_NAMESPACE = [44 | HARDENED, 1815 | HARDENED]
-SHELLEY_SEED_NAMESPACE = [1852 | HARDENED, 1815 | HARDENED]
+BYRON_PURPOSE = const(44 | HARDENED)
+SHELLEY_PURPOSE = const(1852 | HARDENED)
+
+BYRON_SEED_NAMESPACE = [BYRON_PURPOSE, 1815 | HARDENED]
+SHELLEY_SEED_NAMESPACE = [SHELLEY_PURPOSE, 1815 | HARDENED]
 
 
 def boot() -> None:
