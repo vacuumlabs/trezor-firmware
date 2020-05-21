@@ -4,7 +4,7 @@ from trezor import log, wire
 from trezor.messages.CardanoPublicKey import CardanoPublicKey
 from trezor.messages.HDNodeType import HDNodeType
 
-from apps.cardano import CURVE, seed
+from apps.cardano import BYRON_PURPOSE, CURVE, SHELLEY_PURPOSE, seed
 from apps.common import HARDENED, layout, paths
 from apps.common.paths import is_hardened
 from apps.common.seed import remove_ed25519_prefix
@@ -64,13 +64,13 @@ def _validate_path_for_get_public_key(path: list, slip44_id: int) -> bool:
     The path is allowed to have more than three items, but all the following
     items have to be non-hardened.
 
-    Copied from apps.common.paths and modified to also use 1852, not only 44.
+    Copied from apps.common.paths and modified to also check for
+    SHELLEY_PURPOSE (1852) not only BYRON_PURPOSE (44).
     """
     length = len(path)
     if length < 3 or length > 5:
         return False
-    # todo - gk: constants
-    if path[0] != 44 | HARDENED and path[0] != 1852 | HARDENED:
+    if path[0] != BYRON_PURPOSE and path[0] != SHELLEY_PURPOSE:
         return False
     if path[1] != slip44_id | HARDENED:
         return False
