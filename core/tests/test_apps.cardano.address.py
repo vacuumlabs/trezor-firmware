@@ -162,6 +162,16 @@ class TestCardanoAddress(unittest.TestCase):
             [HARDENED | 44, HARDENED | 1815, HARDENED | 0],
             [HARDENED | 44, HARDENED | 1815, HARDENED | 1815, 1, 1],
             [HARDENED | 44, HARDENED | 1815, HARDENED | 1815, 0, 0],  # a too large
+            [HARDENED | 1852],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815],            [HARDENED | 43, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815],
+            [HARDENED | 1852, HARDENED | 1816, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815],
+            [HARDENED | 1851, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815, HARDENED | 1815],
+            [HARDENED | 1852, HARDENED | 1815, 0],
+            [HARDENED | 1852, HARDENED | 1815, 0, 0],
+            [HARDENED | 1852, HARDENED | 1815],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 0],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 1815, 1, 1],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 1815, 0, 0],  # a too large
         ]
         correct_derivation_paths = [
             [HARDENED | 44, HARDENED | 1815, HARDENED | 0, 0, 1],
@@ -169,6 +179,11 @@ class TestCardanoAddress(unittest.TestCase):
             [HARDENED | 44, HARDENED | 1815, HARDENED | 0, 0, 9],
             [HARDENED | 44, HARDENED | 1815, HARDENED | 0, 1, 1],
             [HARDENED | 44, HARDENED | 1815, HARDENED | 0, 1, 9],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 0, 0, 1],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 9, 0, 4],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 0, 0, 9],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 0, 1, 1],
+            [HARDENED | 1852, HARDENED | 1815, HARDENED | 0, 1, 9],
         ]
 
         for path in incorrect_derivation_paths:
@@ -378,6 +393,26 @@ class TestCardanoAddress(unittest.TestCase):
             actual_address = get_pointer_address(keychain, [0x80000000 | 1852, 0x80000000 | 1815, 0x80000000 | 0, 0, 0], expected[0], expected[1], expected[2], expected[3])
 
             self.assertEqual(actual_address, expected_address)
+
+
+    def test_shelley_address_with_byron_namespace(self):
+        mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
+        passphrase = ""
+        node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
+        node.derive_cardano(0x80000000 | 44)
+        node.derive_cardano(0x80000000 | 1815)
+
+        keychain = Keychain([0x80000000 | 44, 0x80000000 | 1815], node)
+
+        with self.assertRaises(wire.DataError):
+            get_base_address(keychain, [0x80000000 | 44, 0x80000000 | 1815, 0x80000000, 0, 0], 0)
+
+        with self.assertRaises(wire.DataError):
+            get_pointer_address(keychain, [0x80000000 | 44, 0x80000000 | 1815, 0x80000000, 0, 0], 0, 0, 0, 0)
+
+        with self.assertRaises(wire.DataError):
+            get_enterprise_address(keychain, [0x80000000 | 44, 0x80000000 | 1815, 0x80000000, 0, 0], 0)
+
 
     def test_bootstrap_address(self):
         mnemonic = "all all all all all all all all all all all all"
