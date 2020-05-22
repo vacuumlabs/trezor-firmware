@@ -346,7 +346,32 @@ class TestCardanoAddress(unittest.TestCase):
         for expected in test_vectors:
             expected_address = expected[1]
 
-            actual_address = get_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], expected[0])
+            actual_address = get_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], expected[0], None)
+
+            self.assertEqual(actual_address, expected_address)
+
+
+    def test_base_address_with_staking_key_hash(self):
+        mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
+        passphrase = ""
+        node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
+        node.derive_cardano(1852 | HARDENED)
+        node.derive_cardano(1815 | HARDENED)
+
+        keychain = Keychain([1852 | HARDENED, 1815 | HARDENED], node)
+
+        test_vectors = [
+            # network id, staking key hash, expected result
+            # own staking key hash
+            (0, unhexlify("32c728d3861e164cab28cb8f006448139c8f1740ffb8e7aa9e5232dc"), "addr1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqcyl47r"),
+            (3, unhexlify("32c728d3861e164cab28cb8f006448139c8f1740ffb8e7aa9e5232dc"), "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqzhyupd"),
+            # staking key hash not owned - derived with "all all..." mnenomnic, expected value generated with code under test
+            (3, unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277"), "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzersj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms3rqaac")
+        ]
+
+        for expected in test_vectors:
+            expected_address = expected[2]
+            actual_address = get_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], expected[0], expected[1])
 
             self.assertEqual(actual_address, expected_address)
 
@@ -405,7 +430,7 @@ class TestCardanoAddress(unittest.TestCase):
         keychain = Keychain([44 | HARDENED, 1815 | HARDENED], node)
 
         with self.assertRaises(wire.DataError):
-            get_base_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0)
+            get_base_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, None)
 
         with self.assertRaises(wire.DataError):
             get_pointer_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, 0, 0, 0)

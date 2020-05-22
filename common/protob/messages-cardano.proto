@@ -29,6 +29,7 @@ message CardanoGetAddress {
     optional uint32 block_index = 5;
     optional uint32 tx_index = 6;
     optional uint32 certificate_index = 7;
+    optional bytes staking_key_hash = 8;
 }
 
 /**

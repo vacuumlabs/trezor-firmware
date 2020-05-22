@@ -41,7 +41,9 @@ async def get_address(ctx: wire.Context, msg: CardanoGetAddress) -> CardanoAddre
 
 def _get_address(keychain: seed.Keychain, msg: CardanoGetAddress) -> str:
     if msg.address_type == CardanoAddressType.BASE_ADDRESS:
-        return get_base_address(keychain, msg.address_n, msg.network_id)
+        return get_base_address(
+            keychain, msg.address_n, msg.network_id, msg.staking_key_hash
+        )
     elif msg.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
         return get_enterprise_address(keychain, msg.address_n, msg.network_id)
     elif msg.address_type == CardanoAddressType.POINTER_ADDRESS:
@@ -55,5 +57,5 @@ def _get_address(keychain: seed.Keychain, msg: CardanoGetAddress) -> str:
         )
     elif msg.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
         return get_bootstrap_address(keychain, msg.address_n)
-
-    raise ValueError("Invalid address type '%s'" % msg.address_type)
+    else:
+        raise ValueError("Invalid address type '%s'" % msg.address_type)
