@@ -1,11 +1,14 @@
 from micropython import const
 
 from trezor import ui
+from trezor.messages import ButtonRequestType
 from trezor.strings import format_amount
+from trezor.ui.button import ButtonDefault
 from trezor.ui.scroll import Paginated
 from trezor.ui.text import Text
 from trezor.utils import chunks
 
+from apps.common.layout import show_warning
 from apps.common.confirm import confirm, hold_to_confirm
 
 if False:
@@ -49,3 +52,61 @@ async def confirm_transaction(ctx: wire.Context, amount: int, fee: int, network_
     t2.bold(network_name)
 
     return await hold_to_confirm(ctx, Paginated([t1, t2]))
+
+
+async def show_address(
+    ctx, address: str, desc: str = "Confirm address", network: str = None
+) -> bool:
+    """
+    Custom show_address function is needed because cardano addresses don't
+    fit on a single screen.
+    """
+    pages = []
+    for lines in chunks(list(chunks(address, 16)), 5):
+        text = Text(desc, ui.ICON_RECEIVE, ui.GREEN)
+        if network is not None:
+            text.normal("%s network" % network)
+        text.mono(*lines)
+        pages.append(text)
+
+    return await confirm(
+        ctx,
+        Paginated(pages),
+        code=ButtonRequestType.Address,
+        cancel="QR",
+        cancel_style=ButtonDefault,
+    )
+
+
+async def show_staking_key_warnings(
+    ctx, stakin_key_hash: str, account_path: str
+) -> None:
+    await show_warning(
+        ctx,
+        (
+            "Staking key associated",
+            "with this address does",
+            "not belong to your",
+            "account",
+            account_path,
+        ),
+        button="Ok",
+    )
+    await show_warning(
+        ctx, ("Staking key:", stakin_key_hash,), button="Ok",
+    )
+
+
+async def show_pointer_address_warning(
+    ctx, block_index: int, transaction_index: int, certificate_index: int
+) -> None:
+    await show_warning(
+        ctx,
+        (
+            "Pointer address:",
+            "Block: %s" % block_index,
+            "Transaction: %s" % transaction_index,
+            "Certificate: %s" % certificate_index,
+        ),
+        button="Ok",
+    )
