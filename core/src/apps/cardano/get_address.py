@@ -13,8 +13,11 @@ from apps.cardano.address import (
 from apps.common import paths
 from apps.common.layout import address_n_to_str, show_address, show_qr
 
+if False:
+    from trezor.messages.CardanoGetAddress import CardanoGetAddress
 
-async def get_address(ctx, msg):
+
+async def get_address(ctx: wire.Context, msg: CardanoGetAddress) -> CardanoAddress:
     keychain = await seed.get_keychain(ctx, msg.address_n[:2])
 
     await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
@@ -36,12 +39,12 @@ async def get_address(ctx, msg):
     return CardanoAddress(address=address)
 
 
-def _get_address(keychain, msg):
+def _get_address(keychain: seed.Keychain, msg: CardanoGetAddress) -> str:
     if msg.address_type == CardanoAddressType.BASE_ADDRESS:
         return get_base_address(keychain, msg.address_n, msg.network_id)
-    if msg.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
+    elif msg.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
         return get_enterprise_address(keychain, msg.address_n, msg.network_id)
-    if msg.address_type == CardanoAddressType.POINTER_ADDRESS:
+    elif msg.address_type == CardanoAddressType.POINTER_ADDRESS:
         return get_pointer_address(
             keychain,
             msg.address_n,
@@ -50,5 +53,7 @@ def _get_address(keychain, msg):
             msg.tx_index,
             msg.certificate_index,
         )
-    if msg.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
+    elif msg.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
         return get_bootstrap_address(keychain, msg.address_n)
+
+    raise ValueError("Invalid address type '%s'" % msg.address_type)

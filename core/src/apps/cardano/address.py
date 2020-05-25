@@ -9,6 +9,10 @@ from apps.cardano.utils import variable_length_encode
 from apps.common import HARDENED, paths
 from apps.common.seed import remove_ed25519_prefix
 
+if False:
+    from trezor.messages.CardanoGetAddress import CardanoGetAddress
+    from apps.cardano import seed
+
 
 def validate_full_path(path: list) -> bool:
     """
@@ -33,16 +37,16 @@ def validate_full_path(path: list) -> bool:
     return True
 
 
-async def validate_address_path(ctx, msg, keychain):
+async def validate_address_path(ctx: wire.Context, msg: CardanoGetAddress, keychain: seed.Keychain) -> None:
     # TODO what does this do? should we call it somewhere for validation of staking key paths, too?
     await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
 
 
-def get_human_readable_address(address):
+def get_human_readable_address(address: bytes) -> str:
     return bech32_encode("addr", address)
 
 
-def get_base_address(keychain, path: list, network_id):
+def get_base_address(keychain: seed.Keychain, path: list, network_id: int) -> str:
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for base address")
 
@@ -60,8 +64,13 @@ def get_base_address(keychain, path: list, network_id):
 
 
 def get_pointer_address(
-    keychain, path: list, network_id, block_index, tx_index, certificate_index
-):
+    keychain: seed.Keychain,
+    path: list,
+    network_id: int,
+    block_index: int,
+    tx_index: int,
+    certificate_index: int,
+) -> str:
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for pointer address")
 
@@ -74,7 +83,7 @@ def get_pointer_address(
     return get_human_readable_address(address)
 
 
-def get_enterprise_address(keychain, path: list, network_id):
+def get_enterprise_address(keychain: seed.Keychain, path: list, network_id: int) -> str:
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for enterprise address")
 
@@ -88,7 +97,7 @@ def get_enterprise_address(keychain, path: list, network_id):
     return get_human_readable_address(address)
 
 
-def get_bootstrap_address(keychain, path: list):
+def get_bootstrap_address(keychain: seed.Keychain, path: list) -> str:
     if not _validate_bootstrap_address_path(path):
         raise wire.DataError("Invalid path for bootstrap address")
 
@@ -104,17 +113,17 @@ def _validate_bootstrap_address_path(path: list) -> bool:
     return path[0] == 44 | HARDENED
 
 
-def _get_spending_part(keychain, path):
+def _get_spending_part(keychain: seed.Keychain, path: list) -> bytes:
     spending_node = keychain.derive(path)
     spending_key = remove_ed25519_prefix(spending_node.public_key())
     return hashlib.blake2b(data=spending_key, outlen=28).digest()
 
 
-def _path_to_staking_path(path):
+def _path_to_staking_path(path: list) -> list:
     return path[:3] + [2, 0]
 
 
-def _get_address_header(address_type, network_id):
+def _get_address_header(address_type: int, network_id: int) -> bytes:
     # todo: GK - script and other addresses
     if address_type == CardanoAddressType.BASE_ADDRESS:
         header = network_id
@@ -130,9 +139,9 @@ def _get_address_header(address_type, network_id):
     return bytes([header])
 
 
-def _encode_pointer(block_index, tx_index, certificate_index):
-    block_index = variable_length_encode(block_index)
-    tx_index = variable_length_encode(tx_index)
-    certificate_index = variable_length_encode(certificate_index)
+def _encode_pointer(block_index: int, tx_index: int, certificate_index: int) -> bytes:
+    block_index_encoded = variable_length_encode(block_index)
+    tx_index_encoded = variable_length_encode(tx_index)
+    certificate_index_encoded = variable_length_encode(certificate_index)
 
-    return bytes(block_index + tx_index + certificate_index)
+    return bytes(block_index_encoded + tx_index_encoded + certificate_index_encoded)
