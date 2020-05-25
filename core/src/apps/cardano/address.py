@@ -2,7 +2,8 @@ from trezor import wire
 from trezor.crypto import hashlib
 from trezor.messages import CardanoAddressType
 
-from apps.cardano import CURVE
+import apps.cardano.address_id as AddressId
+from apps.cardano import BYRON_PURPOSE, CURVE, SHELLEY_PURPOSE
 from apps.cardano.bech32 import bech32_encode
 from apps.cardano.bootstrap_address import derive_address_and_node
 from apps.cardano.utils import variable_length_encode
@@ -22,7 +23,7 @@ def validate_full_path(path: list) -> bool:
     """
     if len(path) != 5:
         return False
-    if path[0] != 44 | HARDENED and path[0] != 1852 | HARDENED:
+    if path[0] != BYRON_PURPOSE and path[0] != SHELLEY_PURPOSE:
         return False
     if path[1] != 1815 | HARDENED:
         return False
@@ -106,11 +107,11 @@ def get_bootstrap_address(keychain: seed.Keychain, path: list) -> str:
 
 
 def _validate_shelley_address_path(path: list) -> bool:
-    return path[0] == 1852 | HARDENED
+    return path[0] == SHELLEY_PURPOSE
 
 
 def _validate_bootstrap_address_path(path: list) -> bool:
-    return path[0] == 44 | HARDENED
+    return path[0] == BYRON_PURPOSE
 
 
 def _get_spending_part(keychain: seed.Keychain, path: list) -> bytes:
@@ -124,19 +125,28 @@ def _path_to_staking_path(path: list) -> list:
 
 
 def _get_address_header(address_type: int, network_id: int) -> bytes:
-    # todo: GK - script and other addresses
+    address_id = _get_address_id(address_type)
+    header = address_id << 4 | network_id
+
+    return bytes([header])
+
+
+def _get_address_id(address_type: int) -> int:
+    # todo: GK - script combinations
     if address_type == CardanoAddressType.BASE_ADDRESS:
-        header = network_id
+        address_id = AddressId.BASE_ADDRESS_KEY_KEY
     elif address_type == CardanoAddressType.POINTER_ADDRESS:
-        header = (4 << 4) | network_id
+        address_id = AddressId.POINTER_ADDRESS_KEY
     elif address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
-        header = (6 << 4) | network_id
+        address_id = AddressId.ENTERPRISE_ADDRESS_KEY
     elif address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
-        header = (8 << 4) | network_id
+        # todo: GK - this should actually raise an error
+        #       bootstrap addresses don't have a real header
+        address_id = 8
     else:
         raise wire.DataError("Invalid address type")
 
-    return bytes([header])
+    return address_id
 
 
 def _encode_pointer(block_index: int, tx_index: int, certificate_index: int) -> bytes:
