@@ -338,15 +338,17 @@ class TestCardanoAddress(unittest.TestCase):
         keychain = Keychain([1852 | HARDENED, 1815 | HARDENED], node)
 
         test_vectors = [
-            # network id, expected result
-            (0, "addr1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqcyl47r"),
-            (3, "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqzhyupd")
+            # network id, account, expected result
+            # data from shelley test vectors
+            (0, 0, "addr1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqcyl47r"),
+            (3, 0, "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqzhyupd"),
+            # data generated with code under test
+            (0, 4, "addr1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsuzz8x7"),
+            (3, 4, "addr1q04sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsx3ewes"),
         ]
 
-        for expected in test_vectors:
-            expected_address = expected[1]
-
-            actual_address = get_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], expected[0], None)
+        for network_id, account, expected_address in test_vectors:
+            actual_address = get_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0], network_id, None)
 
             self.assertEqual(actual_address, expected_address)
 
@@ -361,18 +363,22 @@ class TestCardanoAddress(unittest.TestCase):
         keychain = Keychain([1852 | HARDENED, 1815 | HARDENED], node)
 
         test_vectors = [
-            # network id, staking key hash, expected result
+            # network id, account, staking key hash, expected result
             # own staking key hash
-            (0, unhexlify("32c728d3861e164cab28cb8f006448139c8f1740ffb8e7aa9e5232dc"), "addr1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqcyl47r"),
-            (3, unhexlify("32c728d3861e164cab28cb8f006448139c8f1740ffb8e7aa9e5232dc"), "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqzhyupd"),
-            # staking key hash not owned - derived with "all all..." mnenomnic, expected value generated with code under test
-            (3, unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277"), "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzersj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms3rqaac")
+            # data from shelley test vectors
+            (0, 0, unhexlify("32c728d3861e164cab28cb8f006448139c8f1740ffb8e7aa9e5232dc"), "addr1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqcyl47r"),
+            (3, 0, unhexlify("32c728d3861e164cab28cb8f006448139c8f1740ffb8e7aa9e5232dc"), "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqzhyupd"),
+            # data generated with code under test
+            (0, 4, unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff"), "addr1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsuzz8x7"),
+            (3, 4, unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff"), "addr1q04sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsx3ewes"),
+            # staking key hash not owned - derived with "all all..." mnenomnic, data generated with code under test
+            (0, 4, unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277"), "addr1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsh42t2h"),
+            (3, 0, unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277"), "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzersj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms3rqaac"),
+            (3, 4, unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277"), "addr1q04sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsdx3z4e"),
         ]
 
-        for expected in test_vectors:
-            expected_address = expected[2]
-            actual_address = get_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], expected[0], expected[1])
-
+        for network_id, account, staking_key_hash, expected_address in test_vectors:
+            actual_address = get_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0], network_id, staking_key_hash)
             self.assertEqual(actual_address, expected_address)
 
     def test_enterprise_address(self):
