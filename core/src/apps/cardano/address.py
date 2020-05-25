@@ -125,6 +125,16 @@ def _path_to_staking_path(path: list) -> list:
 
 
 def _get_address_header(address_type: int, network_id: int) -> bytes:
+    if address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
+        """
+        Bootstrap addresses don't have an explicit header in the Shelley
+        spec. However, thanks to their CBOR structure they always start with
+        0b1000 - the bootstrap address id. This is no coincidence.
+        The Shelley address headers are purposefully built around these
+        starting bits of the bootstrap address.
+        """
+        raise ValueError("Bootstrap address does not contain an explicit header")
+
     address_id = _get_address_id(address_type)
     header = address_id << 4 | network_id
 
@@ -140,9 +150,7 @@ def _get_address_id(address_type: int) -> int:
     elif address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
         address_id = AddressId.ENTERPRISE_ADDRESS_KEY
     elif address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
-        # todo: GK - this should actually raise an error
-        #       bootstrap addresses don't have a real header
-        address_id = 8
+        address_id = AddressId.BOOTSTRAP_ADDRESS_ID
     else:
         raise wire.DataError("Invalid address type")
 
