@@ -56,10 +56,7 @@ def get_base_address(
     spending_part = _get_spending_part(keychain, path)
 
     if staking_key_hash is None:
-        staking_path = _path_to_staking_path(path)
-        staking_node = keychain.derive(staking_path)
-        staking_key = remove_ed25519_prefix(staking_node.public_key())
-        staking_part = hashlib.blake2b(data=staking_key, outlen=28).digest()
+        staking_part = get_staking_key_hash(keychain, path)
     else:
         staking_part = staking_key_hash
 
@@ -123,6 +120,13 @@ def _get_spending_part(keychain: seed.Keychain, path: list) -> bytes:
     spending_node = keychain.derive(path)
     spending_key = remove_ed25519_prefix(spending_node.public_key())
     return hashlib.blake2b(data=spending_key, outlen=28).digest()
+
+
+def get_staking_key_hash(keychain: seed.Keychain, path: list) -> bytes:
+    staking_path = _path_to_staking_path(path)
+    staking_node = keychain.derive(staking_path)
+    staking_key = remove_ed25519_prefix(staking_node.public_key())
+    return hashlib.blake2b(data=staking_key, outlen=28).digest()
 
 
 def _path_to_staking_path(path: list) -> list:
