@@ -91,6 +91,48 @@ def test_cardano_get_base_address(client, path, network_id, expected_address):
 @pytest.mark.cardano
 @pytest.mark.skip_t1  # T1 support is not planned
 @pytest.mark.parametrize(
+    "path, network_id, staking_key_hash, expected_address",
+    [
+        (
+            "m/1852'/1815'/0'/0/0",
+            0,
+            "32c728d3861e164cab28cb8f006448139c8f1740ffb8e7aa9e5232dc",
+            "addr1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqcyl47r",
+        ),
+        (
+            "m/1852'/1815'/0'/0/0",
+            3,
+            "32c728d3861e164cab28cb8f006448139c8f1740ffb8e7aa9e5232dc",
+            "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqzhyupd",
+        ),
+        # staking key hash not owned - derived with "all all..." mnenomnic, expected value generated with code under test
+        (
+            "m/1852'/1815'/0'/0/0",
+            3, 
+            "122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277",
+            "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzersj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms3rqaac"
+        ),
+    ],
+)
+@pytest.mark.setup_client(mnemonic=SHELLEY_TEST_VECTORS_MNEMONIC)
+def test_cardano_get_base_address_with_staking_key_hash(
+    client, path, network_id, staking_key_hash, expected_address
+):
+    # data form shelley test vectors
+    address = get_address(
+        client,
+        parse_path(path),
+        network_id=network_id,
+        address_type=CardanoAddressType.BASE_ADDRESS,
+        staking_key_hash=bytes.fromhex(staking_key_hash),
+    )
+    assert address == expected_address
+
+
+@pytest.mark.altcoin
+@pytest.mark.cardano
+@pytest.mark.skip_t1  # T1 support is not planned
+@pytest.mark.parametrize(
     "path, network_id, expected_address",
     [
         (

@@ -47,16 +47,21 @@ def get_human_readable_address(address: bytes) -> str:
     return bech32_encode("addr", address)
 
 
-def get_base_address(keychain: seed.Keychain, path: list, network_id: int) -> str:
+def get_base_address(
+    keychain: seed.Keychain, path: list, network_id: int, staking_key_hash: bytes
+) -> str:
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for base address")
 
     spending_part = _get_spending_part(keychain, path)
 
-    staking_path = _path_to_staking_path(path)
-    staking_node = keychain.derive(staking_path)
-    staking_key = remove_ed25519_prefix(staking_node.public_key())
-    staking_part = hashlib.blake2b(data=staking_key, outlen=28).digest()
+    if staking_key_hash is None:
+        staking_path = _path_to_staking_path(path)
+        staking_node = keychain.derive(staking_path)
+        staking_key = remove_ed25519_prefix(staking_node.public_key())
+        staking_part = hashlib.blake2b(data=staking_key, outlen=28).digest()
+    else:
+        staking_part = staking_key_hash
 
     address_header = _get_address_header(CardanoAddressType.BASE_ADDRESS, network_id)
     address = address_header + spending_part + staking_part

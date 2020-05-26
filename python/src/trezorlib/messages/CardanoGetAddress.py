@@ -23,6 +23,7 @@ class CardanoGetAddress(p.MessageType):
         block_index: int = None,
         tx_index: int = None,
         certificate_index: int = None,
+        staking_key_hash: bytes = None,
     ) -> None:
         self.address_n = address_n if address_n is not None else []
         self.show_display = show_display
@@ -31,6 +32,7 @@ class CardanoGetAddress(p.MessageType):
         self.block_index = block_index
         self.tx_index = tx_index
         self.certificate_index = certificate_index
+        self.staking_key_hash = staking_key_hash
 
     @classmethod
     def get_fields(cls) -> Dict:
@@ -42,4 +44,5 @@ class CardanoGetAddress(p.MessageType):
             5: ('block_index', p.UVarintType, 0),
             6: ('tx_index', p.UVarintType, 0),
             7: ('certificate_index', p.UVarintType, 0),
+            8: ('staking_key_hash', p.BytesType, 0),
         }

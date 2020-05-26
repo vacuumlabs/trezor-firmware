@@ -33,6 +33,7 @@ def get_address(
     block_index=0,
     tx_index=0,
     certificate_index=0,
+    staking_key_hash=None,
 ):
     return client.call(
         messages.CardanoGetAddress(
@@ -43,6 +44,7 @@ def get_address(
             block_index=block_index,
             tx_index=tx_index,
             certificate_index=certificate_index,
+            staking_key_hash=staking_key_hash,
         )
     )
 
