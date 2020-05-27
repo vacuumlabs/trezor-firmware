@@ -62,9 +62,9 @@ def sign_tx(client, file, network):
     "-t", "--address_type", type=int, default=messages.CardanoAddressType.BASE_ADDRESS
 )
 @click.option("-N", "--network_id", type=int, default=0)
-@click.option("-b", "--block_index", type=int, default=0)
-@click.option("-x", "--tx_index", type=int, default=0)
-@click.option("-c", "--certificate_index", type=int, default=0)
+@click.option("-b", "--block_index", type=int, default=None)
+@click.option("-x", "--tx_index", type=int, default=None)
+@click.option("-c", "--certificate_index", type=int, default=None)
 @click.option("-s", "--staking_key_hash_str", type=str, default=None)
 @with_client
 def get_address(
@@ -80,6 +80,14 @@ def get_address(
 ):
     """Get Cardano address."""
     address_n = tools.parse_path(address)
+
+    if block_index is not None or tx_index is not None or certificate_index is not None:
+        certificate_pointer = cardano.create_certificate_pointer(
+            block_index, tx_index, certificate_index
+        )
+    else:
+        certificate_pointer = None
+
     if staking_key_hash_str:
         staking_key_hash = bytes.fromhex(staking_key_hash_str)
     else:
@@ -91,9 +99,7 @@ def get_address(
         show_display,
         address_type,
         network_id,
-        block_index,
-        tx_index,
-        certificate_index,
+        certificate_pointer,
         staking_key_hash,
     )
 

@@ -1,6 +1,6 @@
 from trezor import wire
 from trezor.crypto import hashlib
-from trezor.messages import CardanoAddressType
+from trezor.messages import CardanoAddressType, CardanoCertificatePointerType
 
 import apps.cardano.address_id as AddressId
 from apps.cardano import BYRON_PURPOSE, CURVE, SHELLEY_PURPOSE
@@ -70,9 +70,7 @@ def get_pointer_address(
     keychain: seed.Keychain,
     path: list,
     network_id: int,
-    block_index: int,
-    tx_index: int,
-    certificate_index: int,
+    pointer: CardanoCertificatePointerType,
 ) -> str:
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for pointer address")
@@ -80,7 +78,7 @@ def get_pointer_address(
     spending_part = _get_spending_part(keychain, path)
 
     address_header = _get_address_header(CardanoAddressType.POINTER_ADDRESS, network_id)
-    encoded_pointer = _encode_pointer(block_index, tx_index, certificate_index)
+    encoded_pointer = _encode_certificate_pointer(pointer)
     address = address_header + spending_part + encoded_pointer
 
     return get_human_readable_address(address)
@@ -166,9 +164,9 @@ def _get_address_id(address_type: int) -> int:
     return address_id
 
 
-def _encode_pointer(block_index: int, tx_index: int, certificate_index: int) -> bytes:
-    block_index_encoded = variable_length_encode(block_index)
-    tx_index_encoded = variable_length_encode(tx_index)
-    certificate_index_encoded = variable_length_encode(certificate_index)
+def _encode_certificate_pointer(pointer: CardanoCertificatePointerType) -> bytes:
+    block_index_encoded = variable_length_encode(pointer.block_index)
+    tx_index_encoded = variable_length_encode(pointer.tx_index)
+    certificate_index_encoded = variable_length_encode(pointer.certificate_index)
 
     return bytes(block_index_encoded + tx_index_encoded + certificate_index_encoded)

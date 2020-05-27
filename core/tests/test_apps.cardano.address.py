@@ -1,6 +1,7 @@
 from common import *
 from trezor import wire
 from trezor.crypto import bip32, slip39
+from trezor.messages.CardanoCertificatePointerType import CardanoCertificatePointerType
 
 from apps.common import HARDENED, seed
 
@@ -413,15 +414,15 @@ class TestCardanoAddress(unittest.TestCase):
         keychain = Keychain([1852 | HARDENED, 1815 | HARDENED], node)
 
         test_vectors = [
-            # network id, block_index, tx_index, certificate_index, expected result
-            (0, 1, 2, 3, "addr1gz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzerspqgpslhplej"),
-            (3, 24157, 177, 42, "addr1gw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer5ph3wczvf2x4v58t")
+            # network id, pointer, expected result
+            (0, CardanoCertificatePointerType(1, 2, 3), "addr1gz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzerspqgpslhplej"),
+            (3, CardanoCertificatePointerType(24157, 177, 42), "addr1gw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer5ph3wczvf2x4v58t")
         ]
 
         for expected in test_vectors:
-            expected_address = expected[4]
+            expected_address = expected[2]
 
-            actual_address = get_pointer_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], expected[0], expected[1], expected[2], expected[3])
+            actual_address = get_pointer_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], expected[0], expected[1])
 
             self.assertEqual(actual_address, expected_address)
 
@@ -439,7 +440,7 @@ class TestCardanoAddress(unittest.TestCase):
             get_base_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, None)
 
         with self.assertRaises(wire.DataError):
-            get_pointer_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, 0, 0, 0)
+            get_pointer_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, CardanoCertificatePointerType(0, 0, 0))
 
         with self.assertRaises(wire.DataError):
             get_enterprise_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0)

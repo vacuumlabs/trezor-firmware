@@ -30,9 +30,7 @@ def get_address(
     show_display=False,
     address_type=messages.CardanoAddressType.BASE_ADDRESS,
     network_id=0,
-    block_index=0,
-    tx_index=0,
-    certificate_index=0,
+    certificate_pointer=None,
     staking_key_hash=None,
 ):
     return client.call(
@@ -41,9 +39,7 @@ def get_address(
             show_display=show_display,
             address_type=address_type,
             network_id=network_id,
-            block_index=block_index,
-            tx_index=tx_index,
-            certificate_index=certificate_index,
+            certificate_pointer=certificate_pointer,
             staking_key_hash=staking_key_hash,
         )
     )
@@ -79,6 +75,17 @@ def sign_tx(
         response = client.call(ack_message)
 
     return response
+
+
+def create_certificate_pointer(
+    block_index: int, tx_index: int, certificate_index: int
+) -> messages.CardanoCertificatePointerType:
+    if block_index is None or tx_index is None or certificate_index is None:
+        raise ValueError("Invalid pointer parameters")
+
+    return messages.CardanoCertificatePointerType(
+        block_index=block_index, tx_index=tx_index, certificate_index=certificate_index
+    )
 
 
 def create_input(input) -> messages.CardanoTxInputType:

@@ -66,9 +66,7 @@ async def _show_warnings_if_applicable(
             account_path = address_n_to_str(msg.address_n[:3])
             await show_staking_key_warnings(ctx, hash_str, account_path)
     elif msg.address_type == CardanoAddressType.POINTER_ADDRESS:
-        await show_pointer_address_warning(
-            ctx, msg.block_index, msg.tx_index, msg.certificate_index
-        )
+        await show_pointer_address_warning(ctx, msg.certificate_pointer)
 
 
 def _get_address(keychain: seed.Keychain, msg: CardanoGetAddress) -> str:
@@ -80,12 +78,7 @@ def _get_address(keychain: seed.Keychain, msg: CardanoGetAddress) -> str:
         return get_enterprise_address(keychain, msg.address_n, msg.network_id)
     elif msg.address_type == CardanoAddressType.POINTER_ADDRESS:
         return get_pointer_address(
-            keychain,
-            msg.address_n,
-            msg.network_id,
-            msg.block_index,
-            msg.tx_index,
-            msg.certificate_index,
+            keychain, msg.address_n, msg.network_id, msg.certificate_pointer,
         )
     elif msg.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
         return get_bootstrap_address(keychain, msg.address_n)

@@ -16,7 +16,7 @@
 
 import pytest
 
-from trezorlib.cardano import get_address
+from trezorlib.cardano import get_address, create_certificate_pointer
 from trezorlib.messages import CardanoAddressType
 from trezorlib.tools import parse_path
 
@@ -229,9 +229,7 @@ def test_cardano_get_pointer_address(
         client,
         parse_path(path),
         network_id=network_id,
-        block_index=block_index,
-        tx_index=tx_index,
-        certificate_index=certificate_index,
+        certificate_pointer=create_certificate_pointer(block_index, tx_index, certificate_index),
         address_type=CardanoAddressType.POINTER_ADDRESS,
     )
     assert address == expected_address

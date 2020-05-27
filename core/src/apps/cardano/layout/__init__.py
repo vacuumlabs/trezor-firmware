@@ -13,6 +13,7 @@ from apps.common.confirm import confirm, hold_to_confirm
 
 if False:
     from trezor import wire
+    from trezor.messages import CardanoCertificatePointerType
 
 def format_coin_amount(amount: int) -> str:
     return "%s %s" % (format_amount(amount, 6), "ADA")
@@ -98,15 +99,15 @@ async def show_staking_key_warnings(
 
 
 async def show_pointer_address_warning(
-    ctx, block_index: int, transaction_index: int, certificate_index: int
+    ctx, pointer: CardanoCertificatePointerType
 ) -> None:
     await show_warning(
         ctx,
         (
             "Pointer address:",
-            "Block: %s" % block_index,
-            "Transaction: %s" % transaction_index,
-            "Certificate: %s" % certificate_index,
+            "Block: %s" % pointer.block_index,
+            "Transaction: %s" % pointer.tx_index,
+            "Certificate: %s" % pointer.certificate_index,
         ),
         button="Ok",
     )
