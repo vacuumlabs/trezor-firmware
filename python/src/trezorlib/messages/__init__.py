@@ -29,6 +29,7 @@ from .CardanoPublicKey import CardanoPublicKey
 from .CardanoSignTx import CardanoSignTx
 from .CardanoSignedTx import CardanoSignedTx
 from .CardanoTxAck import CardanoTxAck
+from .CardanoTxCertificate import CardanoTxCertificate
 from .CardanoTxInputType import CardanoTxInputType
 from .CardanoTxOutputType import CardanoTxOutputType
 from .CardanoTxRequest import CardanoTxRequest
