@@ -41,29 +41,27 @@ def get_public_key(client, address_n):
     return client.call(messages.CardanoGetPublicKey(address_n=address_n))
 
 
+# todo: merge with sign_tx
 @session
 def sign_tx(
     client,
     inputs: List[messages.CardanoTxInputType],
     outputs: List[messages.CardanoTxOutputType],
-    transactions: List[bytes],
+    fee,
+    ttl,
+    certificates: List[messages.CardanoTxCertificate],
     protocol_magic,
 ):
     response = client.call(
         messages.CardanoSignTx(
             inputs=inputs,
             outputs=outputs,
-            transactions_count=len(transactions),
             protocol_magic=protocol_magic,
+            fee=fee,
+            ttl=ttl,
+            certificates=certificates,
         )
     )
-
-    while isinstance(response, messages.CardanoTxRequest):
-        tx_index = response.tx_index
-
-        transaction_data = bytes.fromhex(transactions[tx_index])
-        ack_message = messages.CardanoTxAck(transaction=transaction_data)
-        response = client.call(ack_message)
 
     return response
 
@@ -121,3 +119,18 @@ def create_output(output) -> messages.CardanoTxOutputType:
     return messages.CardanoTxOutputType(
         address=output["address"], amount=int(output["amount"])
     )
+
+
+def create_certificate(certificate) -> messages.CardanoTxCertificate:
+    # todo: some validation, checks
+    # todo: other certificates
+    path = certificate["path"]
+    if certificate.get("pool"):
+        pool = certificate["pool"]
+        # todo: refactor
+        return messages.CardanoTxCertificate(
+            type=certificate["type"], 
+            path=tools.parse_path(path),
+            pool=pool)
+
+    return messages.CardanoTxCertificate(type=certificate["type"], path=tools.parse_path(path))
