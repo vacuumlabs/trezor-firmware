@@ -397,11 +397,8 @@ class TestCardanoAddress(unittest.TestCase):
             (3, "addr1vw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers6h7glf")
         ]
 
-        for expected in test_vectors:
-            expected_address = expected[1]
-
-            actual_address = get_enterprise_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], expected[0])
-
+        for network_id, expected_address in test_vectors:
+            actual_address = get_enterprise_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], network_id)
             self.assertEqual(actual_address, expected_address)
 
     def test_pointer_address(self):
@@ -419,11 +416,8 @@ class TestCardanoAddress(unittest.TestCase):
             (3, CardanoCertificatePointerType(24157, 177, 42), "addr1gw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer5ph3wczvf2x4v58t")
         ]
 
-        for expected in test_vectors:
-            expected_address = expected[2]
-
-            actual_address = get_pointer_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], expected[0], expected[1])
-
+        for network_id, pointer, expected_address in test_vectors:
+            actual_address = get_pointer_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], network_id, pointer)
             self.assertEqual(actual_address, expected_address)
 
 
