@@ -21,6 +21,7 @@ from .ButtonAck import ButtonAck
 from .ButtonRequest import ButtonRequest
 from .Cancel import Cancel
 from .CardanoAddress import CardanoAddress
+from .CardanoCertificatePointerType import CardanoCertificatePointerType
 from .CardanoGetAddress import CardanoGetAddress
 from .CardanoGetPublicKey import CardanoGetPublicKey
 from .CardanoPublicKey import CardanoPublicKey
