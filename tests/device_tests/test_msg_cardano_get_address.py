@@ -16,7 +16,11 @@
 
 import pytest
 
-from trezorlib.cardano import get_address, create_certificate_pointer
+from trezorlib.cardano import (
+    get_address,
+    create_address_parameters,
+    create_certificate_pointer,
+)
 from trezorlib.messages import CardanoAddressType
 from trezorlib.tools import parse_path
 
@@ -52,7 +56,11 @@ SHELLEY_TEST_VECTORS_MNEMONIC = (
 def test_cardano_get_address(client, path, expected_address):
     # data from https://iancoleman.io/bip39/
     address = get_address(
-        client, parse_path(path), address_type=CardanoAddressType.BOOTSTRAP_ADDRESS
+        client,
+        address_parameters=create_address_parameters(
+            address_type=CardanoAddressType.BOOTSTRAP_ADDRESS,
+            address_n=parse_path(path),
+        ),
     )
     assert address == expected_address
 
@@ -91,9 +99,11 @@ def test_cardano_get_address(client, path, expected_address):
 def test_cardano_get_base_address(client, path, network_id, expected_address):
     address = get_address(
         client,
-        parse_path(path),
+        address_parameters=create_address_parameters(
+            address_type=CardanoAddressType.BASE_ADDRESS,
+            address_n=parse_path(path),
+        ),
         network_id=network_id,
-        address_type=CardanoAddressType.BASE_ADDRESS,
     )
     assert address == expected_address
 
@@ -133,21 +143,21 @@ def test_cardano_get_base_address(client, path, network_id, expected_address):
         # staking key hash not owned - derived with "all all..." mnenomnic, data generated with code under test
         (
             "m/1852'/1815'/4'/0/0",
-            0, 
+            0,
             "122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277",
-            "addr1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsh42t2h"
+            "addr1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsh42t2h",
         ),
         (
             "m/1852'/1815'/0'/0/0",
-            3, 
+            3,
             "122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277",
-            "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzersj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms3rqaac"
+            "addr1qw2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzersj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms3rqaac",
         ),
         (
             "m/1852'/1815'/4'/0/0",
-            3, 
+            3,
             "122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277",
-            "addr1q04sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsdx3z4e"
+            "addr1q04sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsdx3z4e",
         ),
     ],
 )
@@ -158,10 +168,12 @@ def test_cardano_get_base_address_with_staking_key_hash(
     # data form shelley test vectors
     address = get_address(
         client,
-        parse_path(path),
+        address_parameters=create_address_parameters(
+            address_type=CardanoAddressType.BASE_ADDRESS,
+            address_n=parse_path(path),
+            staking_key_hash=bytes.fromhex(staking_key_hash),
+        ),
         network_id=network_id,
-        address_type=CardanoAddressType.BASE_ADDRESS,
-        staking_key_hash=bytes.fromhex(staking_key_hash),
     )
     assert address == expected_address
 
@@ -189,9 +201,11 @@ def test_cardano_get_base_address_with_staking_key_hash(
 def test_cardano_get_enterprise_address(client, path, network_id, expected_address):
     address = get_address(
         client,
-        parse_path(path),
+        address_parameters=create_address_parameters(
+            address_type=CardanoAddressType.ENTERPRISE_ADDRESS,
+            address_n=parse_path(path),
+        ),
         network_id=network_id,
-        address_type=CardanoAddressType.ENTERPRISE_ADDRESS,
     )
     assert address == expected_address
 
@@ -227,9 +241,13 @@ def test_cardano_get_pointer_address(
 ):
     address = get_address(
         client,
-        parse_path(path),
+        address_parameters=create_address_parameters(
+            address_type=CardanoAddressType.POINTER_ADDRESS,
+            address_n=parse_path(path),
+            certificate_pointer=create_certificate_pointer(
+                block_index, tx_index, certificate_index
+            ),
+        ),
         network_id=network_id,
-        certificate_pointer=create_certificate_pointer(block_index, tx_index, certificate_index),
-        address_type=CardanoAddressType.POINTER_ADDRESS,
     )
     assert address == expected_address

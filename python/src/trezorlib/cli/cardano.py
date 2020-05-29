@@ -93,14 +93,15 @@ def get_address(
     else:
         staking_key_hash = None
 
+    address_parameters = cardano.create_address_parameters(
+        address_type, address_n, certificate_pointer, staking_key_hash
+    )
+
     return cardano.get_address(
         client,
-        address_n,
+        address_parameters,
         show_display,
-        address_type,
         network_id,
-        certificate_pointer,
-        staking_key_hash,
     )
 
 

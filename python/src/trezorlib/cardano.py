@@ -25,22 +25,13 @@ REQUIRED_FIELDS_INPUT = ("path", "prev_hash", "prev_index", "type")
 
 @expect(messages.CardanoAddress, field="address")
 def get_address(
-    client,
-    address_n,
-    show_display=False,
-    address_type=messages.CardanoAddressType.BASE_ADDRESS,
-    network_id=0,
-    certificate_pointer=None,
-    staking_key_hash=None,
+    client, address_parameters, show_display=False, network_id=0,
 ):
     return client.call(
         messages.CardanoGetAddress(
-            address_n=address_n,
+            address_parameters=address_parameters,
             show_display=show_display,
-            address_type=address_type,
             network_id=network_id,
-            certificate_pointer=certificate_pointer,
-            staking_key_hash=staking_key_hash,
         )
     )
 
@@ -85,6 +76,20 @@ def create_certificate_pointer(
 
     return messages.CardanoCertificatePointerType(
         block_index=block_index, tx_index=tx_index, certificate_index=certificate_index
+    )
+
+
+def create_address_parameters(
+    address_type: messages.CardanoAddressType,
+    address_n: list,
+    certificate_pointer: messages.CardanoCertificatePointerType = None,
+    staking_key_hash: bytes = None,
+) -> messages.CardanoAddressParametersType:
+    return messages.CardanoAddressParametersType(
+        address_type=address_type,
+        address_n=address_n,
+        certificate_pointer=certificate_pointer,
+        staking_key_hash=staking_key_hash,
     )
 
 

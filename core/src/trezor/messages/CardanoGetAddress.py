@@ -2,13 +2,12 @@
 # fmt: off
 import protobuf as p
 
-from .CardanoCertificatePointerType import CardanoCertificatePointerType
+from .CardanoAddressParametersType import CardanoAddressParametersType
 
 if __debug__:
     try:
         from typing import Dict, List  # noqa: F401
         from typing_extensions import Literal  # noqa: F401
-        EnumTypeCardanoAddressType = Literal[0, 1, 2, 3]
     except ImportError:
         pass
 
@@ -18,27 +17,18 @@ class CardanoGetAddress(p.MessageType):
 
     def __init__(
         self,
-        address_n: List[int] = None,
+        address_parameters: CardanoAddressParametersType = None,
         show_display: bool = None,
-        address_type: EnumTypeCardanoAddressType = None,
         network_id: int = None,
-        certificate_pointer: CardanoCertificatePointerType = None,
-        staking_key_hash: bytes = None,
     ) -> None:
-        self.address_n = address_n if address_n is not None else []
+        self.address_parameters = address_parameters
         self.show_display = show_display
-        self.address_type = address_type
         self.network_id = network_id
-        self.certificate_pointer = certificate_pointer
-        self.staking_key_hash = staking_key_hash
 
     @classmethod
     def get_fields(cls) -> Dict:
         return {
-            1: ('address_n', p.UVarintType, p.FLAG_REPEATED),
+            1: ('address_parameters', CardanoAddressParametersType, 0),
             2: ('show_display', p.BoolType, 0),
-            3: ('address_type', p.EnumType("CardanoAddressType", (0, 1, 2, 3)), 0),
-            4: ('network_id', p.UVarintType, 0),
-            5: ('certificate_pointer', CardanoCertificatePointerType, 0),
-            6: ('staking_key_hash', p.BytesType, 0),
+            3: ('network_id', p.UVarintType, 0),
         }

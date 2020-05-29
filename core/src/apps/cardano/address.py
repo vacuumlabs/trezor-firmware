@@ -47,6 +47,25 @@ def get_human_readable_address(address: bytes) -> str:
     return bech32_encode("addr", address)
 
 
+def derive_address(
+    keychain: seed.Keychain, parameters: CardanoAddressParametersType, network_id: int
+) -> str:
+    if parameters.address_type == CardanoAddressType.BASE_ADDRESS:
+        return get_base_address(
+            keychain, parameters.address_n, network_id, parameters.staking_key_hash
+        )
+    elif parameters.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
+        return get_enterprise_address(keychain, parameters.address_n, network_id)
+    elif parameters.address_type == CardanoAddressType.POINTER_ADDRESS:
+        return get_pointer_address(
+            keychain, parameters.address_n, network_id, parameters.certificate_pointer,
+        )
+    elif parameters.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
+        return get_bootstrap_address(keychain, parameters.address_n)
+    else:
+        raise ValueError("Invalid address type '%s'" % parameters.address_type)
+
+
 def get_base_address(
     keychain: seed.Keychain, path: list, network_id: int, staking_key_hash: bytes
 ) -> str:
