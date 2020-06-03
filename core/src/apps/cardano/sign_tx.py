@@ -10,7 +10,7 @@ from trezor.messages.CardanoTxAck import CardanoTxAck
 from trezor.messages.CardanoTxRequest import CardanoTxRequest
 
 from apps.cardano import BYRON_SEED_NAMESPACE, CURVE, SHELLEY_SEED_NAMESPACE, seed
-from apps.cardano.address import decode_address, derive_address, validate_full_path
+from apps.cardano.address import derive_address, validate_full_path
 from apps.cardano.bootstrap_address import (
     derive_address_and_node,
     is_safe_output_address,
@@ -148,7 +148,10 @@ class Transaction:
         for output in self.outputs:
             if output.address_parameters:
                 address = derive_address(
-                    self.keychains, output.address_parameters, self.protocol_magic
+                    self.keychains,
+                    output.address_parameters,
+                    self.protocol_magic,
+                    human_readable=False,
                 )
                 change_addresses.append(address)
                 change_derivation_paths.append(output.address_parameters.address_n)
@@ -231,7 +234,7 @@ class Transaction:
             outputs_cbor.append([unhexlify(address), self.outgoing_coins[index]])
 
         for index, address in enumerate(self.change_addresses):
-            outputs_cbor.append([decode_address(address), self.change_coins[index]])
+            outputs_cbor.append([address, self.change_coins[index]])
 
         outputs_cbor = outputs_cbor
 
