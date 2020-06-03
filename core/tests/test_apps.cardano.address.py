@@ -9,10 +9,10 @@ if not utils.BITCOIN_ONLY:
     from apps.cardano.seed import Keychain
     from apps.cardano.address import (
         validate_full_path,
-        get_base_address,
-        get_enterprise_address,
-        get_pointer_address,
-        get_bootstrap_address,
+        derive_base_address,
+        derive_enterprise_address,
+        derive_pointer_address,
+        derive_bootstrap_address,
     )
     from apps.cardano.bootstrap_address import (
         _get_address_root,
@@ -349,7 +349,7 @@ class TestCardanoAddress(unittest.TestCase):
         ]
 
         for network_id, account, expected_address in test_vectors:
-            actual_address = get_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0], network_id, None)
+            actual_address = derive_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0], network_id, None)
 
             self.assertEqual(actual_address, expected_address)
 
@@ -379,7 +379,7 @@ class TestCardanoAddress(unittest.TestCase):
         ]
 
         for network_id, account, staking_key_hash, expected_address in test_vectors:
-            actual_address = get_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0], network_id, staking_key_hash)
+            actual_address = derive_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0], network_id, staking_key_hash)
             self.assertEqual(actual_address, expected_address)
 
     def test_enterprise_address(self):
@@ -398,7 +398,7 @@ class TestCardanoAddress(unittest.TestCase):
         ]
 
         for network_id, expected_address in test_vectors:
-            actual_address = get_enterprise_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], network_id)
+            actual_address = derive_enterprise_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], network_id)
             self.assertEqual(actual_address, expected_address)
 
     def test_pointer_address(self):
@@ -417,7 +417,7 @@ class TestCardanoAddress(unittest.TestCase):
         ]
 
         for network_id, pointer, expected_address in test_vectors:
-            actual_address = get_pointer_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], network_id, pointer)
+            actual_address = derive_pointer_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], network_id, pointer)
             self.assertEqual(actual_address, expected_address)
 
 
@@ -431,13 +431,13 @@ class TestCardanoAddress(unittest.TestCase):
         keychain = Keychain([44 | HARDENED, 1815 | HARDENED], node)
 
         with self.assertRaises(wire.DataError):
-            get_base_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, None)
+            derive_base_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, None)
 
         with self.assertRaises(wire.DataError):
-            get_pointer_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, CardanoCertificatePointerType(0, 0, 0))
+            derive_pointer_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, CardanoCertificatePointerType(0, 0, 0))
 
         with self.assertRaises(wire.DataError):
-            get_enterprise_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0)
+            derive_enterprise_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0)
 
 
     def test_bootstrap_address(self):
@@ -456,7 +456,7 @@ class TestCardanoAddress(unittest.TestCase):
 
         for i, expected_address in enumerate(addresses):
             # 44'/1815'/0'/0/i
-            actual_address = get_bootstrap_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, i])
+            actual_address = derive_bootstrap_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, i])
 
             self.assertEqual(actual_address, expected_address)
 
@@ -469,7 +469,7 @@ class TestCardanoAddress(unittest.TestCase):
         keychain = Keychain([1852 | HARDENED, 1815 | HARDENED], node)
 
         with self.assertRaises(wire.DataError):
-            get_bootstrap_address(keychain, [1852 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0])
+            derive_bootstrap_address(keychain, [1852 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0])
 
 
 if __name__ == '__main__':

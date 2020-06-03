@@ -26,18 +26,31 @@ message CardanoCertificatePointerType {
 }
 
 /**
+ * Structure to represent address parameters so they can be later
+ * reused in CardanoGetAddress and CardanoTxOutputType.
+ * NetworkId isn't a part of the parameters, because in a transaction
+ * this will be included separately in the transaction itself, so it
+ * shouldn't be duplicated here.
+ */
+message CardanoAddressParametersType {
+    optional CardanoAddressType address_type = 1;                   // one of the CardanoAddressType-s
+    repeated uint32 address_n = 2;                                  // BIP-32-style path to derive the key from master node
+    optional CardanoCertificatePointerType certificate_pointer = 3; // a pointer to the staking key registration certificate
+    optional bytes staking_key_hash = 4;                            // staking key can be derived from address path, or
+                                                                    // can be sent directly e.g. if it doesn't belong to
+                                                                    // the same account as address path
+}
+
+/**
  * Request: Ask device for Cardano address
  * @start
  * @next CardanoAddress
  * @next Failure
  */
 message CardanoGetAddress {
-    repeated uint32 address_n = 1;  // BIP-32-style path to derive the key from master node
-    optional bool show_display = 2; // optionally prompt for confirmation on trezor display
-    optional CardanoAddressType address_type = 3;
-    optional uint32 network_id = 4;
-    optional CardanoCertificatePointerType certificate_pointer = 5;
-    optional bytes staking_key_hash = 6;
+    optional CardanoAddressParametersType address_parameters = 1;   // parameters used to derive the address
+    optional bool show_display = 2;                                 // optionally prompt for confirmation on trezor display
+    optional uint32 network_id = 3;                                 // mainnet or testnet
 }
 
 /**

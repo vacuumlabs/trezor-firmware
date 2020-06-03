@@ -47,7 +47,26 @@ def get_human_readable_address(address: bytes) -> str:
     return bech32_encode("addr", address)
 
 
-def get_base_address(
+def derive_address(
+    keychain: seed.Keychain, parameters: CardanoAddressParametersType, network_id: int
+) -> str:
+    if parameters.address_type == CardanoAddressType.BASE_ADDRESS:
+        return derive_base_address(
+            keychain, parameters.address_n, network_id, parameters.staking_key_hash
+        )
+    elif parameters.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
+        return derive_enterprise_address(keychain, parameters.address_n, network_id)
+    elif parameters.address_type == CardanoAddressType.POINTER_ADDRESS:
+        return derive_pointer_address(
+            keychain, parameters.address_n, network_id, parameters.certificate_pointer,
+        )
+    elif parameters.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
+        return derive_bootstrap_address(keychain, parameters.address_n)
+    else:
+        raise ValueError("Invalid address type '%s'" % parameters.address_type)
+
+
+def derive_base_address(
     keychain: seed.Keychain, path: list, network_id: int, staking_key_hash: bytes
 ) -> str:
     if not _validate_shelley_address_path(path):
@@ -66,7 +85,7 @@ def get_base_address(
     return get_human_readable_address(address)
 
 
-def get_pointer_address(
+def derive_pointer_address(
     keychain: seed.Keychain,
     path: list,
     network_id: int,
@@ -84,7 +103,7 @@ def get_pointer_address(
     return get_human_readable_address(address)
 
 
-def get_enterprise_address(keychain: seed.Keychain, path: list, network_id: int) -> str:
+def derive_enterprise_address(keychain: seed.Keychain, path: list, network_id: int) -> str:
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for enterprise address")
 
@@ -98,7 +117,7 @@ def get_enterprise_address(keychain: seed.Keychain, path: list, network_id: int)
     return get_human_readable_address(address)
 
 
-def get_bootstrap_address(keychain: seed.Keychain, path: list) -> str:
+def derive_bootstrap_address(keychain: seed.Keychain, path: list) -> str:
     if not _validate_bootstrap_address_path(path):
         raise wire.DataError("Invalid path for bootstrap address")
 
