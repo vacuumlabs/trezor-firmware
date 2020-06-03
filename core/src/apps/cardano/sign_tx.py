@@ -78,12 +78,12 @@ async def request_transaction(ctx, tx_req: CardanoTxRequest, index: int):
 
 
 @seed.with_keychain
-async def sign_tx(ctx, msg, keychain: seed.Keychain):
+async def sign_tx(ctx, msg, keychains: seed.Keychain):
     try:
         transaction = Transaction(
             msg.inputs,
             msg.outputs,
-            keychain,
+            keychains,
             msg.protocol_magic,
             msg.fee,
             msg.ttl,
@@ -91,7 +91,7 @@ async def sign_tx(ctx, msg, keychain: seed.Keychain):
         )
 
         for i in msg.inputs:
-            await validate_path(ctx, validate_full_path, keychain, i.address_n, CURVE)
+            await validate_path(ctx, validate_full_path, keychains, i.address_n, CURVE)
 
         # sign the transaction bundle and prepare the result
         tx_body, tx_hash = transaction.serialise_tx()
@@ -122,7 +122,7 @@ class Transaction:
         self,
         inputs: list,
         outputs: list,
-        keychain,
+        keychains,
         protocol_magic: int,
         fee,
         ttl,
@@ -130,13 +130,12 @@ class Transaction:
     ):
         self.inputs = inputs
         self.outputs = outputs
-        self.keychain = keychain
+        self.keychains = keychains
         self.fee = fee
         self.ttl = ttl
         self.certificates = certificates
 
         self.network_name = KNOWN_PROTOCOL_MAGICS.get(protocol_magic, "Unknown")
-        print("protocol", protocol_magic)
         self.protocol_magic = protocol_magic
 
     def _process_outputs(self):
@@ -149,7 +148,7 @@ class Transaction:
         for output in self.outputs:
             if output.address_parameters:
                 address = derive_address(
-                    self.keychain, output.address_parameters, self.protocol_magic
+                    self.keychains, output.address_parameters, self.protocol_magic
                 )
                 change_addresses.append(address)
                 change_derivation_paths.append(output.address_parameters.address_n)
@@ -172,8 +171,8 @@ class Transaction:
         self.change_coins = change_coins
         self.change_derivation_paths = change_derivation_paths
 
-    def _build_witness(self, keychain, protocol_magic, tx_body_hash, address_path):
-        node = self.keychain.derive(address_path)
+    def _build_witness(self, keychains, protocol_magic, tx_body_hash, address_path):
+        node = self.keychains.derive(address_path)
         message = tx_body_hash
 
         # todo: GK - sign ext? sign?
@@ -190,7 +189,7 @@ class Transaction:
         witnesses = []
         for input in self.inputs:
             witness = self._build_witness(
-                self.keychain, self.protocol_magic, tx_aux_hash, input.address_n
+                self.keychains, self.protocol_magic, tx_aux_hash, input.address_n
             )
             witnesses.append(witness)
 
@@ -200,7 +199,7 @@ class Transaction:
                 continue
 
             witness = self._build_witness(
-                self.keychain, self.protocol_magic, tx_aux_hash, certificate.path
+                self.keychains, self.protocol_magic, tx_aux_hash, certificate.path
             )
             witnesses.append(witness)
 
@@ -240,7 +239,7 @@ class Transaction:
         if len(self.certificates) > 0:
             certificates_cbor = []
             for index, certificate in enumerate(self.certificates):
-                node = self.keychain.derive(certificate.path)
+                node = self.keychains.derive(certificate.path)
                 public_key_hash = hashlib.blake2b(
                     data=node.public_key(), outlen=32
                 ).digest()
