@@ -106,19 +106,85 @@ def create_input(input) -> messages.CardanoTxInputType:
 
 
 def create_output(output) -> messages.CardanoTxOutputType:
-    if not output.get("amount") or not (output.get("address") or output.get("path")):
+    if not output.get("amount") or not (
+        output.get("address") or (output.get("addressType") is not None)
+    ):
         raise ValueError("The output is missing some fields")
 
-    if output.get("path"):
-        path = output["path"]
-
-        return messages.CardanoTxOutputType(
-            address_n=tools.parse_path(path), amount=int(output["amount"])
-        )
+    if output.get("addressType") is not None:
+        return _create_change_address_output(output)
 
     return messages.CardanoTxOutputType(
         address=output["address"], amount=int(output["amount"])
     )
+
+
+def _create_change_address_output(output) -> messages.CardanoTxOutputType:
+    address_type = int(output["addressType"])
+    if address_type == messages.CardanoAddressType.BASE_ADDRESS:
+        if not output.get("path"):
+            raise ValueError("The output is missing some fields")
+
+        path = output["path"]
+        if output.get("stakingKeyHash"):
+            staking_key_hash = output["stakingKeyHash"]
+        else:
+            staking_key_hash = None
+
+        return messages.CardanoTxOutputType(
+            address_parameters=messages.CardanoAddressParametersType(
+                address_type=address_type,
+                address_n=tools.parse_path(path),
+                staking_key_hash=staking_key_hash,
+            ),
+            amount=int(output["amount"]),
+        )
+    elif address_type == messages.CardanoAddressType.POINTER_ADDRESS:
+        if not output.get("path") or not output.get("pointer"):
+            raise ValueError("The output is missing some fields")
+
+        path = output["path"]
+
+        pointer = output["pointer"]
+        # todo: GK - validate pointer function? or use create_pointer but check validation
+        if (
+            not pointer.get("block_index")
+            or not pointer.get("tx_index")
+            or not pointer.get("certificate_index")
+        ):
+            raise ValueError("The output is missing some fields")
+
+        return messages.CardanoTxOutputType(
+            address_parameters=messages.CardanoAddressParametersType(
+                address_type=address_type,
+                address_n=tools.parse_path(path),
+                pointer=pointer,
+            ),
+            amount=int(output["amount"]),
+        )
+    elif address_type == messages.CardanoAddressType.ENTERPRISE_ADDRESS:
+        if not output.get("path"):
+            raise ValueError("The output is missing some fields")
+
+        path = output["path"]
+
+        return messages.CardanoTxOutputType(
+            address_parameters=messages.CardanoAddressParametersType(
+                address_type=address_type,
+                address_n=tools.parse_path(path),
+            ),
+            amount=int(output["amount"]),
+        )
+    elif address_type == messages.CardanoAddressType.BOOTSTRAP_ADDRESS:
+        if not output.get("path"):
+            raise ValueError("The output is missing some fields")
+
+        path = output["path"]
+        return messages.CardanoTxOutputType(
+            address_n=tools.parse_path(path), amount=int(output["amount"])
+        )
+
+    raise ValueError("Unknown address type")
 
 
 def create_certificate(certificate) -> messages.CardanoTxCertificate:
@@ -129,8 +195,9 @@ def create_certificate(certificate) -> messages.CardanoTxCertificate:
         pool = certificate["pool"]
         # todo: refactor
         return messages.CardanoTxCertificate(
-            type=certificate["type"], 
-            path=tools.parse_path(path),
-            pool=pool)
+            type=certificate["type"], path=tools.parse_path(path), pool=pool
+        )
 
-    return messages.CardanoTxCertificate(type=certificate["type"], path=tools.parse_path(path))
+    return messages.CardanoTxCertificate(
+        type=certificate["type"], path=tools.parse_path(path),
+    )

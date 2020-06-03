@@ -1,10 +1,10 @@
 from trezor import wire
-from trezor.crypto import hashlib
+from trezor.crypto import base58, hashlib
 from trezor.messages import CardanoAddressType, CardanoCertificatePointerType
 
 import apps.cardano.address_id as AddressId
 from apps.cardano import BYRON_PURPOSE, CURVE, SHELLEY_PURPOSE
-from apps.cardano.bech32 import bech32_encode
+from apps.cardano.bech32 import bech32_decode, bech32_encode
 from apps.cardano.bootstrap_address import derive_address_and_node
 from apps.cardano.utils import variable_length_encode
 from apps.common import HARDENED, paths
@@ -123,6 +123,13 @@ def derive_bootstrap_address(keychain: seed.Keychain, path: list) -> str:
 
     address, _ = derive_address_and_node(keychain, path)
     return address
+
+
+def decode_address(address: str) -> bytes:
+    if address.startswith("addr1"):
+        return bech32_decode("addr", address)
+    else:
+        return base58.decode(address)
 
 
 def _validate_shelley_address_path(path: list) -> bool:
