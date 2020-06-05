@@ -160,9 +160,9 @@ def _create_change_address_output(output) -> messages.CardanoTxOutputType:
                 address_n=tools.parse_path(path),
                 certificate_pointer=messages.CardanoCertificatePointerType(
                     block_index=pointer["block_index"],
-                    tx_index = pointer["tx_index"],
-                    certificate_index=pointer["certificate_index"]
-                )
+                    tx_index=pointer["tx_index"],
+                    certificate_index=pointer["certificate_index"],
+                ),
             ),
             amount=int(output["amount"]),
         )
@@ -174,8 +174,7 @@ def _create_change_address_output(output) -> messages.CardanoTxOutputType:
 
         return messages.CardanoTxOutputType(
             address_parameters=messages.CardanoAddressParametersType(
-                address_type=address_type,
-                address_n=tools.parse_path(path),
+                address_type=address_type, address_n=tools.parse_path(path),
             ),
             amount=int(output["amount"]),
         )

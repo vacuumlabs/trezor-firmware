@@ -17,15 +17,14 @@
 import pytest
 
 from trezorlib.cardano import (
-    get_address,
     create_address_parameters,
     create_certificate_pointer,
+    get_address,
 )
 from trezorlib.messages import CardanoAddressType
 from trezorlib.tools import parse_path
 
 from ..common import MNEMONIC12
-
 
 SHELLEY_TEST_VECTORS_MNEMONIC = (
     "test walk nut penalty hip pave soap entry language right filter choice"
@@ -100,8 +99,7 @@ def test_cardano_get_base_address(client, path, network_id, expected_address):
     address = get_address(
         client,
         address_parameters=create_address_parameters(
-            address_type=CardanoAddressType.BASE_ADDRESS,
-            address_n=parse_path(path),
+            address_type=CardanoAddressType.BASE_ADDRESS, address_n=parse_path(path),
         ),
         network_id=network_id,
     )

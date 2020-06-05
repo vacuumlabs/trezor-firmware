@@ -3,6 +3,7 @@ from ubinascii import hexlify
 from trezor import log, wire
 from trezor.messages import CardanoAddressType
 from trezor.messages.CardanoAddress import CardanoAddress
+from trezor.messages.CardanoAddressParametersType import CardanoAddressParametersType
 
 from apps.cardano import CURVE, seed
 from apps.cardano.address import (

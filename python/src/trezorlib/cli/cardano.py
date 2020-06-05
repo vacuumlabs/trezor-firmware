@@ -48,10 +48,15 @@ def sign_tx(client, file, network):
     fee = transaction["fee"]
     ttl = transaction["ttl"]
     certificates = []
-    if transaction.get('certificates'):
-        certificates = [cardano.create_certificate(certificate) for certificate in transaction["certificates"]]
+    if transaction.get("certificates"):
+        certificates = [
+            cardano.create_certificate(certificate)
+            for certificate in transaction["certificates"]
+        ]
 
-    signed_transaction = cardano.sign_tx(client, inputs, outputs, fee, ttl, certificates, network)
+    signed_transaction = cardano.sign_tx(
+        client, inputs, outputs, fee, ttl, certificates, network
+    )
 
     return {
         "tx_hash": signed_transaction.tx_hash.hex(),
@@ -101,12 +106,7 @@ def get_address(
         address_type, address_n, certificate_pointer, staking_key_hash
     )
 
-    return cardano.get_address(
-        client,
-        address_parameters,
-        show_display,
-        network_id,
-    )
+    return cardano.get_address(client, address_parameters, show_display, network_id,)
 
 
 @cli.command()

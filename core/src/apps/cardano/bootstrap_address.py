@@ -6,7 +6,7 @@ from apps.common.seed import remove_ed25519_prefix
 
 if False:
     from trezor.crypto import bip32
-    from typing import Tuple, Dict
+    from typing import Tuple
     from apps.cardano import seed
 
 """

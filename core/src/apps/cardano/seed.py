@@ -3,7 +3,7 @@ from storage import cache
 from trezor import wire
 from trezor.crypto import bip32
 
-from apps.cardano import BYRON_SEED_NAMESPACE, CURVE, SHELLEY_SEED_NAMESPACE
+from apps.cardano import BYRON_SEED_NAMESPACE, SHELLEY_SEED_NAMESPACE
 from apps.common import mnemonic
 from apps.common.passphrase import get as get_passphrase
 
@@ -11,6 +11,35 @@ if False:
     from typing import Tuple
 
     from apps.common.seed import Bip32Path, MsgIn, MsgOut, Handler, HandlerWithKeychain
+
+
+class Keychain:
+    """Cardano keychain hard-coded to SEED_NAMESPACE."""
+
+    def __init__(self, root: bip32.HDNode) -> None:
+        self.root = root
+
+    def match_path(self, path: Bip32Path) -> Tuple[int, Bip32Path]:
+        namespace_length = len(SHELLEY_SEED_NAMESPACE)
+        if (
+            path[:namespace_length] != SHELLEY_SEED_NAMESPACE
+            and path[:namespace_length] != BYRON_SEED_NAMESPACE
+        ):
+            raise wire.DataError("Forbidden key path")
+
+        return 0, path[namespace_length:]
+
+    def derive(self, node_path: Bip32Path) -> bip32.HDNode:
+        _, suffix = self.match_path(node_path)
+        # derive child node from the root
+        node = self.root.clone()
+        for i in suffix:
+            node.derive_cardano(i)
+        return node
+
+    # XXX the root node remains in session cache so we should not delete it
+    # def __del__(self) -> None:
+    #     self.root.__del__()
 
 
 class Keychains:
@@ -33,35 +62,6 @@ class Keychains:
     def derive(self, node_path: list) -> bip32.HDNode:
         keychain = self._get_keychain(node_path[:2])
         return keychain.derive(node_path)
-
-
-class Keychain:
-    """Cardano keychain hard-coded to SEED_NAMESPACE."""
-
-    def __init__(self, root: bip32.HDNode) -> None:
-        self.root = root
-
-    def match_path(self, path: Bip32Path) -> Tuple[int, Bip32Path]:
-        namespace_length = len(SHELLEY_SEED_NAMESPACE)
-        if (
-            path[: namespace_length] != SHELLEY_SEED_NAMESPACE
-            and path[: namespace_length] != BYRON_SEED_NAMESPACE
-        ):
-            raise wire.DataError("Forbidden key path")
-
-        return 0, path[namespace_length :]
-
-    def derive(self, node_path: Bip32Path) -> bip32.HDNode:
-        _, suffix = self.match_path(node_path)
-        # derive child node from the root
-        node = self.root.clone()
-        for i in suffix:
-            node.derive_cardano(i)
-        return node
-
-    # XXX the root node remains in session cache so we should not delete it
-    # def __del__(self) -> None:
-    #     self.root.__del__()
 
 
 @cache.stored_async(cache.APP_CARDANO_ROOT)

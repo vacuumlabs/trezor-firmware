@@ -235,6 +235,7 @@ class Tagged:
 
 class Set:
     """Spec taken from: https://github.com/input-output-hk/cbor-sets-spec/blob/master/CBOR_SETS.md"""
+
     def __init__(self, array: List[Value]) -> None:
         self.raise_if_duplicates(array)
         self.array = array

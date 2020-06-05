@@ -8,8 +8,8 @@ from trezor.ui.scroll import Paginated
 from trezor.ui.text import Text
 from trezor.utils import chunks
 
-from apps.common.layout import show_warning
 from apps.common.confirm import confirm, require_confirm, require_hold_to_confirm
+from apps.common.layout import show_warning
 
 if False:
     from trezor import wire
@@ -42,7 +42,9 @@ async def confirm_sending(ctx: wire.Context, amount: int, to: str) -> None:
     await require_confirm(ctx, Paginated(pages))
 
 
-async def confirm_transaction(ctx: wire.Context, amount: int, fee: int, network_name: str) -> None:
+async def confirm_transaction(
+    ctx: wire.Context, amount: int, fee: int, network_name: str
+) -> None:
     t1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     t1.normal("Total amount:")
     t1.bold(format_coin_amount(amount))
@@ -71,7 +73,7 @@ async def confirm_certificate(ctx: wire.Context, certificate) -> bool:
     # todo: GK - Staking key path
     t1.bold("Here be staking key PATH")
 
-    if (certificate.type == 'stake_delegation'):
+    if certificate.type == "stake_delegation":
         t2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
         t2.normal("delegating to pool:")
         # todo: Staking key path
@@ -84,11 +86,11 @@ async def confirm_certificate(ctx: wire.Context, certificate) -> bool:
 
 
 def _format_certificate_type(certificate_type: str) -> str:
-    if certificate_type == 'stake_registration':
+    if certificate_type == "stake_registration":
         return "Stake key registration"
-    if certificate_type == 'stake_deregistration':
+    if certificate_type == "stake_deregistration":
         return "Stake key deregistration"
-    if certificate_type == 'stake_delegation':
+    if certificate_type == "stake_delegation":
         return "Stake delegation"
 
     # todo: GK - other certificates

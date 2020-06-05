@@ -1,6 +1,5 @@
 from micropython import const
 
-
 BASE_ADDRESS_KEY_KEY = const(0)
 BASE_ADDRESS_SCRIPT_KEY = const(1)
 BASE_ADDRESS_KEY_SCRIPT = const(2)

@@ -1,4 +1,4 @@
-def variable_length_encode(number: int)->bytes:
+def variable_length_encode(number: int) -> bytes:
     """
     Used for pointer encoding in pointer address.
     Encoding description can be found here:

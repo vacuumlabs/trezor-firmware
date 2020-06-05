@@ -2,28 +2,21 @@ from micropython import const
 from ubinascii import unhexlify
 
 from trezor import log, wire
-from trezor.crypto import base58, hashlib
+from trezor.crypto import hashlib
 from trezor.crypto.curve import ed25519
-from trezor.messages import CardanoAddressType
 from trezor.messages.CardanoSignedTx import CardanoSignedTx
 from trezor.messages.CardanoTxAck import CardanoTxAck
 from trezor.messages.CardanoTxRequest import CardanoTxRequest
 
-from apps.cardano import BYRON_SEED_NAMESPACE, CURVE, SHELLEY_SEED_NAMESPACE, seed
+from apps.cardano import CURVE, seed
 from apps.cardano.address import derive_address, validate_full_path
-from apps.cardano.bootstrap_address import (
-    derive_address_and_node,
-    is_safe_output_address,
-)
 from apps.cardano.layout import (
     confirm_certificate,
     confirm_sending,
     confirm_transaction,
-    progress,
 )
 from apps.common import cbor
 from apps.common.paths import validate_path
-from apps.common.seed import remove_ed25519_prefix
 
 # the maximum allowed change address.  this should be large enough for normal
 # use and still allow to quickly brute-force the correct bip32 path

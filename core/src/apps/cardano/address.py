@@ -1,10 +1,14 @@
 from trezor import wire
 from trezor.crypto import base58, hashlib
-from trezor.messages import CardanoAddressType, CardanoCertificatePointerType
+from trezor.messages import (
+    CardanoAddressParametersType,
+    CardanoAddressType,
+    CardanoCertificatePointerType,
+)
 
 import apps.cardano.address_id as AddressId
 from apps.cardano import BYRON_PURPOSE, CURVE, SHELLEY_PURPOSE
-from apps.cardano.bech32 import bech32_decode, bech32_encode
+from apps.cardano.bech32 import bech32_encode
 from apps.cardano.bootstrap_address import derive_address_and_node
 from apps.cardano.utils import variable_length_encode
 from apps.common import HARDENED, paths
@@ -67,7 +71,9 @@ def derive_address(
             keychains, parameters.address_n, network_id, parameters.staking_key_hash
         )
     elif parameters.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
-        address = _derive_enterprise_address(keychains, parameters.address_n, network_id)
+        address = _derive_enterprise_address(
+            keychains, parameters.address_n, network_id
+        )
     elif parameters.address_type == CardanoAddressType.POINTER_ADDRESS:
         address = _derive_pointer_address(
             keychains, parameters.address_n, network_id, parameters.certificate_pointer,

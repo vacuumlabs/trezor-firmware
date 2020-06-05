@@ -17,7 +17,6 @@
 import pytest
 
 from trezorlib import cardano, messages
-from trezorlib.exceptions import TrezorFailure
 
 NETWORK_IDS = {"mainnet": 0}
 
@@ -181,7 +180,7 @@ VALID_VECTORS = [
         # ttl
         10,
         # certificates
-        [SAMPLE_CERTIFICATES["stake_registration"],],
+        [SAMPLE_CERTIFICATES["stake_registration"]],
         # input flow
         [[SWIPE, YES], [YES], [SWIPE, YES]],
         # tx hash
@@ -226,7 +225,7 @@ VALID_VECTORS = [
         # ttl
         10,
         # certificates
-        [SAMPLE_CERTIFICATES["stake_deregistration"],],
+        [SAMPLE_CERTIFICATES["stake_deregistration"]],
         # input flow
         [[SWIPE, YES], [YES], [SWIPE, YES]],
         # tx hash

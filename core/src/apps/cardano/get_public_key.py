@@ -38,7 +38,9 @@ async def get_public_key(
     return key
 
 
-def _get_public_key(keychains: seed.Keychains, derivation_path: list) -> CardanoPublicKey:
+def _get_public_key(
+    keychains: seed.Keychains, derivation_path: list
+) -> CardanoPublicKey:
     node = keychains.derive(derivation_path)
 
     public_key = hexlify(remove_ed25519_prefix(node.public_key())).decode()
