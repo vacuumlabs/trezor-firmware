@@ -173,16 +173,18 @@ class Transaction:
 
     def _build_witness(self, keychains, protocol_magic, tx_body_hash, address_path):
         node = self.keychains.derive(address_path)
-        message = tx_body_hash
+        message = b"\x58\x20" + tx_body_hash
 
         # todo: GK - sign ext? sign?
         signature = ed25519.sign(node.private_key(), message)
+        # signature = ed25519.sign_ext(node.private_key(), node.private_key_ext(), message)
 
         # todo: GK - extended pub key vs pub key?
         # extended_public_key = (
         #     remove_ed25519_prefix(node.public_key()) + node.chain_code()
         # )
 
+        # return [extended_public_key, signature]
         return [node.public_key(), signature]
 
     def _build_witnesses(self, tx_aux_hash: str):
@@ -244,7 +246,7 @@ class Transaction:
                     data=node.public_key(), outlen=32
                 ).digest()
 
-                # todo: 0 deppends on cert type
+                # todo: GK - 0 deppends on cert type
                 cert_type_id = self.certificate_type_to_type_id(certificate.type)
                 certificates_cbor.append([cert_type_id, [0, public_key_hash]])
 
