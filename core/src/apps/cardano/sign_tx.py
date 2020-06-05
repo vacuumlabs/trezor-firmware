@@ -65,8 +65,7 @@ async def show_tx(
         await confirm_sending(ctx, outcoins[index], output)
 
     for index, certificate in enumerate(certificates):
-        if not await confirm_certificate(ctx, certificate):
-            return False
+        await confirm_certificate(ctx, certificate)
 
     total_amount = sum(outcoins)
     await confirm_transaction(ctx, total_amount, fee, network_name)
@@ -77,8 +76,8 @@ async def request_transaction(ctx, tx_req: CardanoTxRequest, index: int):
     return await ctx.call(tx_req, CardanoTxAck)
 
 
-@seed.with_keychain
-async def sign_tx(ctx, msg, keychains: seed.Keychain):
+@seed.with_keychains
+async def sign_tx(ctx, msg, keychains: seed.Keychains):
     try:
         transaction = Transaction(
             msg.inputs,

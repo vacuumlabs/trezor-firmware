@@ -39,10 +39,10 @@ def validate_full_path(path: list) -> bool:
 
 
 async def validate_address_path(
-    ctx: wire.Context, msg: CardanoGetAddress, keychain: seed.Keychain
+    ctx: wire.Context, msg: CardanoGetAddress, keychains: seed.Keychains
 ) -> None:
     # TODO what does this do? should we call it somewhere for validation of staking key paths, too?
-    await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
+    await paths.validate_path(ctx, validate_full_path, keychains, msg.address_n, CURVE)
 
 
 def get_human_readable_address(address: bytes) -> str:
@@ -50,13 +50,13 @@ def get_human_readable_address(address: bytes) -> str:
 
 
 def derive_address(
-    keychain: seed.Keychain,
+    keychains: seed.Keychains,
     parameters: CardanoAddressParametersType,
     network_id: int,
     human_readable: bool = True,
 ) -> str:
     if parameters.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
-        address = _derive_bootstrap_address(keychain, parameters.address_n)
+        address = _derive_bootstrap_address(keychains, parameters.address_n)
         if human_readable:
             return address
         else:
@@ -64,13 +64,13 @@ def derive_address(
 
     if parameters.address_type == CardanoAddressType.BASE_ADDRESS:
         address = _derive_base_address(
-            keychain, parameters.address_n, network_id, parameters.staking_key_hash
+            keychains, parameters.address_n, network_id, parameters.staking_key_hash
         )
     elif parameters.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
-        address = _derive_enterprise_address(keychain, parameters.address_n, network_id)
+        address = _derive_enterprise_address(keychains, parameters.address_n, network_id)
     elif parameters.address_type == CardanoAddressType.POINTER_ADDRESS:
         address = _derive_pointer_address(
-            keychain, parameters.address_n, network_id, parameters.certificate_pointer,
+            keychains, parameters.address_n, network_id, parameters.certificate_pointer,
         )
     else:
         raise ValueError("Invalid address type '%s'" % parameters.address_type)
@@ -82,15 +82,15 @@ def derive_address(
 
 
 def _derive_base_address(
-    keychain: seed.Keychain, path: list, network_id: int, staking_key_hash: bytes,
+    keychains: seed.Keychains, path: list, network_id: int, staking_key_hash: bytes,
 ) -> str:
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for base address")
 
-    spending_part = _get_spending_part(keychain, path)
+    spending_part = _get_spending_part(keychains, path)
 
     if staking_key_hash is None:
-        staking_part = get_staking_key_hash(keychain, path)
+        staking_part = get_staking_key_hash(keychains, path)
     else:
         staking_part = staking_key_hash
 
@@ -101,7 +101,7 @@ def _derive_base_address(
 
 
 def _derive_pointer_address(
-    keychain: seed.Keychain,
+    keychains: seed.Keychains,
     path: list,
     network_id: int,
     pointer: CardanoCertificatePointerType,
@@ -109,7 +109,7 @@ def _derive_pointer_address(
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for pointer address")
 
-    spending_part = _get_spending_part(keychain, path)
+    spending_part = _get_spending_part(keychains, path)
 
     address_header = _get_address_header(CardanoAddressType.POINTER_ADDRESS, network_id)
     encoded_pointer = _encode_certificate_pointer(pointer)
@@ -119,12 +119,12 @@ def _derive_pointer_address(
 
 
 def _derive_enterprise_address(
-    keychain: seed.Keychain, path: list, network_id: int
+    keychains: seed.Keychains, path: list, network_id: int
 ) -> str:
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for enterprise address")
 
-    spending_part = _get_spending_part(keychain, path)
+    spending_part = _get_spending_part(keychains, path)
 
     address_header = _get_address_header(
         CardanoAddressType.ENTERPRISE_ADDRESS, network_id
@@ -134,11 +134,11 @@ def _derive_enterprise_address(
     return address
 
 
-def _derive_bootstrap_address(keychain: seed.Keychain, path: list) -> str:
+def _derive_bootstrap_address(keychains: seed.Keychains, path: list) -> str:
     if not _validate_bootstrap_address_path(path):
         raise wire.DataError("Invalid path for bootstrap address")
 
-    address, _ = derive_address_and_node(keychain, path)
+    address, _ = derive_address_and_node(keychains, path)
     return address
 
 
@@ -150,15 +150,15 @@ def _validate_bootstrap_address_path(path: list) -> bool:
     return path[0] == BYRON_PURPOSE
 
 
-def _get_spending_part(keychain: seed.Keychain, path: list) -> bytes:
-    spending_node = keychain.derive(path)
+def _get_spending_part(keychains: seed.Keychains, path: list) -> bytes:
+    spending_node = keychains.derive(path)
     spending_key = remove_ed25519_prefix(spending_node.public_key())
     return hashlib.blake2b(data=spending_key, outlen=28).digest()
 
 
-def get_staking_key_hash(keychain: seed.Keychain, path: list) -> bytes:
+def get_staking_key_hash(keychains: seed.Keychains, path: list) -> bytes:
     staking_path = _path_to_staking_path(path)
-    staking_node = keychain.derive(staking_path)
+    staking_node = keychains.derive(staking_path)
     staking_key = remove_ed25519_prefix(staking_node.public_key())
     return hashlib.blake2b(data=staking_key, outlen=28).digest()
 

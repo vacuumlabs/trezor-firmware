@@ -13,21 +13,21 @@ if False:
     from trezor.messages.CardanoGetPublicKey import CardanoGetPublicKey
 
 
-@seed.with_keychain
+@seed.with_keychains
 async def get_public_key(
-    ctx: wire.Context, msg: CardanoGetPublicKey, keychain: seed.Keychain
+    ctx: wire.Context, msg: CardanoGetPublicKey, keychains: seed.Keychains
 ) -> CardanoPublicKey:
     await paths.validate_path(
         ctx,
         _validate_path_for_get_public_key,
-        keychain,
+        keychains,
         msg.address_n,
         CURVE,
         slip44_id=1815,
     )
 
     try:
-        key = _get_public_key(keychain, msg.address_n)
+        key = _get_public_key(keychains, msg.address_n)
     except ValueError as e:
         if __debug__:
             log.exception(__name__, e)
@@ -38,8 +38,8 @@ async def get_public_key(
     return key
 
 
-def _get_public_key(keychain: seed.Keychain, derivation_path: list) -> CardanoPublicKey:
-    node = keychain.derive(derivation_path)
+def _get_public_key(keychains: seed.Keychains, derivation_path: list) -> CardanoPublicKey:
+    node = keychains.derive(derivation_path)
 
     public_key = hexlify(remove_ed25519_prefix(node.public_key())).decode()
     chain_code = hexlify(node.chain_code()).decode()

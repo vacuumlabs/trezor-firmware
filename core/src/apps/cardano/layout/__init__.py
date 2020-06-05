@@ -77,11 +77,10 @@ async def confirm_certificate(ctx: wire.Context, certificate) -> bool:
         # todo: Staking key path
         t2.bold(certificate.pool)
 
-        return await confirm(ctx, Paginated([t1, t2]))
-
-    # todo: GK - other certificates might require other fields
-
-    return await confirm(ctx, t1)
+        await require_confirm(ctx, Paginated([t1, t2]))
+    else:
+        # todo: GK - other certificates might require other fields
+        await require_confirm(ctx, t1)
 
 
 def _format_certificate_type(certificate_type: str) -> str:

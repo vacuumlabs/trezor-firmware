@@ -22,25 +22,25 @@ if False:
     from trezor.messages.CardanoGetAddress import CardanoGetAddress
 
 
-@seed.with_keychain
+@seed.with_keychains
 async def get_address(
-    ctx: wire.Context, msg: CardanoGetAddress, keychain: seed.Keychain
+    ctx: wire.Context, msg: CardanoGetAddress, keychains: seed.Keychains
 ) -> CardanoAddress:
     address_parameters = msg.address_parameters
 
     await paths.validate_path(
-        ctx, validate_full_path, keychain, address_parameters.address_n, CURVE
+        ctx, validate_full_path, keychains, address_parameters.address_n, CURVE
     )
 
     try:
-        address = derive_address(keychain, address_parameters, msg.network_id)
+        address = derive_address(keychains, address_parameters, msg.network_id)
     except ValueError as e:
         if __debug__:
             log.exception(__name__, e)
         raise wire.ProcessError("Deriving address failed")
 
     if msg.show_display:
-        await _display_address(ctx, address_parameters, keychain, address)
+        await _display_address(ctx, address_parameters, keychains, address)
 
     return CardanoAddress(address=address)
 
@@ -48,10 +48,10 @@ async def get_address(
 async def _display_address(
     ctx: wire.Context,
     address_parameters: CardanoAddressParametersType,
-    keychain: seed.Keychain,
+    keychains: seed.Keychains,
     address: str,
 ) -> None:
-    await _show_warnings_if_applicable(ctx, address_parameters, keychain)
+    await _show_warnings_if_applicable(ctx, address_parameters, keychains)
 
     desc = address_n_to_str(address_parameters.address_n)
     while True:
@@ -64,11 +64,11 @@ async def _display_address(
 async def _show_warnings_if_applicable(
     ctx: wire.Context,
     address_parameters: CardanoAddressParametersType,
-    keychain: seed.Keychain,
+    keychains: seed.Keychains,
 ):
     if address_parameters.staking_key_hash is not None:
         account_staking_key_hash = get_staking_key_hash(
-            keychain, address_parameters.address_n
+            keychains, address_parameters.address_n
         )
         if address_parameters.staking_key_hash != account_staking_key_hash:
             hash_str = hexlify(address_parameters.staking_key_hash).decode()
