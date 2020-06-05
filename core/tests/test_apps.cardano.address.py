@@ -1,6 +1,8 @@
 from common import *
 from trezor import wire
 from trezor.crypto import bip32, slip39
+from trezor.messages import CardanoAddressType
+from trezor.messages.CardanoAddressParametersType import CardanoAddressParametersType
 from trezor.messages.CardanoCertificatePointerType import CardanoCertificatePointerType
 
 from apps.common import HARDENED, seed
@@ -9,10 +11,7 @@ if not utils.BITCOIN_ONLY:
     from apps.cardano.seed import Keychain
     from apps.cardano.address import (
         validate_full_path,
-        derive_base_address,
-        derive_enterprise_address,
-        derive_pointer_address,
-        derive_bootstrap_address,
+        derive_address,
     )
     from apps.cardano.bootstrap_address import (
         _get_address_root,
@@ -349,7 +348,11 @@ class TestCardanoAddress(unittest.TestCase):
         ]
 
         for network_id, account, expected_address in test_vectors:
-            actual_address = derive_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0], network_id, None)
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_ADDRESS,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0]
+            )
+            actual_address = derive_address(keychain, address_parameters, network_id)
 
             self.assertEqual(actual_address, expected_address)
 
@@ -379,7 +382,13 @@ class TestCardanoAddress(unittest.TestCase):
         ]
 
         for network_id, account, staking_key_hash, expected_address in test_vectors:
-            actual_address = derive_base_address(keychain, [1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0], network_id, staking_key_hash)
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_ADDRESS,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0],
+                staking_key_hash=staking_key_hash,
+            )
+            actual_address = derive_address(keychain, address_parameters, network_id)
+
             self.assertEqual(actual_address, expected_address)
 
     def test_enterprise_address(self):
@@ -398,7 +407,12 @@ class TestCardanoAddress(unittest.TestCase):
         ]
 
         for network_id, expected_address in test_vectors:
-            actual_address = derive_enterprise_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], network_id)
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.ENTERPRISE_ADDRESS,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+            )
+            actual_address = derive_address(keychain, address_parameters, network_id)
+
             self.assertEqual(actual_address, expected_address)
 
     def test_pointer_address(self):
@@ -417,7 +431,13 @@ class TestCardanoAddress(unittest.TestCase):
         ]
 
         for network_id, pointer, expected_address in test_vectors:
-            actual_address = derive_pointer_address(keychain, [1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0], network_id, pointer)
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.POINTER_ADDRESS,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                certificate_pointer=pointer,
+            )
+            actual_address = derive_address(keychain, address_parameters, network_id)
+
             self.assertEqual(actual_address, expected_address)
 
 
@@ -431,13 +451,26 @@ class TestCardanoAddress(unittest.TestCase):
         keychain = Keychain(node)
 
         with self.assertRaises(wire.DataError):
-            derive_base_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, None)
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_ADDRESS,
+                address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0]
+            )
+            derive_address(keychain, address_parameters, 0)
 
         with self.assertRaises(wire.DataError):
-            derive_pointer_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0, CardanoCertificatePointerType(0, 0, 0))
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.POINTER_ADDRESS,
+                address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                certificate_pointer=CardanoCertificatePointerType(0, 0, 0)
+            )
+            derive_address(keychain, address_parameters, 0)
 
         with self.assertRaises(wire.DataError):
-            derive_enterprise_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0], 0)
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.ENTERPRISE_ADDRESS,
+                address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+            )
+            derive_address(keychain, address_parameters, 0)
 
 
     def test_bootstrap_address(self):
@@ -456,7 +489,11 @@ class TestCardanoAddress(unittest.TestCase):
 
         for i, expected_address in enumerate(addresses):
             # 44'/1815'/0'/0/i
-            actual_address = derive_bootstrap_address(keychain, [44 | HARDENED, 1815 | HARDENED, HARDENED, 0, i])
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.BOOTSTRAP_ADDRESS,
+                address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, i]
+            )
+            actual_address = derive_address(keychain, address_parameters, 0)
 
             self.assertEqual(actual_address, expected_address)
 
@@ -469,7 +506,11 @@ class TestCardanoAddress(unittest.TestCase):
         keychain = Keychain(node)
 
         with self.assertRaises(wire.DataError):
-            derive_bootstrap_address(keychain, [1852 | HARDENED, 1815 | HARDENED, HARDENED, 0, 0])
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.BOOTSTRAP_ADDRESS,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+            )
+            derive_address(keychain, address_parameters, 0)
 
 
 if __name__ == '__main__':
