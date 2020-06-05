@@ -127,7 +127,7 @@ def _create_change_address_output(output) -> messages.CardanoTxOutputType:
 
         path = output["path"]
         if output.get("stakingKeyHash"):
-            staking_key_hash = output["stakingKeyHash"]
+            staking_key_hash = bytes.fromhex(output["stakingKeyHash"])
         else:
             staking_key_hash = None
 
@@ -158,7 +158,11 @@ def _create_change_address_output(output) -> messages.CardanoTxOutputType:
             address_parameters=messages.CardanoAddressParametersType(
                 address_type=address_type,
                 address_n=tools.parse_path(path),
-                pointer=pointer,
+                certificate_pointer=messages.CardanoCertificatePointerType(
+                    block_index=pointer["block_index"],
+                    tx_index = pointer["tx_index"],
+                    certificate_index=pointer["certificate_index"]
+                )
             ),
             amount=int(output["amount"]),
         )
