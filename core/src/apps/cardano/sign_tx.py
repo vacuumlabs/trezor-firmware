@@ -17,6 +17,7 @@ from apps.cardano.layout import (
 )
 from apps.common import cbor
 from apps.common.paths import validate_path
+from apps.common.seed import remove_ed25519_prefix
 
 # the maximum allowed change address.  this should be large enough for normal
 # use and still allow to quickly brute-force the correct bip32 path
@@ -241,7 +242,7 @@ class Transaction:
             for index, certificate in enumerate(self.certificates):
                 node = self.keychains.derive(certificate.path)
                 public_key_hash = hashlib.blake2b(
-                    data=node.public_key(), outlen=32
+                    data=remove_ed25519_prefix(node.public_key()), outlen=32
                 ).digest()
 
                 # todo: GK - 0 deppends on cert type
