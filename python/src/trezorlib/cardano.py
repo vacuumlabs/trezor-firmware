@@ -46,7 +46,6 @@ def sign_tx(
     client,
     inputs: List[messages.CardanoTxInputType],
     outputs: List[messages.CardanoTxOutputType],
-    transactions: List[bytes],
     fee: int,
     ttl: int,
     protocol_magic,
@@ -55,19 +54,11 @@ def sign_tx(
         messages.CardanoSignTx(
             inputs=inputs,
             outputs=outputs,
-            transactions_count=len(transactions),
             fee=fee,
             ttl=ttl,
             protocol_magic=protocol_magic,
         )
     )
-
-    while isinstance(response, messages.CardanoTxRequest):
-        tx_index = response.tx_index
-
-        transaction_data = bytes.fromhex(transactions[tx_index])
-        ack_message = messages.CardanoTxAck(transaction=transaction_data)
-        response = client.call(ack_message)
 
     return response
 

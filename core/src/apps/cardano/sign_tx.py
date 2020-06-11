@@ -4,8 +4,6 @@ from trezor import log, wire
 from trezor.crypto import base58, hashlib
 from trezor.crypto.curve import ed25519
 from trezor.messages.CardanoSignedTx import CardanoSignedTx
-from trezor.messages.CardanoTxAck import CardanoTxAck
-from trezor.messages.CardanoTxRequest import CardanoTxRequest
 
 from apps.cardano import CURVE, seed
 from apps.cardano.address import derive_address, validate_full_path
@@ -55,42 +53,11 @@ async def show_tx(
     await confirm_transaction(ctx, total_amount, fee, network_name)
 
 
-async def request_transaction(ctx, tx_req: CardanoTxRequest, index: int):
-    tx_req.tx_index = index
-    return await ctx.call(tx_req, CardanoTxAck)
-
-
 @seed.with_keychain
 async def sign_tx(ctx, msg, keychain: seed.Keychain):
-    progress.init(msg.transactions_count, "Loading data")
-
     try:
-        attested = len(msg.inputs) * [False]
-        input_coins_sum = 0
-        # request transactions
-        tx_req = CardanoTxRequest()
-
-        for index in range(msg.transactions_count):
-            progress.advance()
-            tx_ack = await request_transaction(ctx, tx_req, index)
-            tx_hash = hashlib.blake2b(
-                data=bytes(tx_ack.transaction), outlen=32
-            ).digest()
-            tx_decoded = cbor.decode(tx_ack.transaction)
-            for i, input in enumerate(msg.inputs):
-                if not attested[i] and input.prev_hash == tx_hash:
-                    attested[i] = True
-                    outputs = tx_decoded[1]
-                    amount = outputs[input.prev_index][1]
-                    input_coins_sum += amount
-
-        if not all(attested):
-            raise wire.ProcessError(
-                "No tx data sent for input " + str(attested.index(False))
-            )
-
         transaction = Transaction(
-            msg.inputs, msg.outputs, keychain, msg.protocol_magic, input_coins_sum
+            msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl
         )
 
         for i in msg.inputs:
@@ -126,17 +93,19 @@ class Transaction:
         outputs: list,
         keychain,
         protocol_magic: int,
-        input_coins_sum: int,
+        fee: int,
+        ttl: int,
     ):
         self.inputs = inputs
         self.outputs = outputs
         self.keychain = keychain
+        self.fee = fee
+        self.ttl = ttl
         # attributes have to be always empty in current Cardano
         self.attributes = {}
 
         self.network_name = KNOWN_PROTOCOL_MAGICS.get(protocol_magic, "Unknown")
         self.protocol_magic = protocol_magic
-        self.input_coins_sum = input_coins_sum
 
     def _process_outputs(self):
         change_addresses = []
@@ -190,13 +159,6 @@ class Transaction:
 
         return witnesses
 
-    @staticmethod
-    def compute_fee(input_coins_sum: int, outgoing_coins: list, change_coins: list):
-        outgoing_coins_sum = sum(outgoing_coins)
-        change_coins_sum = sum(change_coins)
-
-        return input_coins_sum - outgoing_coins_sum - change_coins_sum
-
     def serialise_tx(self):
 
         self._process_outputs()
@@ -230,9 +192,5 @@ class Transaction:
 
         witnesses = self._build_witnesses(tx_hash)
         tx_body = cbor.encode([tx_aux_cbor, witnesses])
-
-        self.fee = self.compute_fee(
-            self.input_coins_sum, self.outgoing_coins, self.change_coins
-        )
 
         return tx_body, tx_hash

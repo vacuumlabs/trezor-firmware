@@ -45,11 +45,10 @@ def sign_tx(client, file, network):
 
     inputs = [cardano.create_input(input) for input in transaction["inputs"]]
     outputs = [cardano.create_output(output) for output in transaction["outputs"]]
-    transactions = transaction["transactions"]
     fee = transaction["fee"]
     ttl = transaction["ttl"]
 
-    signed_transaction = cardano.sign_tx(client, inputs, outputs, transactions, fee, ttl, network)
+    signed_transaction = cardano.sign_tx(client, inputs, outputs, fee, ttl, network)
 
     return {
         "tx_hash": signed_transaction.tx_hash.hex(),

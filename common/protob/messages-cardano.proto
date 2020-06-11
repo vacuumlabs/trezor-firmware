@@ -85,16 +85,14 @@ message CardanoPublicKey {
  * Request: Ask device to sign Cardano transaction
  * @start
  * @next CardanoSignedTx
- * @next CardanoTxRequest
  * @next Failure
  */
 message CardanoSignTx {
     repeated CardanoTxInputType inputs = 1;     // inputs to be used in transaction
     repeated CardanoTxOutputType outputs = 2;   // outputs to be used in transaction
-    optional uint32 transactions_count = 3;     // transactions count
-    optional uint32 protocol_magic = 5;         // network's protocol magic
-    optional uint32 fee = 6;                    // transaction fee - added in shelley
-    optional uint32 ttl = 7;                    // transaction ttl - added in shelley
+    optional uint32 protocol_magic = 3;         // network's protocol magic
+    optional uint32 fee = 4;                    // transaction fee - added in shelley
+    optional uint32 ttl = 5;                    // transaction ttl - added in shelley
     /**
      * Structure representing cardano transaction input
      */
