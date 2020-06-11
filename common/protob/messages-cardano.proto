@@ -93,6 +93,8 @@ message CardanoSignTx {
     repeated CardanoTxOutputType outputs = 2;   // outputs to be used in transaction
     optional uint32 transactions_count = 3;     // transactions count
     optional uint32 protocol_magic = 5;         // network's protocol magic
+    optional uint32 fee = 6;                    // transaction fee - added in shelley
+    optional uint32 ttl = 7;                    // transaction ttl - added in shelley
     /**
      * Structure representing cardano transaction input
      */

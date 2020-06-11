@@ -47,6 +47,8 @@ def sign_tx(
     inputs: List[messages.CardanoTxInputType],
     outputs: List[messages.CardanoTxOutputType],
     transactions: List[bytes],
+    fee: int,
+    ttl: int,
     protocol_magic,
 ):
     response = client.call(
@@ -54,6 +56,8 @@ def sign_tx(
             inputs=inputs,
             outputs=outputs,
             transactions_count=len(transactions),
+            fee=fee,
+            ttl=ttl,
             protocol_magic=protocol_magic,
         )
     )
