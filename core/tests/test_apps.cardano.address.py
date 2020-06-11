@@ -27,8 +27,6 @@ class TestCardanoAddress(unittest.TestCase):
         mnemonic = "all all all all all all all all all all all all"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(0x80000000 | 44)
-        node.derive_cardano(0x80000000 | 1815)
         keychain = Keychain(node)
 
         addresses = [
@@ -74,8 +72,6 @@ class TestCardanoAddress(unittest.TestCase):
         mnemonic = "all all all all all all all all all all all all"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(0x80000000 | 44)
-        node.derive_cardano(0x80000000 | 1815)
         keychain = Keychain(node)
 
         addresses = [
@@ -122,8 +118,6 @@ class TestCardanoAddress(unittest.TestCase):
         mnemonic = "all all all all all all all all all all all all"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(0x80000000 | 44)
-        node.derive_cardano(0x80000000 | 1815)
         keychain = Keychain(node)
 
         # 44'/1815'
@@ -228,8 +222,6 @@ class TestCardanoAddress(unittest.TestCase):
         self.assertEqual(hexlify(node.chain_code()), root_chain)
 
         # Check derived nodes and addresses.
-        node.derive_cardano(0x80000000 | 44)
-        node.derive_cardano(0x80000000 | 1815)
         keychain = Keychain(node)
 
         nodes = [
@@ -292,8 +284,6 @@ class TestCardanoAddress(unittest.TestCase):
         self.assertEqual(hexlify(node.chain_code()), root_chain)
 
         # Check derived nodes and addresses.
-        node.derive_cardano(0x80000000 | 44)
-        node.derive_cardano(0x80000000 | 1815)
         keychain = Keychain(node)
 
         nodes = [
@@ -333,9 +323,6 @@ class TestCardanoAddress(unittest.TestCase):
         mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(1852 | HARDENED)
-        node.derive_cardano(1815 | HARDENED)
-
         keychain = Keychain(node)
 
         test_vectors = [
@@ -358,9 +345,6 @@ class TestCardanoAddress(unittest.TestCase):
         mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(1852 | HARDENED)
-        node.derive_cardano(1815 | HARDENED)
-
         keychain = Keychain(node)
 
         test_vectors = [
@@ -386,9 +370,6 @@ class TestCardanoAddress(unittest.TestCase):
         mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(1852 | HARDENED)
-        node.derive_cardano(1815 | HARDENED)
-
         keychain = Keychain(node)
 
         test_vectors = [
@@ -405,9 +386,6 @@ class TestCardanoAddress(unittest.TestCase):
         mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(1852 | HARDENED)
-        node.derive_cardano(1815 | HARDENED)
-
         keychain = Keychain(node)
 
         test_vectors = [
@@ -425,9 +403,6 @@ class TestCardanoAddress(unittest.TestCase):
         mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(44 | HARDENED)
-        node.derive_cardano(1815 | HARDENED)
-
         keychain = Keychain(node)
 
         with self.assertRaises(wire.DataError):
@@ -444,8 +419,6 @@ class TestCardanoAddress(unittest.TestCase):
         mnemonic = "all all all all all all all all all all all all"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(44 | HARDENED)
-        node.derive_cardano(1815 | HARDENED)
         keychain = Keychain(node)
 
         addresses = [
@@ -464,8 +437,6 @@ class TestCardanoAddress(unittest.TestCase):
         mnemonic = "all all all all all all all all all all all all"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(1852 | HARDENED)
-        node.derive_cardano(1815 | HARDENED)
         keychain = Keychain(node)
 
         with self.assertRaises(wire.DataError):
