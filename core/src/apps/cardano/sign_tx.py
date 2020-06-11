@@ -172,15 +172,18 @@ class Transaction:
 
         # todo: GK - sign ext? sign?
         signature = ed25519.sign(node.private_key(), message)
-        # signature = ed25519.sign_ext(node.private_key(), node.private_key_ext(), message)
+        # signature = ed25519.sign_ext(node.private_key(), node.chain_code(), message)
 
         # todo: GK - extended pub key vs pub key?
         # extended_public_key = (
         #     remove_ed25519_prefix(node.public_key()) + node.chain_code()
         # )
 
+        # todo: GK - pub key vs derived pub key?
+        derived_public_key = ed25519.publickey(node.private_key())
+
         # return [extended_public_key, signature]
-        return [node.public_key(), signature]
+        return [derived_public_key, signature]
 
     def _build_witnesses(self, tx_aux_hash: str):
         witnesses = []
