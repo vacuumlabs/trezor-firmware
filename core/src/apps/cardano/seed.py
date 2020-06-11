@@ -2,7 +2,7 @@ from storage import cache, device
 from trezor import wire
 from trezor.crypto import bip32
 
-from apps.cardano import BYRON_SEED_NAMESPACE, CURVE, SHELLEY_SEED_NAMESPACE
+from apps.cardano import SEED_NAMESPACE
 from apps.common import mnemonic
 from apps.common.passphrase import get as get_passphrase
 
@@ -12,28 +12,6 @@ if False:
     from apps.common.seed import Bip32Path, MsgIn, MsgOut, Handler, HandlerWithKeychain
 
 
-class Keychains:
-    def __init__(self, byron_keychain: Keychain, shelley_keychain: Keychain):
-        self.byron_keychain = byron_keychain
-        self.shelley_keychain = shelley_keychain
-
-    def _get_keychain(self, namespace: list) -> Keychain:
-        if namespace == BYRON_SEED_NAMESPACE:
-            return self.byron_keychain
-        elif namespace == SHELLEY_SEED_NAMESPACE:
-            return self.shelley_keychain
-        else:
-            raise wire.DataError("Invalid namespace")
-
-    def match_path(self, checked_path: list) -> None:
-        keychain = self._get_keychain(checked_path[:2])
-        keychain.match_path(checked_path)
-
-    def derive(self, node_path: list) -> bip32.HDNode:
-        keychain = self._get_keychain(node_path[:2])
-        return keychain.derive(node_path)
-
-
 class Keychain:
     """Cardano keychain hard-coded to SEED_NAMESPACE."""
 
@@ -41,14 +19,9 @@ class Keychain:
         self.root = root
 
     def match_path(self, path: Bip32Path) -> Tuple[int, Bip32Path]:
-        namespace_length = len(SHELLEY_SEED_NAMESPACE)
-        if (
-            path[: namespace_length] != SHELLEY_SEED_NAMESPACE
-            and path[: namespace_length] != BYRON_SEED_NAMESPACE
-        ):
+        if path[: len(SEED_NAMESPACE)] != SEED_NAMESPACE:
             raise wire.DataError("Forbidden key path")
-
-        return 0, path[namespace_length :]
+        return 0, path[len(SEED_NAMESPACE) :]
 
     def derive(self, node_path: Bip32Path) -> bip32.HDNode:
         _, suffix = self.match_path(node_path)
@@ -78,16 +51,16 @@ async def get_keychain(ctx: wire.Context) -> Keychain:
         root = bip32.from_seed(seed, "ed25519 cardano seed")
 
     # derive the namespaced root node
-    for i in namespace:
+    for i in SEED_NAMESPACE:
         root.derive_cardano(i)
 
     keychain = Keychain(root)
     return keychain
 
 
-def with_keychains(func: HandlerWithKeychain[MsgIn, MsgOut]) -> Handler[MsgIn, MsgOut]:
+def with_keychain(func: HandlerWithKeychain[MsgIn, MsgOut]) -> Handler[MsgIn, MsgOut]:
     async def wrapper(ctx: wire.Context, msg: MsgIn) -> MsgOut:
-        keychains = await get_keychains(ctx)
-        return await func(ctx, msg, keychains)
+        keychain = await get_keychain(ctx)
+        return await func(ctx, msg, keychain)
 
     return wrapper
