@@ -1,4 +1,5 @@
 from micropython import const
+from ubinascii import unhexlify
 
 from trezor import log, wire
 from trezor.crypto import base58, hashlib
@@ -8,10 +9,17 @@ from trezor.messages.CardanoSignedTx import CardanoSignedTx
 from apps.cardano import CURVE, seed
 from apps.cardano.address import derive_address, validate_full_path
 from apps.cardano.bootstrap_address import is_safe_output_address
-from apps.cardano.layout import confirm_sending, confirm_transaction, progress
+from apps.cardano.layout import confirm_sending, confirm_transaction
 from apps.common import cbor
 from apps.common.paths import validate_path
 from apps.common.seed import remove_ed25519_prefix
+
+if False:
+    from typing import List, Tuple
+    from trezor import wire
+    from trezor.messages.CardanoSignTx import CardanoSignTx
+    from trezor.messages.CardanoTxInputType import CardanoTxInputType
+    from trezor.messages.CardanoTxOutputType import CardanoTxOutputType
 
 # the maximum allowed change address.  this should be large enough for normal
 # use and still allow to quickly brute-force the correct bip32 path
@@ -22,7 +30,7 @@ KNOWN_PROTOCOL_MAGICS = {764824073: "Mainnet", 1097911063: "Testnet"}
 
 
 # we consider addresses from the external chain as possible change addresses as well
-def is_change(output, inputs):
+def is_change(output: List[int], inputs: List[CardanoTxInputType]) -> bool:
     for input in inputs:
         inp = input.address_n
         if (
@@ -35,16 +43,18 @@ def is_change(output, inputs):
 
 
 async def show_tx(
-    ctx,
+    ctx: wire.Context,
     outputs: list,
     outcoins: list,
     fee: int,
     network_name: str,
-    raw_inputs: list,
-    raw_outputs: list,
+    raw_inputs: List[CardanoTxInputType],
+    raw_outputs: List[CardanoTxOutputType],
 ) -> None:
     for index, output in enumerate(outputs):
-        if is_change(raw_outputs[index].address_n, raw_inputs):
+        if raw_outputs[index].address_parameters and is_change(
+            raw_outputs[index].address_parameters.address_n, raw_inputs
+        ):
             continue
 
         await confirm_sending(ctx, outcoins[index], output)
@@ -54,7 +64,9 @@ async def show_tx(
 
 
 @seed.with_keychain
-async def sign_tx(ctx, msg, keychain: seed.Keychain):
+async def sign_tx(
+    ctx: wire.Context, msg: CardanoSignTx, keychain: seed.Keychain
+) -> CardanoSignedTx:
     try:
         transaction = Transaction(
             msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl
@@ -78,7 +90,7 @@ async def sign_tx(ctx, msg, keychain: seed.Keychain):
         transaction.output_addresses,
         transaction.outgoing_coins,
         transaction.fee,
-        "Shelley -- " + transaction.network_name,
+        transaction.network_name,
         transaction.inputs,
         transaction.outputs,
     )
@@ -89,25 +101,23 @@ async def sign_tx(ctx, msg, keychain: seed.Keychain):
 class Transaction:
     def __init__(
         self,
-        inputs: list,
-        outputs: list,
-        keychain,
+        inputs: List[CardanoTxInputType],
+        outputs: List[CardanoTxOutputType],
+        keychain: seed.Keychain,
         protocol_magic: int,
         fee: int,
         ttl: int,
-    ):
+    ) -> None:
         self.inputs = inputs
         self.outputs = outputs
         self.keychain = keychain
         self.fee = fee
         self.ttl = ttl
-        # attributes have to be always empty in current Cardano
-        self.attributes = {}
 
         self.network_name = KNOWN_PROTOCOL_MAGICS.get(protocol_magic, "Unknown")
         self.protocol_magic = protocol_magic
 
-    def _process_outputs(self):
+    def _process_outputs(self) -> None:
         change_addresses = []
         change_derivation_paths = []
         output_addresses = []
@@ -115,8 +125,13 @@ class Transaction:
         change_coins = []
 
         for output in self.outputs:
-            if output.output.address_parameters:
-                address, _ = derive_address_and_node(self.keychain, output.address_parameters.address_n)
+            if output.address_parameters:
+                address = derive_address(
+                    self.keychain,
+                    output.address_parameters,
+                    self.protocol_magic,
+                    human_readable=False,
+                )
                 change_addresses.append(address)
                 change_derivation_paths.append(output.address_parameters.address_n)
                 change_coins.append(output.amount)
@@ -138,60 +153,47 @@ class Transaction:
         self.change_coins = change_coins
         self.change_derivation_paths = change_derivation_paths
 
-    def _build_witnesses(self, tx_aux_hash: str):
-        witnesses = []
+    def _build_input_witnesses(self, tx_aux_hash: bytes) -> List[List[bytes, bytes]]:
+        input_witnesses = []
         for input in self.inputs:
-            _, node = derive_address_and_node(self.keychain, input.address_n)
-            message = (
-                b"\x01" + cbor.encode(self.protocol_magic) + b"\x58\x20" + tx_aux_hash
-            )
+            node = self.keychain.derive(input.address_n)
+            message = b"\x58\x20" + tx_aux_hash
+
             signature = ed25519.sign_ext(
                 node.private_key(), node.private_key_ext(), message
             )
-            extended_public_key = (
-                remove_ed25519_prefix(node.public_key()) + node.chain_code()
-            )
-            witnesses.append(
-                [
-                    (input.type or 0),
-                    cbor.Tagged(24, cbor.encode([extended_public_key, signature])),
-                ]
-            )
 
-        return witnesses
+            public_key = remove_ed25519_prefix(node.public_key())
 
-    def serialise_tx(self):
+            input_witnesses.append([public_key, signature])
+
+        # todo: GK - resolve for certificates and byron witnesses
+
+        return input_witnesses
+
+    def serialise_tx(self) -> Tuple[bytes, bytes]:
 
         self._process_outputs()
 
-        inputs_cbor = []
+        inputs_for_cbor = []
         for input in self.inputs:
-            inputs_cbor.append(
-                [
-                    (input.type or 0),
-                    cbor.Tagged(24, cbor.encode([input.prev_hash, input.prev_index])),
-                ]
-            )
+            inputs_for_cbor.append([input.prev_hash, input.prev_index])
 
-        inputs_cbor = cbor.IndefiniteLengthArray(inputs_cbor)
-
-        outputs_cbor = []
+        outputs_for_cbor = []
         for index, address in enumerate(self.output_addresses):
-            outputs_cbor.append(
-                [cbor.Raw(base58.decode(address)), self.outgoing_coins[index]]
-            )
+            outputs_for_cbor.append([unhexlify(address), self.outgoing_coins[index]])
 
         for index, address in enumerate(self.change_addresses):
-            outputs_cbor.append(
-                [cbor.Raw(base58.decode(address)), self.change_coins[index]]
-            )
+            outputs_for_cbor.append([address, self.change_coins[index]])
 
-        outputs_cbor = cbor.IndefiniteLengthArray(outputs_cbor)
+        # todo: certificates, withdrawals, metadata
+        tx_body = {0: inputs_for_cbor, 1: outputs_for_cbor, 2: self.fee, 3: self.ttl}
 
-        tx_aux_cbor = [inputs_cbor, outputs_cbor, self.attributes]
-        tx_hash = hashlib.blake2b(data=cbor.encode(tx_aux_cbor), outlen=32).digest()
+        tx_body_cbor = cbor.encode(tx_body)
+        tx_hash = hashlib.blake2b(data=tx_body_cbor, outlen=32).digest()
 
-        witnesses = self._build_witnesses(tx_hash)
-        tx_body = cbor.encode([tx_aux_cbor, witnesses])
+        witnesses = {0: self._build_input_witnesses(tx_hash)}
 
-        return tx_body, tx_hash
+        tx = cbor.encode([tx_body, witnesses, {}])
+
+        return tx, tx_hash
