@@ -115,18 +115,19 @@ class Transaction:
         change_coins = []
 
         for output in self.outputs:
-            if output.address_n:
-                address, _ = derive_address_and_node(self.keychain, output.address_n)
+            if output.output.address_parameters:
+                address, _ = derive_address_and_node(self.keychain, output.address_parameters.address_n)
                 change_addresses.append(address)
-                change_derivation_paths.append(output.address_n)
+                change_derivation_paths.append(output.address_parameters.address_n)
                 change_coins.append(output.amount)
             else:
                 if output.address is None:
                     raise wire.ProcessError(
                         "Each output must have address or address_n field!"
                     )
-                if not is_safe_output_address(output.address):
-                    raise wire.ProcessError("Invalid output address!")
+                # todo: GK - this should be checked only with byron addresses
+                # if not is_safe_output_address(output.address):
+                #     raise wire.ProcessError("Invalid output address!")
 
                 outgoing_coins.append(output.amount)
                 output_addresses.append(output.address)
