@@ -29,6 +29,7 @@ from .CardanoPublicKey import CardanoPublicKey
 from .CardanoSignTx import CardanoSignTx
 from .CardanoSignedTx import CardanoSignedTx
 from .CardanoTxAck import CardanoTxAck
+from .CardanoTxCertificateType import CardanoTxCertificateType
 from .CardanoTxInputType import CardanoTxInputType
 from .CardanoTxOutputType import CardanoTxOutputType
 from .CardanoTxRequest import CardanoTxRequest
@@ -278,6 +279,7 @@ from . import BinanceTimeInForce
 from . import ButtonRequestType
 from . import Capability
 from . import CardanoAddressType
+from . import CardanoCertificateType
 from . import DebugLinkShowTextStyle
 from . import DebugSwipeDirection
 from . import FailureType
