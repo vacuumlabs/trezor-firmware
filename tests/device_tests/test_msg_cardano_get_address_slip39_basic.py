@@ -16,6 +16,7 @@
 
 import pytest
 
+from trezorlib.cardano import create_address_parameters
 from trezorlib.messages import CardanoAddressType
 from trezorlib.cardano import get_address
 from trezorlib.tools import parse_path
@@ -51,6 +52,11 @@ def test_cardano_get_address(client, path, expected_address):
     client.use_passphrase("TREZOR")
 
     address = get_address(
-        client, parse_path(path), address_type=CardanoAddressType.BOOTSTRAP_ADDRESS
+        client,
+        address_parameters=create_address_parameters(
+            address_type=CardanoAddressType.BOOTSTRAP_ADDRESS,
+            address_n=parse_path(path),
+        ),
     )
+
     assert address == expected_address
