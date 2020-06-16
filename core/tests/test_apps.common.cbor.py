@@ -65,6 +65,9 @@ class TestCardanoCbor(unittest.TestCase):
             # boolean
             (True, 'f5'),
             (False, 'f4'),
+
+            # null
+            (None, 'f6'),
         ]
         for val, encoded in test_vectors:
             self.assertEqual(unhexlify(encoded), encode(val))

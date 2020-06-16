@@ -32,6 +32,7 @@ _CBOR_VAR_FOLLOWS = const(0x1F)
 
 _CBOR_FALSE = const(0x14)
 _CBOR_TRUE = const(0x15)
+_CBOR_NULL = const(0x16)
 _CBOR_BREAK = const(0x1F)
 _CBOR_RAW_TAG = const(0x18)
 
@@ -93,6 +94,8 @@ def _cbor_encode(value: Value) -> Iterable[bytes]:
             yield bytes([_CBOR_PRIMITIVE + _CBOR_FALSE])
     elif isinstance(value, Raw):
         yield value.value
+    elif value is None:
+        yield bytes([_CBOR_PRIMITIVE + _CBOR_NULL])
     else:
         if __debug__:
             log.debug(__name__, "not implemented (encode): %s", type(value))
@@ -194,6 +197,8 @@ def _cbor_decode(cbor: bytes) -> Tuple[Value, bytes]:
             return (False, cbor[1:])
         elif fb_aux == _CBOR_TRUE:
             return (True, cbor[1:])
+        elif fb_aux == _CBOR_NULL:
+            return (None, cbor[1:])
         elif fb_aux == _CBOR_BREAK:
             return (cbor[0], cbor[1:])
         else:
