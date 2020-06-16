@@ -255,6 +255,6 @@ class Transaction:
 
         witnesses = {0: self._build_witnesses(tx_hash)}
 
-        tx = cbor.encode([tx_body, witnesses, {}])
+        tx = cbor.encode([tx_body, witnesses, None])
 
         return tx, tx_hash
