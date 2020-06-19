@@ -38,8 +38,6 @@ SAMPLE_INPUTS = {
         "path": "m/1852'/1815'/0'/0/0",
         "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
         "prev_index": 0,
-        # todo: GK - type can be removed?
-        "type": 0,
     },
 }
 
