@@ -12,8 +12,6 @@ class TestCardanoGetPublicKey(unittest.TestCase):
         mnemonic = "all all all all all all all all all all all all"
         passphrase = ""
         node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        node.derive_cardano(0x80000000 | 44)
-        node.derive_cardano(0x80000000 | 1815)
         keychain = Keychain(node)
 
         derivation_paths = [
@@ -66,8 +64,6 @@ class TestCardanoGetPublicKey(unittest.TestCase):
 
         node = bip32.from_seed(master_secret, "ed25519 cardano seed")
 
-        node.derive_cardano(0x80000000 | 44)
-        node.derive_cardano(0x80000000 | 1815)
         keychain = Keychain(node)
 
         # 44'/1815'/0'/0/i
@@ -117,8 +113,6 @@ class TestCardanoGetPublicKey(unittest.TestCase):
 
         node = bip32.from_seed(master_secret, "ed25519 cardano seed")
 
-        node.derive_cardano(0x80000000 | 44)
-        node.derive_cardano(0x80000000 | 1815)
         keychain = Keychain(node)
 
         # 44'/1815'/0'/0/i
