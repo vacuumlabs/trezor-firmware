@@ -1,5 +1,5 @@
 from trezor import wire
-from trezor.crypto import hashlib
+from trezor.crypto import base58, hashlib
 from trezor.messages import CardanoAddressType, CardanoCertificatePointerType
 
 import apps.cardano.address_id as AddressId
@@ -48,25 +48,37 @@ def get_human_readable_address(address: bytes) -> str:
 
 
 def derive_address(
-    keychain: seed.Keychain, parameters: CardanoAddressParametersType, network_id: int
+    keychain: seed.Keychain,
+    parameters: CardanoAddressParametersType,
+    network_id: int,
+    human_readable: bool = True,
 ) -> str:
+    if parameters.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
+        address = _derive_bootstrap_address(keychain, parameters.address_n)
+        if human_readable:
+            return address
+        else:
+            return base58.decode(address)
+
     if parameters.address_type == CardanoAddressType.BASE_ADDRESS:
-        return derive_base_address(
+        address = _derive_base_address(
             keychain, parameters.address_n, network_id, parameters.staking_key_hash
         )
     elif parameters.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
-        return derive_enterprise_address(keychain, parameters.address_n, network_id)
+        address = _derive_enterprise_address(keychain, parameters.address_n, network_id)
     elif parameters.address_type == CardanoAddressType.POINTER_ADDRESS:
-        return derive_pointer_address(
+        address =  _derive_pointer_address(
             keychain, parameters.address_n, network_id, parameters.certificate_pointer,
         )
-    elif parameters.address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
-        return derive_bootstrap_address(keychain, parameters.address_n)
     else:
         raise ValueError("Invalid address type '%s'" % parameters.address_type)
 
+    if human_readable:
+        return get_human_readable_address(address)
+    else:
+        return address
 
-def derive_base_address(
+def _derive_base_address(
     keychain: seed.Keychain, path: list, network_id: int, staking_key_hash: bytes
 ) -> str:
     if not _validate_shelley_address_path(path):
@@ -82,10 +94,10 @@ def derive_base_address(
     address_header = _get_address_header(CardanoAddressType.BASE_ADDRESS, network_id)
     address = address_header + spending_part + staking_part
 
-    return get_human_readable_address(address)
+    return address
 
 
-def derive_pointer_address(
+def _derive_pointer_address(
     keychain: seed.Keychain,
     path: list,
     network_id: int,
@@ -100,10 +112,10 @@ def derive_pointer_address(
     encoded_pointer = _encode_certificate_pointer(pointer)
     address = address_header + spending_part + encoded_pointer
 
-    return get_human_readable_address(address)
+    return address
 
 
-def derive_enterprise_address(keychain: seed.Keychain, path: list, network_id: int) -> str:
+def _derive_enterprise_address(keychain: seed.Keychain, path: list, network_id: int) -> str:
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for enterprise address")
 
@@ -114,10 +126,10 @@ def derive_enterprise_address(keychain: seed.Keychain, path: list, network_id: i
     )
     address = address_header + spending_part
 
-    return get_human_readable_address(address)
+    return address
 
 
-def derive_bootstrap_address(keychain: seed.Keychain, path: list) -> str:
+def _derive_bootstrap_address(keychain: seed.Keychain, path: list) -> str:
     if not _validate_bootstrap_address_path(path):
         raise wire.DataError("Invalid path for bootstrap address")
 
