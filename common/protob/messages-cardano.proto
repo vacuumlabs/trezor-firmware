@@ -15,6 +15,12 @@ enum CardanoAddressType {
     // todo: add other type
 }
 
+enum CardanoCertificateType {
+    STAKE_REGISTRATION = 0;
+    STAKE_DEREGISTRATION = 1;
+    STAKE_DELEGATION = 2;
+}
+
 /**
  * Structure representing cardano PointerAddress pointer,
  * which points to a staking key registration certificate.
@@ -81,6 +87,8 @@ message CardanoPublicKey {
     optional hw.trezor.messages.common.HDNodeType node = 2; // BIP-32 public node
 }
 
+// todo: GK - set correct next messages
+// todo: GK - remove redundant messages
 /**
  * Request: Ask device to sign Cardano transaction
  * @start
@@ -88,11 +96,13 @@ message CardanoPublicKey {
  * @next Failure
  */
 message CardanoSignTx {
-    repeated CardanoTxInputType inputs = 1;     // inputs to be used in transaction
-    repeated CardanoTxOutputType outputs = 2;   // outputs to be used in transaction
-    optional uint32 protocol_magic = 3;         // network's protocol magic
-    optional uint32 fee = 4;                    // transaction fee - added in shelley
-    optional uint32 ttl = 5;                    // transaction ttl - added in shelley
+    repeated CardanoTxInputType inputs = 1;         // inputs to be used in transaction
+    repeated CardanoTxOutputType outputs = 2;       // outputs to be used in transaction
+    optional uint32 protocol_magic = 3;             // network's protocol magic
+    optional uint32 fee = 4;                        // transaction fee - added in shelley
+    optional uint32 ttl = 5;                        // transaction ttl - added in shelley
+    repeated CardanoTxCertificateType certificates = 6; // transaction certificates - added in shelley
+    // todo: GK - add withdrawals, update, metadata and metadata hash?
     /**
      * Structure representing cardano transaction input
      */
@@ -109,6 +119,14 @@ message CardanoSignTx {
         optional string address = 1;                                    // address in Base58/Bech32 encoding
         optional CardanoAddressParametersType address_parameters = 2;   // parameters used to derive the address
         optional uint64 amount = 3;                                     // amount to spend
+    }
+    /**
+     * Structure representing cardano transaction certificate
+     */
+    message CardanoTxCertificateType {
+        optional uint32 type = 1;       // certificate type
+        repeated uint32 path = 2;       // BIP-32 path to derive (staking) key
+        optional string pool = 3;       // pool hash
     }
 }
 

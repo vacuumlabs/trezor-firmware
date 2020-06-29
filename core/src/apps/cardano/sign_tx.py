@@ -4,12 +4,17 @@ from ubinascii import unhexlify
 from trezor import log, wire
 from trezor.crypto import base58, hashlib
 from trezor.crypto.curve import ed25519
+from trezor.messages import CardanoCertificateType
 from trezor.messages.CardanoSignedTx import CardanoSignedTx
 
 from apps.cardano import CURVE, seed
 from apps.cardano.address import derive_address, validate_full_path
 from apps.cardano.bootstrap_address import is_safe_output_address
-from apps.cardano.layout import confirm_sending, confirm_transaction
+from apps.cardano.layout import (
+    confirm_certificate,
+    confirm_sending,
+    confirm_transaction,
+)
 from apps.common import cbor
 from apps.common.paths import validate_path
 from apps.common.seed import remove_ed25519_prefix
@@ -17,6 +22,7 @@ from apps.common.seed import remove_ed25519_prefix
 if False:
     from typing import List, Tuple
     from trezor import wire
+    from trezor.messages.CardanoTxCertificateType import CardanoTxCertificateType
     from trezor.messages.CardanoSignTx import CardanoSignTx
     from trezor.messages.CardanoTxInputType import CardanoTxInputType
     from trezor.messages.CardanoTxOutputType import CardanoTxOutputType
@@ -50,6 +56,7 @@ async def show_tx(
     network_name: str,
     raw_inputs: List[CardanoTxInputType],
     raw_outputs: List[CardanoTxOutputType],
+    certificates: List[CardanoTxCertificateType],
 ) -> None:
     for index, output in enumerate(outputs):
         if raw_outputs[index].address_parameters and is_change(
@@ -58,6 +65,9 @@ async def show_tx(
             continue
 
         await confirm_sending(ctx, outcoins[index], output)
+
+    for certificate in certificates:
+        await confirm_certificate(ctx, certificate)
 
     total_amount = sum(outcoins)
     await confirm_transaction(ctx, total_amount, fee, network_name)
@@ -69,7 +79,13 @@ async def sign_tx(
 ) -> CardanoSignedTx:
     try:
         transaction = Transaction(
-            msg.inputs, msg.outputs, keychain, msg.protocol_magic, msg.fee, msg.ttl
+            msg.inputs,
+            msg.outputs,
+            keychain,
+            msg.protocol_magic,
+            msg.fee,
+            msg.ttl,
+            msg.certificates,
         )
 
         for i in msg.inputs:
@@ -93,6 +109,7 @@ async def sign_tx(
         transaction.network_name,
         transaction.inputs,
         transaction.outputs,
+        transaction.certificates,
     )
 
     return tx
@@ -107,12 +124,14 @@ class Transaction:
         protocol_magic: int,
         fee: int,
         ttl: int,
+        certificates: List[CardanoTxCertificateType],
     ) -> None:
         self.inputs = inputs
         self.outputs = outputs
         self.keychain = keychain
         self.fee = fee
         self.ttl = ttl
+        self.certificates = certificates
 
         self.network_name = KNOWN_PROTOCOL_MAGICS.get(protocol_magic, "Unknown")
         self.protocol_magic = protocol_magic
@@ -153,26 +172,64 @@ class Transaction:
         self.change_coins = change_coins
         self.change_derivation_paths = change_derivation_paths
 
-    def _build_input_witnesses(self, tx_aux_hash: bytes) -> List[List[bytes, bytes]]:
-        input_witnesses = []
+    def _build_witness(
+        self, tx_body_hash: bytes, address_path: List[int]
+    ) -> List[bytes]:
+        node = self.keychain.derive(address_path)
+        message = b"\x58\x20" + tx_body_hash
+
+        signature = ed25519.sign_ext(
+            node.private_key(), node.private_key_ext(), message
+        )
+
+        public_key = remove_ed25519_prefix(node.public_key())
+
+        return [public_key, signature]
+
+    def _is_certificate_witness_required(self, certificate_type: int) -> bool:
+        return certificate_type != CardanoCertificateType.STAKE_REGISTRATION
+
+    def _build_witnesses(self, tx_aux_hash: bytes) -> List[List[bytes]]:
+        witnesses = []
         for input in self.inputs:
-            node = self.keychain.derive(input.address_n)
-            message = b"\x58\x20" + tx_aux_hash
+            witness = self._build_witness(tx_aux_hash, input.address_n)
+            witnesses.append(witness)
 
-            signature = ed25519.sign_ext(
-                node.private_key(), node.private_key_ext(), message
-            )
+        for certificate in self.certificates:
+            if not self._is_certificate_witness_required(certificate.type):
+                continue
 
-            public_key = remove_ed25519_prefix(node.public_key())
+            witness = self._build_witness(tx_aux_hash, certificate.path)
+            witnesses.append(witness)
 
-            input_witnesses.append([public_key, signature])
+        # todo: GK - resolve for reward and byron witnesses
 
-        # todo: GK - resolve for certificates and byron witnesses
+        return witnesses
 
-        return input_witnesses
+    def _validate_certificate_type(self, certificate_type: int) -> int:
+        return (
+            certificate_type == CardanoCertificateType.STAKE_REGISTRATION
+            or certificate_type == CardanoCertificateType.STAKE_DEREGISTRATION
+            or certificate_type == CardanoCertificateType.STAKE_DELEGATION
+        )
+
+    def _build_certificates(self) -> list:
+        certificates_for_cbor = []
+        for certificate in self.certificates:
+            if not self._validate_certificate_type(certificate.type):
+                raise ValueError("Unsupported certificate type '%s'" % certificate.type)
+
+            node = self.keychain.derive(certificate.path)
+            public_key_hash = hashlib.blake2b(
+                data=remove_ed25519_prefix(node.public_key()), outlen=32
+            ).digest()
+
+            # todo: GK - 0 deppends on cert type
+            certificates_for_cbor.append([certificate.type, [0, public_key_hash]])
+
+        return certificates_for_cbor
 
     def serialise_tx(self) -> Tuple[bytes, bytes]:
-
         self._process_outputs()
 
         inputs_for_cbor = []
@@ -186,13 +243,17 @@ class Transaction:
         for index, address in enumerate(self.change_addresses):
             outputs_for_cbor.append([address, self.change_coins[index]])
 
-        # todo: certificates, withdrawals, metadata
+        # todo: withdrawals, metadata
         tx_body = {0: inputs_for_cbor, 1: outputs_for_cbor, 2: self.fee, 3: self.ttl}
+
+        if len(self.certificates) > 0:
+            certificates_for_cbor = self._build_certificates()
+            tx_body[4] = certificates_for_cbor
 
         tx_body_cbor = cbor.encode(tx_body)
         tx_hash = hashlib.blake2b(data=tx_body_cbor, outlen=32).digest()
 
-        witnesses = {0: self._build_input_witnesses(tx_hash)}
+        witnesses = {0: self._build_witnesses(tx_hash)}
 
         tx = cbor.encode([tx_body, witnesses, {}])
 

@@ -21,6 +21,7 @@ from .tools import expect, session
 
 REQUIRED_FIELDS_TRANSACTION = ("inputs", "outputs", "transactions")
 REQUIRED_FIELDS_INPUT = ("path", "prev_hash", "prev_index", "type")
+REQUIRED_FIELDS_CERTIFICATE = ("path", "type")
 
 INCOMPLETE_OUTPUT_ERROR_MESSAGE = "The output is missing some fields"
 
@@ -50,15 +51,17 @@ def sign_tx(
     outputs: List[messages.CardanoTxOutputType],
     fee: int,
     ttl: int,
+    certificates: List[messages.CardanoTxCertificateType],
     protocol_magic,
 ):
     response = client.call(
         messages.CardanoSignTx(
             inputs=inputs,
             outputs=outputs,
+            protocol_magic=protocol_magic,
             fee=fee,
             ttl=ttl,
-            protocol_magic=protocol_magic,
+            certificates=certificates,
         )
     )
 
@@ -184,3 +187,29 @@ def _create_change_address_output(output) -> messages.CardanoTxOutputType:
         )
     else:
         raise ValueError("Unknown address type")
+
+
+def create_certificate(certificate) -> messages.CardanoTxCertificateType:
+    if not all(certificate.get(k) is not None for k in REQUIRED_FIELDS_CERTIFICATE):
+        raise ValueError("The certificate is missing some fields")
+
+    path = certificate["path"]
+    certificate_type = certificate["type"]
+
+    if certificate_type == messages.CardanoCertificateType.STAKE_DELEGATION:
+        if not certificate.get("pool"):
+            raise ValueError("The certificate is missing some fields")
+
+        pool = certificate["pool"]
+        return messages.CardanoTxCertificateType(
+            type=certificate["type"], path=tools.parse_path(path), pool=pool
+        )
+    elif (
+        certificate_type == messages.CardanoCertificateType.STAKE_REGISTRATION
+        or certificate_type == messages.CardanoCertificateType.STAKE_DEREGISTRATION
+    ):
+        return messages.CardanoTxCertificateType(
+            type=certificate["type"], path=tools.parse_path(path),
+        )
+    else:
+        raise ValueError("Unknown certificate type")
