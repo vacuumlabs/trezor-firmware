@@ -110,7 +110,6 @@ message CardanoSignTx {
         repeated uint32 address_n = 1;  // BIP-32 path to derive the key from master node
         optional bytes prev_hash = 2;   // hash of previous transaction output to spend by this input
         optional uint32 prev_index = 3; // index of previous output to spend
-        optional uint32 type = 4;       // input type, defaults to 0
     }
     /**
      * Structure representing cardano transaction output

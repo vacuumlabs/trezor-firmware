@@ -20,7 +20,7 @@ from . import messages, tools
 from .tools import expect, session
 
 REQUIRED_FIELDS_TRANSACTION = ("inputs", "outputs", "transactions")
-REQUIRED_FIELDS_INPUT = ("path", "prev_hash", "prev_index", "type")
+REQUIRED_FIELDS_INPUT = ("path", "prev_hash", "prev_index")
 REQUIRED_FIELDS_CERTIFICATE = ("path", "type")
 
 INCOMPLETE_OUTPUT_ERROR_MESSAGE = "The output is missing some fields"
@@ -103,7 +103,6 @@ def create_input(input) -> messages.CardanoTxInputType:
         address_n=tools.parse_path(path),
         prev_hash=bytes.fromhex(input["prev_hash"]),
         prev_index=input["prev_index"],
-        type=input["type"],
     )
 
 
