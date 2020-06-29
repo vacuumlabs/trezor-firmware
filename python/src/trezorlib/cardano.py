@@ -22,6 +22,8 @@ from .tools import expect, session
 REQUIRED_FIELDS_TRANSACTION = ("inputs", "outputs", "transactions")
 REQUIRED_FIELDS_INPUT = ("path", "prev_hash", "prev_index", "type")
 
+INCOMPLETE_OUTPUT_ERROR_MESSAGE = "The output is missing some fields"
+
 
 @expect(messages.CardanoAddress, field="address")
 def get_address(
@@ -46,24 +48,19 @@ def sign_tx(
     client,
     inputs: List[messages.CardanoTxInputType],
     outputs: List[messages.CardanoTxOutputType],
-    transactions: List[bytes],
+    fee: int,
+    ttl: int,
     protocol_magic,
 ):
     response = client.call(
         messages.CardanoSignTx(
             inputs=inputs,
             outputs=outputs,
-            transactions_count=len(transactions),
+            fee=fee,
+            ttl=ttl,
             protocol_magic=protocol_magic,
         )
     )
-
-    while isinstance(response, messages.CardanoTxRequest):
-        tx_index = response.tx_index
-
-        transaction_data = bytes.fromhex(transactions[tx_index])
-        ack_message = messages.CardanoTxAck(transaction=transaction_data)
-        response = client.call(ack_message)
 
     return response
 
@@ -108,16 +105,82 @@ def create_input(input) -> messages.CardanoTxInputType:
 
 
 def create_output(output) -> messages.CardanoTxOutputType:
-    if not output.get("amount") or not (output.get("address") or output.get("path")):
-        raise ValueError("The output is missing some fields")
+    contains_address = output.get("address")
+    # None check needed, because address type can be 0, thus this would be False
+    # even though 0 is a valid value
+    contains_address_type = output.get("addressType") is not None
 
-    if output.get("path"):
-        path = output["path"]
+    if not output.get("amount"):
+        raise ValueError(INCOMPLETE_OUTPUT_ERROR_MESSAGE)
+    if not (contains_address or contains_address_type):
+        raise ValueError(INCOMPLETE_OUTPUT_ERROR_MESSAGE)
+
+    if contains_address:
+        return messages.CardanoTxOutputType(
+            address=output["address"], amount=int(output["amount"])
+        )
+    else:
+        return _create_change_address_output(output)
+
+
+def _create_change_address_output(output) -> messages.CardanoTxOutputType:
+    # every address type requires a path, so check it only once
+    if not output.get("path"):
+        raise ValueError(INCOMPLETE_OUTPUT_ERROR_MESSAGE)
+
+    path = output["path"]
+    address_type = int(output["addressType"])
+
+    if address_type == messages.CardanoAddressType.BASE_ADDRESS:
+        if output.get("stakingKeyHash"):
+            staking_key_hash = bytes.fromhex(output["stakingKeyHash"])
+        else:
+            staking_key_hash = None
 
         return messages.CardanoTxOutputType(
-            address_n=tools.parse_path(path), amount=int(output["amount"])
+            address_parameters=messages.CardanoAddressParametersType(
+                address_type=address_type,
+                address_n=tools.parse_path(path),
+                staking_key_hash=staking_key_hash,
+            ),
+            amount=int(output["amount"]),
         )
+    elif address_type == messages.CardanoAddressType.POINTER_ADDRESS:
+        if not output.get("pointer"):
+            raise ValueError(INCOMPLETE_OUTPUT_ERROR_MESSAGE)
 
-    return messages.CardanoTxOutputType(
-        address=output["address"], amount=int(output["amount"])
-    )
+        pointer = output["pointer"]
+
+        # None check needed, because the values can be 0, thus the result would be False
+        # even though 0 is a valid value
+        if (
+            pointer.get("block_index") is None
+            or pointer.get("tx_index") is None
+            or pointer.get("certificate_index") is None
+        ):
+            raise ValueError(INCOMPLETE_OUTPUT_ERROR_MESSAGE)
+
+        return messages.CardanoTxOutputType(
+            address_parameters=messages.CardanoAddressParametersType(
+                address_type=address_type,
+                address_n=tools.parse_path(path),
+                certificate_pointer=messages.CardanoCertificatePointerType(
+                    block_index=pointer["block_index"],
+                    tx_index=pointer["tx_index"],
+                    certificate_index=pointer["certificate_index"],
+                ),
+            ),
+            amount=int(output["amount"]),
+        )
+    elif (
+        address_type == messages.CardanoAddressType.ENTERPRISE_ADDRESS
+        or address_type == messages.CardanoAddressType.BOOTSTRAP_ADDRESS
+    ):
+        return messages.CardanoTxOutputType(
+            address_parameters=messages.CardanoAddressParametersType(
+                address_type=address_type, address_n=tools.parse_path(path),
+            ),
+            amount=int(output["amount"]),
+        )
+    else:
+        raise ValueError("Unknown address type")
