@@ -1,29 +1,33 @@
 from micropython import const
 
 from trezor import ui
-from trezor.messages import ButtonRequestType
+from trezor.messages import ButtonRequestType, CardanoCertificateType
 from trezor.strings import format_amount
 from trezor.ui.button import ButtonDefault
 from trezor.ui.scroll import Paginated
 from trezor.ui.text import Text
 from trezor.utils import chunks
 
-from apps.common.layout import show_warning
+from apps.common.layout import address_n_to_str, show_warning
 from apps.common.confirm import confirm, require_confirm, require_hold_to_confirm
 
 if False:
     from trezor import wire
-    from trezor.messages import CardanoCertificatePointerType
+    from trezor.messages import CardanoCertificatePointerType, CardanoTxCertificateType
 
 
 def format_coin_amount(amount: int) -> str:
     return "%s %s" % (format_amount(amount, 6), "ADA")
 
 
+def _create_text_with_transaction_heading():
+    return Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+
+
 async def confirm_sending(ctx: wire.Context, amount: int, to: str) -> None:
     to_lines = list(chunks(to, 17))
 
-    t1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    t1 = _create_text_with_transaction_heading()
     t1.normal("Confirm sending:")
     t1.bold(format_coin_amount(amount))
     t1.normal("to:")
@@ -34,7 +38,7 @@ async def confirm_sending(ctx: wire.Context, amount: int, to: str) -> None:
     if len(to_lines) > 1:
         to_pages = list(chunks(to_lines[1:], PER_PAGE))
         for page in to_pages:
-            t = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+            t = _create_text_with_transaction_heading()
             for line in page:
                 t.bold(line)
             pages.append(t)
@@ -42,18 +46,52 @@ async def confirm_sending(ctx: wire.Context, amount: int, to: str) -> None:
     await require_confirm(ctx, Paginated(pages))
 
 
-async def confirm_transaction(ctx: wire.Context, amount: int, fee: int, network_name: str) -> None:
-    t1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+async def confirm_transaction(
+    ctx: wire.Context, amount: int, fee: int, network_name: str
+) -> None:
+    t1 = _create_text_with_transaction_heading()
     t1.normal("Total amount:")
     t1.bold(format_coin_amount(amount))
     t1.normal("including fee:")
     t1.bold(format_coin_amount(fee))
 
-    t2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    # todo: GK - deposit??
+
+    t2 = _create_text_with_transaction_heading()
     t2.normal("Network:")
     t2.bold(network_name)
 
     await require_hold_to_confirm(ctx, Paginated([t1, t2]))
+
+
+async def confirm_certificate(
+    ctx: wire.Context, certificate: CardanoTxCertificateType
+) -> bool:
+    t1 = _create_text_with_transaction_heading()
+    t1.normal("Confirm certificate:")
+    t1.bold(_format_certificate_type(certificate.type))
+    t1.normal("for address:")
+    t1.bold(address_n_to_str(certificate.path))
+
+    if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
+        t2 = _create_text_with_transaction_heading()
+        t2.normal("delegating to pool:")
+        t2.bold(certificate.pool)
+
+        await require_confirm(ctx, Paginated([t1, t2]))
+    else:
+        await require_confirm(ctx, t1)
+
+
+def _format_certificate_type(certificate_type: int) -> str:
+    if certificate_type == CardanoCertificateType.STAKE_REGISTRATION:
+        return "Stake key registration"
+    elif certificate_type == CardanoCertificateType.STAKE_DEREGISTRATION:
+        return "Stake key deregistration"
+    elif certificate_type == CardanoCertificateType.STAKE_DELEGATION:
+        return "Stake delegation"
+    else:
+        raise ValueError("Unknown certificate type")
 
 
 async def show_address(
