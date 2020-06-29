@@ -67,15 +67,15 @@ SAMPLE_OUTPUTS = {
 
 SAMPLE_CERTIFICATES = {
     "stake_registration": {
-        "type": 17,
+        "type": 0,
         "path": "m/1852'/1815'/0'/2/0",
     },
     "stake_deregistration": {
-        "type": 34,
+        "type": 1,
         "path": "m/1852'/1815'/0'/2/0",
     },
     "stake_delegation": {
-        "type": 51,
+        "type": 2,
         "path": "m/1852'/1815'/0'/2/0",
         "pool": "f61c42cbf7c8c53af3f520508212ad3e72f674f957fe23ff0acb49733c37b8f6",
     },
