@@ -31,7 +31,7 @@ async def confirm_sending(ctx: wire.Context, amount: int, to: str) -> None:
     t1 = _create_text_with_transaction_heading()
     t1.normal("Confirm sending:")
     t1.bold(format_coin_amount(amount))
-    t1.normal("to:")
+    t1.normal("to")
     t1.bold(to_lines[0])
 
     PER_PAGE = const(4)
@@ -51,9 +51,9 @@ async def confirm_transaction(
     ctx: wire.Context, amount: int, fee: int, network_name: str
 ) -> None:
     t1 = _create_text_with_transaction_heading()
-    t1.normal("Total amount:")
+    t1.normal("Transaction amount:")
     t1.bold(format_coin_amount(amount))
-    t1.normal("including fee:")
+    t1.normal("Transaction fee:")
     t1.bold(format_coin_amount(fee))
 
     # todo: GK - deposit??
@@ -68,20 +68,22 @@ async def confirm_transaction(
 async def confirm_certificate(
     ctx: wire.Context, certificate: CardanoTxCertificateType
 ) -> bool:
+    pages = []
+
     t1 = _create_text_with_transaction_heading()
-    t1.normal("Confirm certificate:")
+    t1.normal("Confirm:")
     t1.bold(_format_certificate_type(certificate.type))
-    t1.normal("for address:")
-    t1.bold(address_n_to_str(certificate.path))
+    t1.normal("for account:")
+    t1.bold(address_n_to_str(certificate.path[:3]))
+    pages.append(t1)
 
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
         t2 = _create_text_with_transaction_heading()
-        t2.normal("delegating to pool:")
+        t2.normal("to pool:")
         t2.bold(hexlify(certificate.pool).decode())
+        pages.append(t2)
 
-        await require_confirm(ctx, Paginated([t1, t2]))
-    else:
-        await require_confirm(ctx, t1)
+    await require_confirm(ctx, Paginated(pages))
 
 
 def _format_certificate_type(certificate_type: int) -> str:
