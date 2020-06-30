@@ -225,7 +225,12 @@ class Transaction:
             ).digest()
 
             # todo: GK - 0 deppends on cert type
-            certificates_for_cbor.append([certificate.type, [0, public_key_hash]])
+            stake_credential = [0, public_key_hash]
+            certificate_for_cbor = [certificate.type, stake_credential]
+            if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
+                certificate_for_cbor.append(certificate.pool)
+
+            certificates_for_cbor.append(certificate_for_cbor)
 
         return certificates_for_cbor
 

@@ -16,7 +16,7 @@ class CardanoTxCertificateType(p.MessageType):
         self,
         type: int = None,
         path: List[int] = None,
-        pool: str = None,
+        pool: bytes = None,
     ) -> None:
         self.type = type
         self.path = path if path is not None else []
@@ -27,5 +27,5 @@ class CardanoTxCertificateType(p.MessageType):
         return {
             1: ('type', p.UVarintType, 0),
             2: ('path', p.UVarintType, p.FLAG_REPEATED),
-            3: ('pool', p.UnicodeType, 0),
+            3: ('pool', p.BytesType, 0),
         }

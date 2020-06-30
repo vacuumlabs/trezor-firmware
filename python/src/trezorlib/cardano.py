@@ -201,7 +201,9 @@ def create_certificate(certificate) -> messages.CardanoTxCertificateType:
 
         pool = certificate["pool"]
         return messages.CardanoTxCertificateType(
-            type=certificate["type"], path=tools.parse_path(path), pool=pool
+            type=certificate["type"],
+            path=tools.parse_path(path),
+            pool=bytes.fromhex(pool),
         )
     elif (
         certificate_type == messages.CardanoCertificateType.STAKE_REGISTRATION

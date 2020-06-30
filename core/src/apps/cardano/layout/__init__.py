@@ -1,4 +1,5 @@
 from micropython import const
+from ubinascii import hexlify
 
 from trezor import ui
 from trezor.messages import ButtonRequestType, CardanoCertificateType
@@ -76,7 +77,7 @@ async def confirm_certificate(
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
         t2 = _create_text_with_transaction_heading()
         t2.normal("delegating to pool:")
-        t2.bold(certificate.pool)
+        t2.bold(hexlify(certificate.pool).decode())
 
         await require_confirm(ctx, Paginated([t1, t2]))
     else:
