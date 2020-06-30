@@ -70,7 +70,7 @@ async def show_tx(
         await confirm_certificate(ctx, certificate)
 
     total_amount = sum(outcoins)
-    await confirm_transaction(ctx, total_amount, fee, network_name)
+    await confirm_transaction(ctx, total_amount, fee, network_name, certificates)
 
 
 @seed.with_keychain

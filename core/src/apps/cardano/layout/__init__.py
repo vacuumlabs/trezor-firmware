@@ -48,21 +48,36 @@ async def confirm_sending(ctx: wire.Context, amount: int, to: str) -> None:
 
 
 async def confirm_transaction(
-    ctx: wire.Context, amount: int, fee: int, network_name: str
+    ctx: wire.Context,
+    amount: int,
+    fee: int,
+    network_name: str,
+    certificates: List[CardanoTxCertificateType],
 ) -> None:
+    pages = []
+
     t1 = _create_text_with_transaction_heading()
     t1.normal("Transaction amount:")
     t1.bold(format_coin_amount(amount))
     t1.normal("Transaction fee:")
     t1.bold(format_coin_amount(fee))
+    pages.append(t1)
 
     # todo: GK - deposit??
 
-    t2 = _create_text_with_transaction_heading()
-    t2.normal("Network:")
-    t2.bold(network_name)
+    if len(certificates) > 0:
+        t2 = _create_text_with_transaction_heading()
+        t2.normal("Certificates:")
+        for certificate in certificates:
+            t2.bold(_format_certificate_type(certificate.type))
+        pages.append(t2)
 
-    await require_hold_to_confirm(ctx, Paginated([t1, t2]))
+    t3 = _create_text_with_transaction_heading()
+    t3.normal("Network:")
+    t3.bold(network_name)
+    pages.append(t3)
+
+    await require_hold_to_confirm(ctx, Paginated(pages))
 
 
 async def confirm_certificate(
