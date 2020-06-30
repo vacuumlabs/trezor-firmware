@@ -8,7 +8,7 @@ if __debug__:
     try:
         from typing import Dict, List  # noqa: F401
         from typing_extensions import Literal  # noqa: F401
-        EnumTypeCardanoAddressType = Literal[0, 1, 2, 3]
+        EnumTypeCardanoAddressType = Literal[0, 1, 2, 3, 4]
     except ImportError:
         pass
 
@@ -30,7 +30,7 @@ class CardanoAddressParametersType(p.MessageType):
     @classmethod
     def get_fields(cls) -> Dict:
         return {
-            1: ('address_type', p.EnumType("CardanoAddressType", (0, 1, 2, 3)), 0),
+            1: ('address_type', p.EnumType("CardanoAddressType", (0, 1, 2, 3, 4)), 0),
             2: ('address_n', p.UVarintType, p.FLAG_REPEATED),
             3: ('certificate_pointer', CardanoCertificatePointerType, 0),
             4: ('staking_key_hash', p.BytesType, 0),

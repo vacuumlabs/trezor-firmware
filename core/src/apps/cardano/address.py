@@ -38,7 +38,9 @@ def validate_full_path(path: list) -> bool:
     return True
 
 
-async def validate_address_path(ctx: wire.Context, msg: CardanoGetAddress, keychain: seed.Keychain) -> None:
+async def validate_address_path(
+    ctx: wire.Context, msg: CardanoGetAddress, keychain: seed.Keychain
+) -> None:
     # TODO what does this do? should we call it somewhere for validation of staking key paths, too?
     await paths.validate_path(ctx, validate_full_path, keychain, msg.address_n, CURVE)
 
@@ -67,9 +69,11 @@ def derive_address(
     elif parameters.address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
         address = _derive_enterprise_address(keychain, parameters.address_n, network_id)
     elif parameters.address_type == CardanoAddressType.POINTER_ADDRESS:
-        address =  _derive_pointer_address(
+        address = _derive_pointer_address(
             keychain, parameters.address_n, network_id, parameters.certificate_pointer,
         )
+    elif parameters.address_type == CardanoAddressType.REWARD_ADDRESS:
+        address = _derive_reward_address(keychain, parameters.address_n, network_id)
     else:
         raise ValueError("Invalid address type '%s'" % parameters.address_type)
 
@@ -77,6 +81,7 @@ def derive_address(
         return get_human_readable_address(address)
     else:
         return address
+
 
 def _derive_base_address(
     keychain: seed.Keychain, path: list, network_id: int, staking_key_hash: bytes
@@ -115,7 +120,9 @@ def _derive_pointer_address(
     return address
 
 
-def _derive_enterprise_address(keychain: seed.Keychain, path: list, network_id: int) -> str:
+def _derive_enterprise_address(
+    keychain: seed.Keychain, path: list, network_id: int
+) -> str:
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for enterprise address")
 
@@ -125,6 +132,18 @@ def _derive_enterprise_address(keychain: seed.Keychain, path: list, network_id: 
         CardanoAddressType.ENTERPRISE_ADDRESS, network_id
     )
     address = address_header + spending_part
+
+    return address
+
+
+def _derive_reward_address(keychain: seed.Keychain, path: list, network_id: int) -> str:
+    if not _validate_shelley_address_path(path):
+        raise wire.DataError("Invalid path for reward address")
+
+    staking_part = get_staking_key_hash(keychain, path)
+
+    address_header = _get_address_header(CardanoAddressType.REWARD_ADDRESS, network_id)
+    address = address_header + staking_part
 
     return address
 
@@ -187,6 +206,8 @@ def _get_address_id(address_type: int) -> int:
         address_id = AddressId.POINTER_ADDRESS_KEY
     elif address_type == CardanoAddressType.ENTERPRISE_ADDRESS:
         address_id = AddressId.ENTERPRISE_ADDRESS_KEY
+    elif address_type == CardanoAddressType.REWARD_ADDRESS:
+        address_id = AddressId.REWARD_ADDRESS_KEY
     elif address_type == CardanoAddressType.BOOTSTRAP_ADDRESS:
         address_id = AddressId.BOOTSTRAP_ADDRESS_ID
     else:

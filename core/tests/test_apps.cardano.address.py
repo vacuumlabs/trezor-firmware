@@ -418,6 +418,27 @@ class TestCardanoAddress(unittest.TestCase):
 
             self.assertEqual(actual_address, expected_address)
 
+    def test_reward_address(self):
+        mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
+        passphrase = ""
+        node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
+        keychain = Keychain(node)
+
+        test_vectors = [
+            # network id, expected result
+            (0, "addr1uqevw2xnsc0pvn9t9r9c7qryfqfeerchgrlm3ea2nefr9hqq8lpzh"),
+            (3, "addr1uvevw2xnsc0pvn9t9r9c7qryfqfeerchgrlm3ea2nefr9hqqcxmz7")
+        ]
+
+        for network_id, expected_address in test_vectors:
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.REWARD_ADDRESS,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+            )
+            actual_address = derive_address(keychain, address_parameters, network_id)
+
+            self.assertEqual(actual_address, expected_address)
+
 
     def test_shelley_address_with_byron_namespace(self):
         """
@@ -447,6 +468,13 @@ class TestCardanoAddress(unittest.TestCase):
         with self.assertRaises(wire.DataError):
             address_parameters = CardanoAddressParametersType(
                 address_type=CardanoAddressType.ENTERPRISE_ADDRESS,
+                address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+            )
+            derive_address(keychain, address_parameters, 0)
+
+        with self.assertRaises(wire.DataError):
+            address_parameters = CardanoAddressParametersType(
+                address_type=CardanoAddressType.REWARD_ADDRESS,
                 address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             )
             derive_address(keychain, address_parameters, 0)
