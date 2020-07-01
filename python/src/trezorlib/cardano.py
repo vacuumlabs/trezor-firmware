@@ -52,6 +52,7 @@ def sign_tx(
     fee: int,
     ttl: int,
     certificates: List[messages.CardanoTxCertificateType],
+    withdrawals: List[messages.CardanoTxWithdrawalType],
     protocol_magic,
 ):
     response = client.call(
@@ -62,6 +63,7 @@ def sign_tx(
             fee=fee,
             ttl=ttl,
             certificates=certificates,
+            withdrawals=withdrawals,
         )
     )
 
@@ -214,3 +216,15 @@ def create_certificate(certificate) -> messages.CardanoTxCertificateType:
         )
     else:
         raise ValueError("Unknown certificate type")
+
+
+def create_withdrawal(withdrawal) -> messages.CardanoTxWithdrawalType:
+    # todo: GK - verify amount
+    if not withdrawal.get("path"):
+        raise ValueError("The withdrawal is missing some fields")
+
+    path = withdrawal["path"]
+    return messages.CardanoTxWithdrawalType(
+        path=tools.parse_path(path), amount=withdrawal["amount"],
+    )
+

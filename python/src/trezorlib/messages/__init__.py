@@ -33,6 +33,7 @@ from .CardanoTxCertificateType import CardanoTxCertificateType
 from .CardanoTxInputType import CardanoTxInputType
 from .CardanoTxOutputType import CardanoTxOutputType
 from .CardanoTxRequest import CardanoTxRequest
+from .CardanoTxWithdrawalType import CardanoTxWithdrawalType
 from .ChangePin import ChangePin
 from .ChangeWipeCode import ChangeWipeCode
 from .CipherKeyValue import CipherKeyValue

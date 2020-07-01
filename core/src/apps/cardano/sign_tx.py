@@ -4,8 +4,9 @@ from ubinascii import unhexlify
 from trezor import log, wire
 from trezor.crypto import base58, hashlib
 from trezor.crypto.curve import ed25519
-from trezor.messages import CardanoCertificateType
+from trezor.messages import CardanoAddressType, CardanoCertificateType
 from trezor.messages.CardanoSignedTx import CardanoSignedTx
+from trezor.messages.CardanoAddressParametersType import CardanoAddressParametersType
 
 from apps.cardano import CURVE, seed
 from apps.cardano.address import derive_address, validate_full_path
@@ -58,6 +59,7 @@ async def show_tx(
     raw_inputs: List[CardanoTxInputType],
     raw_outputs: List[CardanoTxOutputType],
     certificates: List[CardanoTxCertificateType],
+    # todo: GK - withdrawals?
 ) -> None:
     for index, output in enumerate(outputs):
         if raw_outputs[index].address_parameters and is_change(
@@ -87,6 +89,7 @@ async def sign_tx(
             msg.fee,
             msg.ttl,
             msg.certificates,
+            msg.withdrawals,
         )
 
         for i in msg.inputs:
@@ -126,6 +129,7 @@ class Transaction:
         fee: int,
         ttl: int,
         certificates: List[CardanoTxCertificateType],
+        withdrawals: List[CardanoTxWithdrawalType],
     ) -> None:
         self.inputs = inputs
         self.outputs = outputs
@@ -133,6 +137,7 @@ class Transaction:
         self.fee = fee
         self.ttl = ttl
         self.certificates = certificates
+        self.withdrawals = withdrawals
 
         self.network_name = KNOWN_PROTOCOL_MAGICS.get(protocol_magic, "Unknown")
         self.protocol_magic = protocol_magic
@@ -203,6 +208,11 @@ class Transaction:
             witness = self._build_witness(tx_aux_hash, certificate.path)
             witnesses.append(witness)
 
+        for withdrawal in self.withdrawals:
+            witness = self._build_witness(tx_aux_hash, withdrawal.path)
+            witnesses.append(witness)
+
+
         # todo: GK - resolve for reward and byron witnesses
 
         return witnesses
@@ -232,6 +242,25 @@ class Transaction:
 
         return certificates_for_cbor
 
+    def _build_withdrawals(self) -> list:
+        withdrawals_for_cbor = {}
+        for withdrawal in self.withdrawals:
+            # todo: GK - validate withdrawal path? It should be reward
+            # public_key_hash = get_public_key_hash(self.keychain, withdrawal.path)
+            reward_address = derive_address(
+                self.keychain,
+                CardanoAddressParametersType(
+                    address_type=CardanoAddressType.REWARD_ADDRESS,
+                    address_n=withdrawal.path,
+                ),
+                self.protocol_magic,
+                human_readable=False,
+            )
+
+            withdrawals_for_cbor[reward_address] = withdrawal.amount
+
+        return withdrawals_for_cbor
+
     def serialise_tx(self) -> Tuple[bytes, bytes]:
         self._process_outputs()
 
@@ -252,6 +281,10 @@ class Transaction:
         if len(self.certificates) > 0:
             certificates_for_cbor = self._build_certificates()
             tx_body[4] = certificates_for_cbor
+
+        if len(self.withdrawals) > 0:
+            withdrawals_for_cbor = self._build_withdrawals()
+            tx_body[5] = withdrawals_for_cbor
 
         tx_body_cbor = cbor.encode(tx_body)
         tx_hash = hashlib.blake2b(data=tx_body_cbor, outlen=32).digest()
