@@ -221,7 +221,7 @@ class Transaction:
 
             node = self.keychain.derive(certificate.path)
             public_key_hash = hashlib.blake2b(
-                data=remove_ed25519_prefix(node.public_key()), outlen=32
+                data=remove_ed25519_prefix(node.public_key()), outlen=28
             ).digest()
 
             # todo: GK - 0 deppends on cert type
