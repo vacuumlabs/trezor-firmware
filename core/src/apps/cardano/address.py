@@ -6,7 +6,7 @@ import apps.cardano.address_id as AddressId
 from apps.cardano import BYRON_PURPOSE, CURVE, SHELLEY_PURPOSE
 from apps.cardano.bech32 import bech32_encode
 from apps.cardano.bootstrap_address import derive_address_and_node
-from apps.cardano.utils import variable_length_encode
+from apps.cardano.utils import get_public_key_hash, variable_length_encode
 from apps.common import HARDENED, paths
 from apps.common.seed import remove_ed25519_prefix
 
@@ -89,7 +89,7 @@ def _derive_base_address(
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for base address")
 
-    spending_part = _get_spending_part(keychain, path)
+    spending_part = get_public_key_hash(keychain, path)
 
     if staking_key_hash is None:
         staking_part = get_staking_key_hash(keychain, path)
@@ -111,7 +111,7 @@ def _derive_pointer_address(
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for pointer address")
 
-    spending_part = _get_spending_part(keychain, path)
+    spending_part = get_public_key_hash(keychain, path)
 
     address_header = _get_address_header(CardanoAddressType.POINTER_ADDRESS, network_id)
     encoded_pointer = _encode_certificate_pointer(pointer)
@@ -126,7 +126,7 @@ def _derive_enterprise_address(
     if not _validate_shelley_address_path(path):
         raise wire.DataError("Invalid path for enterprise address")
 
-    spending_part = _get_spending_part(keychain, path)
+    spending_part = get_public_key_hash(keychain, path)
 
     address_header = _get_address_header(
         CardanoAddressType.ENTERPRISE_ADDRESS, network_id
@@ -164,17 +164,10 @@ def _validate_bootstrap_address_path(path: list) -> bool:
     return path[0] == BYRON_PURPOSE
 
 
-def _get_spending_part(keychain: seed.Keychain, path: list) -> bytes:
-    spending_node = keychain.derive(path)
-    spending_key = remove_ed25519_prefix(spending_node.public_key())
-    return hashlib.blake2b(data=spending_key, outlen=28).digest()
-
-
 def get_staking_key_hash(keychain: seed.Keychain, path: list) -> bytes:
+    # todo: GK - send staking path in address params (don't derive it here)
     staking_path = _path_to_staking_path(path)
-    staking_node = keychain.derive(staking_path)
-    staking_key = remove_ed25519_prefix(staking_node.public_key())
-    return hashlib.blake2b(data=staking_key, outlen=28).digest()
+    return get_public_key_hash(keychain, staking_path)
 
 
 def _path_to_staking_path(path: list) -> list:

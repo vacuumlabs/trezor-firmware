@@ -15,6 +15,7 @@ from apps.cardano.layout import (
     confirm_sending,
     confirm_transaction,
 )
+from apps.cardano.utils import get_public_key_hash
 from apps.common import cbor
 from apps.common.paths import validate_path
 from apps.common.seed import remove_ed25519_prefix
@@ -219,10 +220,7 @@ class Transaction:
             if not self._validate_certificate_type(certificate.type):
                 raise ValueError("Unsupported certificate type '%s'" % certificate.type)
 
-            node = self.keychain.derive(certificate.path)
-            public_key_hash = hashlib.blake2b(
-                data=remove_ed25519_prefix(node.public_key()), outlen=28
-            ).digest()
+            public_key_hash = get_public_key_hash(self.keychain, certificate.path)
 
             # todo: GK - 0 deppends on cert type
             stake_credential = [0, public_key_hash]
