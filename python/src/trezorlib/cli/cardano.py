@@ -63,9 +63,33 @@ def sign_tx(client, file, protocol_magic, network_id, testnet):
     outputs = [cardano.create_output(output) for output in transaction["outputs"]]
     fee = transaction["fee"]
     ttl = transaction["ttl"]
+    certificates = []
+    if transaction.get("certificates"):
+        certificates = [
+            cardano.create_certificate(certificate)
+            for certificate in transaction["certificates"]
+        ]
+    withdrawals = []
+    if transaction.get("withdrawals"):
+        withdrawals = [
+            cardano.create_withdrawal(withdrawal)
+            for withdrawal in transaction["withdrawals"]
+        ]
+    metadata_hash = bytes()
+    if transaction.get("metadata_hash"):
+        metadata_hash = bytes.fromhex(transaction["metadata_hash"])
 
     signed_transaction = cardano.sign_tx(
-        client, inputs, outputs, fee, ttl, protocol_magic, network_id
+        client,
+        inputs,
+        outputs,
+        fee,
+        ttl,
+        certificates,
+        withdrawals,
+        metadata_hash,
+        protocol_magic,
+        network_id,
     )
 
     return {
