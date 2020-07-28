@@ -192,11 +192,11 @@ def _build_tx_body(keychain: seed.Keychain, msg: CardanoSignTx) -> Dict:
         3: msg.ttl,
     }
 
-    if len(msg.certificates) > 0:
+    if msg.certificates:
         certificates_for_cbor = _build_certificates(keychain, msg.certificates)
         tx_body[4] = certificates_for_cbor
 
-    if len(msg.withdrawals) > 0:
+    if msg.withdrawals:
         withdrawals_for_cbor = _build_withdrawals(
             keychain, msg.withdrawals, msg.protocol_magic, msg.network_id
         )
@@ -303,9 +303,9 @@ def _build_witnesses(
     # use key 0 for shelley witnesses and key 2 for byron witnesses
     # according to the spec in shelley.cddl in cardano-ledger-specs
     witnesses = {}
-    if len(shelley_witnesses) > 0:
+    if shelley_witnesses:
         witnesses[0] = shelley_witnesses
-    if len(byron_witnesses) > 0:
+    if byron_witnesses:
         witnesses[2] = byron_witnesses
 
     return witnesses
@@ -350,7 +350,7 @@ def _build_shelley_witness(
     )
     public_key = remove_ed25519_prefix(node.public_key())
 
-    return (public_key, signature)
+    return public_key, signature
 
 
 def _is_certificate_witness_required(certificate_type: int) -> bool:
