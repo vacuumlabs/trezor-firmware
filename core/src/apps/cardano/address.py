@@ -9,6 +9,11 @@ from apps.common.seed import remove_ed25519_prefix
 
 from .byron_address import derive_byron_address, validate_output_byron_address
 from .helpers import INVALID_ADDRESS, NETWORK_MISMATCH, bech32, network_ids, purposes
+from .helpers.address_constants import (
+    ADDRESS_BYTES_MAX_LENGTHS,
+    ADDRESS_BYTES_MIN_LENGTHS,
+    ADDRESS_TYPES_SHELLEY,
+)
 from .helpers.utils import variable_length_encode
 from .seed import is_byron_path, is_shelley_path
 
@@ -17,34 +22,6 @@ if False:
     from trezor.messages import CardanoBlockchainPointerType
     from trezor.messages.CardanoAddressParametersType import EnumTypeCardanoAddressType
     from . import seed
-
-ADDRESS_TYPES_SHELLEY = (
-    CardanoAddressType.BASE,
-    CardanoAddressType.POINTER,
-    CardanoAddressType.ENTERPRISE,
-    CardanoAddressType.REWARD,
-)
-
-HEADER_LENGTH = 1
-HASH_LENGTH = 28
-MIN_POINTER_SIZE = 0
-MAX_POINTER_SIZE = 12
-
-ADDRESS_BYTES_MIN_LENGTHS = {
-    CardanoAddressType.BASE: HEADER_LENGTH + HASH_LENGTH + HASH_LENGTH,
-    CardanoAddressType.POINTER: HEADER_LENGTH + HASH_LENGTH + MIN_POINTER_SIZE,
-    CardanoAddressType.ENTERPRISE: HEADER_LENGTH + HASH_LENGTH,
-    CardanoAddressType.REWARD: HEADER_LENGTH + HASH_LENGTH,
-}
-
-ADDRESS_BYTES_MAX_LENGTHS = {
-    CardanoAddressType.BASE: ADDRESS_BYTES_MIN_LENGTHS[CardanoAddressType.BASE],
-    CardanoAddressType.POINTER: HEADER_LENGTH + HASH_LENGTH + MAX_POINTER_SIZE,
-    CardanoAddressType.ENTERPRISE: ADDRESS_BYTES_MIN_LENGTHS[
-        CardanoAddressType.ENTERPRISE
-    ],
-    CardanoAddressType.REWARD: ADDRESS_BYTES_MIN_LENGTHS[CardanoAddressType.REWARD],
-}
 
 
 def validate_full_path(path: List[int]) -> bool:
@@ -104,7 +81,10 @@ def _validate_output_shelley_address(
 ) -> None:
     address_type = _get_address_type(address_bytes)
     # reward address cannot be an output address
-    if address_type == CardanoAddressType.REWARD:
+    if (
+        address_type == CardanoAddressType.REWARD
+        or address_type == CardanoAddressType.REWARD_SCRIPT
+    ):
         raise INVALID_ADDRESS
 
     _validate_address_size(address_bytes, address_type)
