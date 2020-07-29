@@ -178,7 +178,7 @@ VALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [[InputAction.SWIPE, InputAction.YES], [InputAction.SWIPE, InputAction.YES]],
@@ -205,7 +205,7 @@ VALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [
@@ -239,7 +239,7 @@ VALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [[InputAction.SWIPE, InputAction.YES], [InputAction.SWIPE, InputAction.YES]],
@@ -269,7 +269,7 @@ VALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [
@@ -303,7 +303,7 @@ VALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [
@@ -337,7 +337,7 @@ VALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [
@@ -368,7 +368,7 @@ VALID_VECTORS = [
         [SAMPLE_CERTIFICATES["stake_registration"]],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [
@@ -402,7 +402,7 @@ VALID_VECTORS = [
         ],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [
@@ -434,7 +434,7 @@ VALID_VECTORS = [
         [SAMPLE_CERTIFICATES["stake_deregistration"]],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [
@@ -465,7 +465,7 @@ VALID_VECTORS = [
         [SAMPLE_CERTIFICATES["stake_deregistration"]],
         # withdrawals
         [SAMPLE_WITHDRAWALS["valid"]],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [
@@ -479,7 +479,7 @@ VALID_VECTORS = [
         # tx body
         "83a600818258203b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b700018182583901eb0baa5e570cffbe2934db29df0b6a3d7c0430ee65d4c3a7ab2fefb91bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff0102182a030a048182018200581c122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b427705a1581de1122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b42771903e8a10082825820bc65be1b0b9d7531778a1317c2aa6de936963c3f9ac7d5ee9e9eda25e0c97c5e58400202826a8b9688cf978000e7d1591582c65b149bb9f55dc883ae1acf85432618ca32be8a06fef37e69df503a294e7093006f63ababf9fcea639390226934020a8258205d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c158407efa634e42fa844cad5f60bf005d645817cc674f30eaab0da398b99034850780b40ab5a1028da033330a0f82b01648ec92cff8ca85a072594efb298016f38d0df6",
     ),
-    # transaction with metadata hash
+    # transaction with metadata
     (
         # network id
         PROTOCOL_MAGICS["mainnet"],
@@ -497,18 +497,14 @@ VALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
-        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        # metadata
+        "a200a11864a118c843aa00ff01a119012c590100aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         # input flow
-        [
-            [InputAction.SWIPE, InputAction.YES],
-            [InputAction.YES],
-            [InputAction.SWIPE, InputAction.YES],
-        ],
+        [[InputAction.SWIPE, InputAction.YES], [InputAction.SWIPE, InputAction.YES]],
         # tx hash
-        "4e123da8fbe13219e10e7287e6592befcbdbe4e42028e5699249289c8049afc5",
+        "1875f1d59a53f1cb4c43949867d72bcfd857fa3b64feb88f41b78ddaa1a21cbf",
         # tx body
-        "83a500818258203b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b700018182583901eb0baa5e570cffbe2934db29df0b6a3d7c0430ee65d4c3a7ab2fefb91bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff0102182a030a075820aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa100818258205d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c15840bf400eece1e8081aa670bd1e80321af98e78089cabc6033fe72a2a859ed8de57a439e23a39798fffab595bc8801a05b2359abc655cc3699c65a3170f30732005f6",
+        "83a500818258203b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b700018182583901eb0baa5e570cffbe2934db29df0b6a3d7c0430ee65d4c3a7ab2fefb91bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff0102182a030a075820ea4c91860dd5ec5449f8f985d227946ff39086b17f10b5afb93d12ee87050b6aa100818258205d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c15840b2015772a91043aeb04b98111744a098afdade0db5e30206538d7f2814965a5800d45240137f4d0dc81845a71e67cda38beaf816a520d73c4decbf7cbf0f6d08a200a11864a118c843aa00ff01a119012c590100aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     ),
     # Testnet transaction
     (
@@ -532,7 +528,7 @@ VALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # input flow
         [
@@ -567,7 +563,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -590,7 +586,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -613,7 +609,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -636,7 +632,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -659,7 +655,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -682,7 +678,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -705,7 +701,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -728,7 +724,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -751,7 +747,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -774,7 +770,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Fee is out of range!",
@@ -800,7 +796,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Total transaction amount is out of range!",
@@ -823,7 +819,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Output address network mismatch!",
@@ -846,7 +842,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Output address network mismatch!",
@@ -869,7 +865,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -892,7 +888,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid address",
@@ -915,7 +911,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid network id/protocol magic combination!",
@@ -938,7 +934,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid network id/protocol magic combination!",
@@ -961,7 +957,7 @@ INVALID_VECTORS = [
         [SAMPLE_CERTIFICATES["invalid_non_staking_path"]],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid certificate",
@@ -984,7 +980,7 @@ INVALID_VECTORS = [
         [SAMPLE_CERTIFICATES["invalid_pool_size"]],
         # withdrawals
         [],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid certificate",
@@ -1007,7 +1003,7 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [SAMPLE_WITHDRAWALS["invalid_non_staking_path"]],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid withdrawal",
@@ -1030,12 +1026,12 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [SAMPLE_WITHDRAWALS["invalid_amount_too_large"]],
-        # metadata hash
+        # metadata
         "",
         # error message
         "Invalid withdrawal",
     ),
-    # Invalid metadata hash size
+    # Metadata too large
     (
         # protocol magic
         PROTOCOL_MAGICS["mainnet"],
@@ -1053,10 +1049,10 @@ INVALID_VECTORS = [
         [],
         # withdrawals
         [],
-        # metadata hash
-        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        # metadata
+        "A200A11864A118C843AA00FF01A119012C590202AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         # error message
-        "Invalid metadata hash",
+        "Invalid metadata",
     ),
 ]
 
@@ -1065,7 +1061,7 @@ INVALID_VECTORS = [
 @pytest.mark.cardano
 @pytest.mark.skip_t1  # T1 support is not planned
 @pytest.mark.parametrize(
-    "protocol_magic,network_id,inputs,outputs,fee,ttl,certificates,withdrawals,metadata_hash,input_flow_sequences,tx_hash,serialized_tx",
+    "protocol_magic,network_id,inputs,outputs,fee,ttl,certificates,withdrawals,metadata,input_flow_sequences,tx_hash,serialized_tx",
     VALID_VECTORS,
 )
 def test_cardano_sign_tx(
@@ -1078,7 +1074,7 @@ def test_cardano_sign_tx(
     ttl,
     certificates,
     withdrawals,
-    metadata_hash,
+    metadata,
     input_flow_sequences,
     tx_hash,
     serialized_tx,
@@ -1116,7 +1112,7 @@ def test_cardano_sign_tx(
             ttl=ttl,
             certificates=certificates,
             withdrawals=withdrawals,
-            metadata_hash=bytes.fromhex(metadata_hash),
+            metadata=bytes.fromhex(metadata),
             protocol_magic=protocol_magic,
             network_id=network_id,
         )
@@ -1128,7 +1124,7 @@ def test_cardano_sign_tx(
 @pytest.mark.cardano
 @pytest.mark.skip_t1  # T1 support is not planned
 @pytest.mark.parametrize(
-    "protocol_magic,network_id,inputs,outputs,fee,ttl,certificates,withdrawals,metadata_hash,expected_error_message",
+    "protocol_magic,network_id,inputs,outputs,fee,ttl,certificates,withdrawals,metadata,expected_error_message",
     INVALID_VECTORS,
 )
 def test_cardano_sign_tx_validation(
@@ -1141,7 +1137,7 @@ def test_cardano_sign_tx_validation(
     ttl,
     certificates,
     withdrawals,
-    metadata_hash,
+    metadata,
     expected_error_message,
 ):
     inputs = [cardano.create_input(i) for i in inputs]
@@ -1163,7 +1159,7 @@ def test_cardano_sign_tx_validation(
                 ttl=ttl,
                 certificates=certificates,
                 withdrawals=withdrawals,
-                metadata_hash=bytes.fromhex(metadata_hash),
+                metadata=bytes.fromhex(metadata),
                 protocol_magic=protocol_magic,
                 network_id=network_id,
             )
