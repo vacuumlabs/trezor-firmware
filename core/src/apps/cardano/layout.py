@@ -12,6 +12,7 @@ from trezor.ui.scroll import Paginated
 from trezor.ui.text import Text
 from trezor.utils import chunks
 
+from apps.common import HARDENED
 from apps.common.confirm import confirm, require_confirm, require_hold_to_confirm
 from apps.common.layout import address_n_to_str, show_warning
 
@@ -195,18 +196,49 @@ async def show_address(
     Custom show_address function is needed because cardano addresses don't
     fit on a single screen.
     """
+    #path = [1852 | HARDENED, 1815 | HARDENED, 100000 | HARDENED, 0, 100000]
+
+    def addr_str_len(i: int)-> int:
+        if i & HARDENED:
+            return len(str(i^HARDENED)) + 2
+        return len(str(i)) + 1
+
     path_str = address_n_to_str(path)
-    t1 = Text(path_str, ui.ICON_RECEIVE, ui.GREEN)
+    t1 = Text("%s address" % ADDRESS_TYPE_NAMES[address_type], ui.ICON_RECEIVE, ui.GREEN)
+
+    used_lines = 1
+
     if network is not None:
         t1.normal("%s network" % protocol_magics.to_ui_string(network))
-    t1.normal("%s address" % ADDRESS_TYPE_NAMES[address_type])
+        used_lines += 1
+
+    if len(path_str) > 22:
+        used_lines += 1
+        path_str = address_n_to_str(path[0:3])
+        if len(path_str) > 22:
+            if addr_str_len(path[4])+addr_str_len(path[2]) > 16:
+                used_lines += 1
+                path_str = address_n_to_str(path[0:2])
+                t1.normal(path_str)
+                t1.normal(address_n_to_str([path[2]])[1:])
+                t1.normal(address_n_to_str(path[3:])[1:])
+            else:
+                path_str = address_n_to_str(path[0:2])
+                t1.normal(path_str)
+                t1.normal(address_n_to_str(path[2:])[1:])
+
+        else:
+            t1.normal(path_str)
+            t1.normal(address_n_to_str(path[3:])[1:])
+
+    else:
+        t1.normal(path_str)
 
     address_lines = list(chunks(address, 17))
-    t1.bold(address_lines[0])
-    t1.bold(address_lines[1])
-    t1.bold(address_lines[2])
+    for i in range(4 - used_lines):
+        t1.bold(address_lines[i])
 
-    pages = [t1] + _paginate_lines(address_lines, 3, path_str, ui.ICON_RECEIVE)
+    pages = [t1] + _paginate_lines(address_lines, 4 - used_lines, "%s address" % ADDRESS_TYPE_NAMES[address_type], ui.ICON_RECEIVE)
 
     return await confirm(
         ctx,
