@@ -1,4 +1,4 @@
-from micropython import const
+from apps.cardano.helpers.paths import ACCOUNT_PATH_INDEX, unharden
 
 if False:
     from typing import List
@@ -27,5 +27,8 @@ def variable_length_encode(number: int) -> bytes:
 
 
 def to_account_path(path: List[int]) -> List[int]:
-    ACCOUNT_PATH_LENGTH = const(3)
-    return path[:ACCOUNT_PATH_LENGTH]
+    return path[: ACCOUNT_PATH_INDEX + 1]
+
+
+def to_account_number(path: List[int]) -> int:
+    return unharden(path[ACCOUNT_PATH_INDEX])

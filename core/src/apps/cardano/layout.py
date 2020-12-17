@@ -25,7 +25,7 @@ from .address import (
     pack_reward_address_bytes,
 )
 from .helpers import protocol_magics
-from .helpers.utils import to_account_path
+from .helpers.utils import to_account_number
 
 if False:
     from typing import List, Optional
@@ -123,7 +123,7 @@ async def show_warning_tx_different_staking_account(
 
     page2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     page2.normal("Staking account:")
-    page2.bold(address_n_to_str(staking_account_path))
+    page2.bold("#%d" % to_account_number(staking_account_path))
     page2.normal("Change amount:")
     page2.bold(format_coin_amount(amount))
 
@@ -191,8 +191,7 @@ async def confirm_certificate(
     page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     page1.normal("Confirm:")
     page1.bold(CERTIFICATE_TYPE_NAMES[certificate.type])
-    page1.normal("for account:")
-    page1.bold(address_n_to_str(to_account_path(certificate.path)))
+    page1.normal("for account #%d" % to_account_number(certificate.path))
     pages.append(page1)
 
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
@@ -313,8 +312,7 @@ async def confirm_withdrawal(
 ) -> None:
     page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     page1.normal("Confirm withdrawal")
-    page1.normal("for account:")
-    page1.bold(address_n_to_str(to_account_path(withdrawal.path)))
+    page1.normal("for account #%d" % to_account_number(withdrawal.path))
     page1.normal("Amount:")
     page1.bold(format_coin_amount(withdrawal.amount))
 
@@ -400,16 +398,14 @@ async def show_warning_address_foreign_staking_key(
             "Stake rights associated",
             "with this address do",
             "not match your",
-            "account",
-            address_n_to_str(account_path),
+            "account #%d" % to_account_number(account_path),
         ),
         button="Ok",
     )
 
     if staking_account_path:
         staking_key_message = (
-            "Stake account path:",
-            address_n_to_str(staking_account_path),
+            "Stake account: #%d" % to_account_number(staking_account_path),
         )
     else:
         staking_key_message = ("Staking key:", hexlify(staking_key_hash).decode())
