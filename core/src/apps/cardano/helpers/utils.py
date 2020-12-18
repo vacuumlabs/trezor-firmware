@@ -31,4 +31,4 @@ def to_account_path(path: List[int]) -> List[int]:
 
 
 def to_account_number(path: List[int]) -> int:
-    return unharden(path[ACCOUNT_PATH_INDEX])
+    return unharden(path[ACCOUNT_PATH_INDEX]) + 1
