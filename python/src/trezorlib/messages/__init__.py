@@ -24,9 +24,11 @@ from .Cancel import Cancel
 from .CancelAuthorization import CancelAuthorization
 from .CardanoAddress import CardanoAddress
 from .CardanoAddressParametersType import CardanoAddressParametersType
+from .CardanoAssetValuePair import CardanoAssetValuePair
 from .CardanoBlockchainPointerType import CardanoBlockchainPointerType
 from .CardanoGetAddress import CardanoGetAddress
 from .CardanoGetPublicKey import CardanoGetPublicKey
+from .CardanoMultiassetType import CardanoMultiassetType
 from .CardanoPoolMetadataType import CardanoPoolMetadataType
 from .CardanoPoolOwnerType import CardanoPoolOwnerType
 from .CardanoPoolParametersType import CardanoPoolParametersType
