@@ -15,7 +15,7 @@
 # If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
 
 from ipaddress import ip_address
-from typing import List
+from typing import List, Optional
 
 from . import messages, tools
 from .tools import expect
@@ -36,8 +36,12 @@ REQUIRED_FIELDS_POOL_PARAMETERS = (
     "owners",
 )
 REQUIRED_FIELDS_WITHDRAWAL = ("path", "amount")
+REQUIRED_FIELDS_MULTIASSET = ("policy_id", "assets")
+REQUIRED_FIELDS_ASSET_AMOUNT_PAIR = ("asset_name", "amount")
 
 INCOMPLETE_OUTPUT_ERROR_MESSAGE = "The output is missing some fields"
+
+INVALID_MULTIASSETS_ENTRY = "The output multiassets entry is invalid"
 
 ADDRESS_TYPES = (
     messages.CardanoAddressType.BYRON,
@@ -107,15 +111,57 @@ def create_output(output) -> messages.CardanoTxOutputType:
     if not (contains_address or contains_address_type):
         raise ValueError(INCOMPLETE_OUTPUT_ERROR_MESSAGE)
 
+    address = None
+    address_parameters = None
+    multiassets = None
+
     if contains_address:
-        return messages.CardanoTxOutputType(
-            address=output["address"], amount=int(output["amount"])
-        )
+        address = output["address"]
     else:
-        return _create_change_output(output)
+        address_parameters = _create_change_output_address_parameters(output)
+
+    if "multiassets" in output:
+        multiassets = _create_multiassets(output["multiassets"])
+
+    return messages.CardanoTxOutputType(
+        address=address,
+        address_parameters=address_parameters,
+        amount=int(output["amount"]),
+        multiassets=multiassets
+    )
 
 
-def _create_change_output(output) -> messages.CardanoTxOutputType:
+def _create_multiassets(multiassets) -> List[messages.CardanoMultiassetType]:
+    result = []
+    for multiasset in multiassets:
+        if not all(k in multiasset for k in REQUIRED_FIELDS_MULTIASSET):
+            raise ValueError(INVALID_MULTIASSETS_ENTRY)
+
+        result.append(
+            messages.CardanoMultiassetType(
+                policy_id=bytes.fromhex(multiasset["policy_id"]),
+                assets=_create_asset_amount_pairs(multiasset["assets"])
+            )
+        )
+    
+    return result
+
+
+def _create_asset_amount_pairs(assets) -> List[messages.CardanoAssetAmountPair]:
+    result = []
+    for asset_amount_pair in assets:
+        if not all(k in asset_amount_pair for k in REQUIRED_FIELDS_ASSET_AMOUNT_PAIR):
+            raise ValueError(INVALID_MULTIASSETS_ENTRY)
+
+        result.append(messages.CardanoAssetAmountPair(
+            asset_name=asset_amount_pair["asset_name"],
+            amount=int(asset_amount_pair["amount"])
+        ))
+    
+    return result
+
+
+def _create_change_output_address_parameters(output) -> messages.CardanoAddressParametersType:
     if "path" not in output:
         raise ValueError(INCOMPLETE_OUTPUT_ERROR_MESSAGE)
 
@@ -123,7 +169,7 @@ def _create_change_output(output) -> messages.CardanoTxOutputType:
     if "stakingKeyHash" in output:
         staking_key_hash_bytes = bytes.fromhex(output.get("stakingKeyHash"))
 
-    address_parameters = create_address_parameters(
+    return create_address_parameters(
         int(output["addressType"]),
         tools.parse_path(output["path"]),
         tools.parse_path(output.get("stakingPath")),
@@ -301,7 +347,8 @@ def sign_tx(
     inputs: List[messages.CardanoTxInputType],
     outputs: List[messages.CardanoTxOutputType],
     fee: int,
-    ttl: int,
+    ttl: Optional[int],
+    validity_interval_start: Optional[int],
     certificates: List[messages.CardanoTxCertificateType] = (),
     withdrawals: List[messages.CardanoTxWithdrawalType] = (),
     metadata: bytes = None,
@@ -314,6 +361,7 @@ def sign_tx(
             outputs=outputs,
             fee=fee,
             ttl=ttl,
+            validity_interval_start=validity_interval_start,
             certificates=certificates,
             withdrawals=withdrawals,
             metadata=metadata,

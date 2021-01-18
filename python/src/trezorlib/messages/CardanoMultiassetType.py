@@ -2,7 +2,7 @@
 # fmt: off
 from .. import protobuf as p
 
-from .CardanoAssetValuePair import CardanoAssetValuePair
+from .CardanoAssetAmountPair import CardanoAssetAmountPair
 
 if __debug__:
     try:
@@ -18,7 +18,7 @@ class CardanoMultiassetType(p.MessageType):
         self,
         *,
         policy_id: bytes,
-        assets: List[CardanoAssetValuePair] = None,
+        assets: List[CardanoAssetAmountPair] = None,
     ) -> None:
         self.assets = assets if assets is not None else []
         self.policy_id = policy_id
@@ -27,5 +27,5 @@ class CardanoMultiassetType(p.MessageType):
     def get_fields(cls) -> Dict:
         return {
             1: ('policy_id', p.BytesType, p.FLAG_REQUIRED),
-            2: ('assets', CardanoAssetValuePair, p.FLAG_REPEATED),
+            2: ('assets', CardanoAssetAmountPair, p.FLAG_REPEATED),
         }

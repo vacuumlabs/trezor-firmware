@@ -23,6 +23,7 @@ from .helpers import (
     INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE,
     INVALID_STAKEPOOL_REGISTRATION_TX_INPUTS,
     INVALID_WITHDRAWAL,
+    INVALID_MULTIASSET_OUTPUT,
     LOVELACE_MAX_SUPPLY,
     network_ids,
     protocol_magics,
@@ -60,10 +61,15 @@ if False:
     from trezor.messages.CardanoTxInputType import CardanoTxInputType
     from trezor.messages.CardanoTxOutputType import CardanoTxOutputType
     from trezor.messages.CardanoTxWithdrawalType import CardanoTxWithdrawalType
+    from trezor.messages.CardanoMultiassetType import CardanoMultiassetType
     from typing import Dict, List, Tuple
+    
+    CborizedMultiassets = Dict[bytes, Dict[bytes, int]]
 
 METADATA_HASH_SIZE = 32
 MAX_METADATA_LENGTH = 500
+MULTIASSET_POLICY_ID_LENGTH = 28
+MULTIASSET_NAME_MAX_LENGTH = 32
 
 
 @seed.with_keychain
@@ -196,9 +202,23 @@ def _validate_outputs(
             raise wire.ProcessError(
                 "Each output must have an address field or address_parameters!"
             )
+        
+        if output.multiassets:
+            _validate_multiassets(output.multiassets)
 
     if total_amount > LOVELACE_MAX_SUPPLY:
         raise wire.ProcessError("Total transaction amount is out of range!")
+
+def _validate_multiassets(
+    multiassets: List[CardanoMultiassetType]
+) -> None:
+    for multiasset in multiassets:
+        if len(multiasset.policy_id) != MULTIASSET_POLICY_ID_LENGTH:
+            raise INVALID_MULTIASSET_OUTPUT
+
+        for asset_amount_pair in multiasset.assets:
+            if len(asset_amount_pair.asset_name) > MULTIASSET_NAME_MAX_LENGTH:
+                raise INVALID_MULTIASSET_OUTPUT
 
 
 def _ensure_no_signing_inputs(inputs: List[CardanoTxInputType]):
@@ -271,8 +291,13 @@ def _cborize_tx_body(keychain: seed.Keychain, msg: CardanoSignTx) -> Dict:
         0: inputs_for_cbor,
         1: outputs_for_cbor,
         2: msg.fee,
-        3: msg.ttl,
     }
+
+    if msg.ttl:
+        tx_body[3] = msg.ttl
+    
+    if msg.validity_interval_start:
+        tx_body[8] = msg.validity_interval_start
 
     if msg.certificates:
         certificates_for_cbor = _cborize_certificates(keychain, msg.certificates)
@@ -313,10 +338,32 @@ def _cborize_outputs(
             # output address is validated in _validate_outputs before this happens
             address = get_address_bytes_unsafe(output.address)
 
-        result.append((address, amount))
+        if not output.multiassets:
+            result.append((address, amount))
+        else:
+            result.append((address, (
+                amount,
+                _cborize_multiassets(output.multiassets)
+            )))
 
     return result
 
+def _cborize_multiassets(
+    multiassets: List[CardanoMultiassetType]
+) -> CborizedMultiassets:
+    result = {}
+
+    for multiasset in multiassets:
+        cborized_policy_id = bytes(multiasset.policy_id)
+        result[cborized_policy_id] = {}
+        
+        for asset_amount_pair in multiasset.assets:
+            asset_name_cborized = bytes(asset_amount_pair.asset_name, 'ascii')
+            asset_amount = asset_amount_pair.amount
+
+            result[cborized_policy_id][asset_name_cborized] = asset_amount
+
+    return result
 
 def _cborize_certificates(
     keychain: seed.Keychain,

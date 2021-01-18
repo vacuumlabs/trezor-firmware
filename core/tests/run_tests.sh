@@ -21,7 +21,7 @@ trap 'print_summary; echo -e "${COLOR_RED}Interrupted by user!${COLOR_RESET}"; e
 
 cd $(dirname $0)
 
-[ -z "$*" ] && tests=(test_*.py) || tests=($*)
+[ -z "$*" ] && tests=(test_apps.common.cbor.py) || tests=($*)
 
 declare -i num_of_tests=${#tests[@]}
 
