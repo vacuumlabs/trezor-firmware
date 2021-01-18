@@ -212,13 +212,29 @@ def _validate_outputs(
 def _validate_multiassets(
     multiassets: List[CardanoMultiassetType]
 ) -> None:
-    for multiasset in multiassets:
-        if len(multiasset.policy_id) != MULTIASSET_POLICY_ID_LENGTH:
-            raise INVALID_MULTIASSET_OUTPUT
+    multiasset_policy_ids = set()
 
+    for multiasset in multiassets:
+        policy_id = bytes(multiasset.policy_id)
+
+        if len(policy_id) != MULTIASSET_POLICY_ID_LENGTH:
+            raise INVALID_MULTIASSET_OUTPUT
+        
+        if policy_id in multiasset_policy_ids:
+            raise INVALID_MULTIASSET_OUTPUT
+        else:
+            multiasset_policy_ids.add(policy_id)
+
+        asset_names = set()
         for asset_amount_pair in multiasset.assets:
-            if len(asset_amount_pair.asset_name) > MULTIASSET_NAME_MAX_LENGTH:
+            asset_name = asset_amount_pair.asset_name
+            if len(asset_name) > MULTIASSET_NAME_MAX_LENGTH:
                 raise INVALID_MULTIASSET_OUTPUT
+
+            if asset_name in asset_names:
+                raise INVALID_MULTIASSET_OUTPUT
+            else:
+                asset_names.add(asset_name)
 
 
 def _ensure_no_signing_inputs(inputs: List[CardanoTxInputType]):
