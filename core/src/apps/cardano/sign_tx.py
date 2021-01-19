@@ -543,6 +543,7 @@ async def _show_standard_tx(
         fee=msg.fee,
         protocol_magic=msg.protocol_magic,
         ttl=msg.ttl,
+        validity_interval_start=msg.validity_interval_start
         has_metadata=has_metadata,
         is_network_id_verifiable=is_network_id_verifiable,
     )
@@ -562,7 +563,7 @@ async def _show_stake_pool_registration_tx(
         ctx, keychain, pool_parameters.owners, msg.network_id
     )
     await confirm_stake_pool_metadata(ctx, pool_parameters.metadata)
-    await confirm_transaction_network_ttl(ctx, msg.protocol_magic, msg.ttl)
+    await confirm_transaction_network_ttl(ctx, msg.protocol_magic, msg.ttl, msg.validity_interval_start)
     await confirm_stake_pool_registration_final(ctx)
 
 
@@ -587,7 +588,7 @@ async def _show_outputs(
 
         total_amount += output.amount
 
-        await confirm_sending(ctx, output.amount, address)
+        await confirm_sending(ctx, output.amount, output.token_bundle, address)
 
     return total_amount
 

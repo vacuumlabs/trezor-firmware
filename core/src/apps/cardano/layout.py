@@ -35,6 +35,7 @@ if False:
         CardanoTxCertificateType,
         CardanoTxWithdrawalType,
         CardanoPoolParametersType,
+        CardanoTokenGroupType
     )
     from trezor.messages.CardanoAddressParametersType import EnumTypeCardanoAddressType
 
@@ -62,16 +63,34 @@ def format_coin_amount(amount: int) -> str:
     return "%s %s" % (format_amount(amount, 6), "ADA")
 
 
-async def confirm_sending(ctx: wire.Context, amount: int, to: str) -> None:
-    page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
-    page1.normal("Confirm sending:")
-    page1.bold(format_coin_amount(amount))
-    page1.normal("to")
+async def confirm_sending(ctx: wire.Context, ada_amount: int, token_bundle: List[CardanoTokenGroupType] ,to: str) -> None:
+    pages = []
+    
+    for token_group in token_bundle:
+        page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+        page1.normal("Confirm sending tokens")
+        page1.bold("Policy id: ")
+        page1.mono(hexlify(token_group.policy_id).decode())
+        pages.append(page1)
+        for token_amount in token_group.token_amounts:
+            page2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+            page2.normal("Asset name: ")
+            # TODO fall back to bytes if asset name has non-printable characters
+            page2.bold(token_amount.asset_name)
+            page2.normal("Amount:")
+            page2.bold(format_amount(token_amount.amount, 0))
+            pages.append(page2)
+
+
+    page_ada = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    page_ada.normal("Confirm sending:")
+    page_ada.bold(format_coin_amount(ada_amount))
+    page_ada.normal("to")
 
     to_lines = list(chunks(to, 17))
-    page1.bold(to_lines[0])
+    page_ada.bold(to_lines[0])
 
-    pages = [page1] + _paginate_lines(to_lines, 1, "Confirm transaction", ui.ICON_SEND)
+    pages.extend([page_ada] + _paginate_lines(to_lines, 1, "Confirm transaction", ui.ICON_SEND))
 
     await require_confirm(ctx, Paginated(pages))
 
@@ -157,6 +176,7 @@ async def confirm_transaction(
     fee: int,
     protocol_magic: int,
     ttl: int,
+    validity_interval_start: Optional[int],
     has_metadata: bool,
     is_network_id_verifiable: bool,
 ) -> None:
@@ -175,6 +195,8 @@ async def confirm_transaction(
         page2.bold(protocol_magics.to_ui_string(protocol_magic))
     page2.normal("Transaction TTL:")
     page2.bold(str(ttl))
+    page2.normal("Valid since: %s" % str(validity_interval_start))
+    page2.normal("TTL: %s" % str(ttl))
     pages.append(page2)
 
     if has_metadata:
@@ -295,12 +317,12 @@ async def confirm_stake_pool_metadata(
     await require_confirm(ctx, Paginated([page1, page2]))
 
 
-async def confirm_transaction_network_ttl(ctx, protocol_magic: int, ttl: int) -> None:
+async def confirm_transaction_network_ttl(ctx, protocol_magic: int, ttl: Optional[int], validity_interval_start: Optional[int]) -> None:
     page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     page1.normal("Network:")
     page1.bold(protocol_magics.to_ui_string(protocol_magic))
-    page1.normal("Transaction TTL:")
-    page1.bold(str(ttl))
+    page1.normal("Valid since: %s" % str(validity_interval_start))
+    page1.normal("TTL: %s" % str(ttl))
 
     await require_confirm(ctx, page1)
 
