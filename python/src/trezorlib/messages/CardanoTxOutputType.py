@@ -3,7 +3,7 @@
 from .. import protobuf as p
 
 from .CardanoAddressParametersType import CardanoAddressParametersType
-from .CardanoMultiassetType import CardanoMultiassetType
+from .CardanoTokenGroupType import CardanoTokenGroupType
 
 if __debug__:
     try:
@@ -18,12 +18,12 @@ class CardanoTxOutputType(p.MessageType):
     def __init__(
         self,
         *,
-        multiassets: List[CardanoMultiassetType] = None,
+        token_bundle: List[CardanoTokenGroupType] = None,
         address: str = None,
         amount: int = None,
         address_parameters: CardanoAddressParametersType = None,
     ) -> None:
-        self.multiassets = multiassets if multiassets is not None else []
+        self.token_bundle = token_bundle if token_bundle is not None else []
         self.address = address
         self.amount = amount
         self.address_parameters = address_parameters
@@ -34,5 +34,5 @@ class CardanoTxOutputType(p.MessageType):
             1: ('address', p.UnicodeType, None),
             3: ('amount', p.UVarintType, None),
             4: ('address_parameters', CardanoAddressParametersType, None),
-            5: ('multiassets', CardanoMultiassetType, p.FLAG_REPEATED),
+            5: ('token_bundle', CardanoTokenGroupType, p.FLAG_REPEATED),
         }

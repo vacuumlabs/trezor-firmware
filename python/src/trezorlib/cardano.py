@@ -36,12 +36,12 @@ REQUIRED_FIELDS_POOL_PARAMETERS = (
     "owners",
 )
 REQUIRED_FIELDS_WITHDRAWAL = ("path", "amount")
-REQUIRED_FIELDS_MULTIASSET = ("policy_id", "assets")
-REQUIRED_FIELDS_ASSET_AMOUNT_PAIR = ("asset_name", "amount")
+REQUIRED_FIELDS_TOKEN_BUNDLE = ("policy_id", "token_amounts")
+REQUIRED_FIELDS_TOKEN_AMOUNT = ("asset_name", "amount")
 
 INCOMPLETE_OUTPUT_ERROR_MESSAGE = "The output is missing some fields"
 
-INVALID_MULTIASSETS_ENTRY = "The output multiassets entry is invalid"
+INVALID_OUTPUT_TOKEN_BUNDLE_ENTRY = "The output's token_bundle entry is invalid"
 
 ADDRESS_TYPES = (
     messages.CardanoAddressType.BYRON,
@@ -113,49 +113,49 @@ def create_output(output) -> messages.CardanoTxOutputType:
 
     address = None
     address_parameters = None
-    multiassets = None
+    token_bundle = None
 
     if contains_address:
         address = output["address"]
     else:
         address_parameters = _create_change_output_address_parameters(output)
 
-    if "multiassets" in output:
-        multiassets = _create_multiassets(output["multiassets"])
+    if "token_bundle" in output:
+        token_bundle = _create_token_bundle(output["token_bundle"])
 
     return messages.CardanoTxOutputType(
         address=address,
         address_parameters=address_parameters,
         amount=int(output["amount"]),
-        multiassets=multiassets
+        token_bundle=token_bundle
     )
 
 
-def _create_multiassets(multiassets) -> List[messages.CardanoMultiassetType]:
+def _create_token_bundle(token_bundle) -> List[messages.CardanoTokenGroupType]:
     result = []
-    for multiasset in multiassets:
-        if not all(k in multiasset for k in REQUIRED_FIELDS_MULTIASSET):
-            raise ValueError(INVALID_MULTIASSETS_ENTRY)
+    for token_group in token_bundle:
+        if not all(k in token_group for k in REQUIRED_FIELDS_TOKEN_BUNDLE):
+            raise ValueError(INVALID_OUTPUT_TOKEN_BUNDLE_ENTRY)
 
         result.append(
-            messages.CardanoMultiassetType(
-                policy_id=bytes.fromhex(multiasset["policy_id"]),
-                assets=_create_asset_amount_pairs(multiasset["assets"])
+            messages.CardanoTokenGroupType(
+                policy_id=bytes.fromhex(token_group["policy_id"]),
+                token_amounts=_create_token_amounts(token_group["token_amounts"])
             )
         )
     
     return result
 
 
-def _create_asset_amount_pairs(assets) -> List[messages.CardanoAssetAmountPair]:
+def _create_token_amounts(token_amounts) -> List[messages.CardanoTokenAmountType]:
     result = []
-    for asset_amount_pair in assets:
-        if not all(k in asset_amount_pair for k in REQUIRED_FIELDS_ASSET_AMOUNT_PAIR):
-            raise ValueError(INVALID_MULTIASSETS_ENTRY)
+    for token_amount in token_amounts:
+        if not all(k in token_amount for k in REQUIRED_FIELDS_TOKEN_AMOUNT):
+            raise ValueError(INVALID_OUTPUT_TOKEN_BUNDLE_ENTRY)
 
-        result.append(messages.CardanoAssetAmountPair(
-            asset_name=asset_amount_pair["asset_name"],
-            amount=int(asset_amount_pair["amount"])
+        result.append(messages.CardanoTokenAmountType(
+            asset_name=token_amount["asset_name"],
+            amount=int(token_amount["amount"])
         ))
     
     return result

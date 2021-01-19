@@ -543,7 +543,7 @@
       }
     },
     {
-      "description": "Mary era transaction with multiasset",
+      "description": "Mary era transaction with multiasset token bundle",
       "parameters": {
         "protocol_magic": 764824073,
         "network_id": 1,
@@ -565,10 +565,10 @@
           {
               "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
               "amount": "1234",
-              "multiassets": [
+              "token_bundle": [
                 {
                   "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
-                  "assets": [
+                  "token_amounts": [
                     {
                       "asset_name": "te$tCoin",
                       "amount": "7878754"
