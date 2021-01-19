@@ -1,4 +1,9 @@
-from apps.cardano.helpers.paths import ACCOUNT_PATH_INDEX, unharden
+from apps.cardano.helpers.paths import (
+    ACCOUNT_PATH_INDEX,
+    SCHEMA_ACCOUNT,
+    SCHEMA_ADDRESS,
+    unharden,
+)
 
 if False:
     from typing import List
@@ -30,5 +35,8 @@ def to_account_path(path: List[int]) -> List[int]:
     return path[: ACCOUNT_PATH_INDEX + 1]
 
 
-def to_account_number(path: List[int]) -> int:
+def to_account_number(path: List[int]) -> Optional[int]:
+    if not SCHEMA_ADDRESS.match(path) and not SCHEMA_ACCOUNT.match(path):
+        raise ValueError
+
     return unharden(path[ACCOUNT_PATH_INDEX]) + 1
