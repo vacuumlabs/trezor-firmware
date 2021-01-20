@@ -16,7 +16,7 @@ from trezor.ui.text import Text
 from trezor.utils import chunks
 
 from apps.common.confirm import confirm, require_confirm, require_hold_to_confirm
-from apps.common.layout import address_n_to_str, show_warning
+from apps.common.layout import address_n_to_str
 
 from . import seed
 from .address import (
@@ -394,43 +394,33 @@ async def show_warning_address_foreign_staking_key(
     staking_account_path: List[int],
     staking_key_hash: bytes,
 ) -> None:
-    await show_warning(
-        ctx,
-        (
-            "Stake rights associated",
-            "with this address do",
-            "not match your",
-            "account #%d:" % to_account_number(account_path),
-            address_n_to_str(account_path),
-        ),
-        button="Ok",
-    )
+    page1 = Text("Warning", ui.ICON_WRONG, ui.RED)
+    page1.normal("Stake rights associated")
+    page1.normal("with this address do")
+    page1.normal("not match your")
+    page1.normal("account #%d:" % to_account_number(account_path))
+    page1.bold(address_n_to_str(account_path))
 
+    page2 = Text("Warning", ui.ICON_WRONG, ui.RED)
     if staking_account_path:
-        staking_key_message = (
-            "Stake account #%d:" % to_account_number(staking_account_path),
-            address_n_to_str(staking_account_path),
-        )
+        page2.normal("Stake account #%d:" % to_account_number(staking_account_path))
+        page2.bold(address_n_to_str(staking_account_path))
+        page2.br_half()
     else:
-        staking_key_message = ("Staking key:", hexlify(staking_key_hash).decode())
+        page2.normal("Staking key:")
+        page2.bold(hexlify(staking_key_hash).decode())
+    page2.normal("Continue?")
 
-    await show_warning(
-        ctx,
-        staking_key_message,
-        button="Ok",
-    )
+    await require_confirm(ctx, Paginated([page1, page2]))
 
 
 async def show_warning_address_pointer(
     ctx: wire.Context, pointer: CardanoBlockchainPointerType
 ) -> None:
-    await show_warning(
-        ctx,
-        (
-            "Pointer address:",
-            "Block: %s" % pointer.block_index,
-            "Transaction: %s" % pointer.tx_index,
-            "Certificate: %s" % pointer.certificate_index,
-        ),
-        button="Ok",
-    )
+    text = Text("Warning", ui.ICON_WRONG, ui.RED)
+    text.normal("Pointer address:")
+    text.normal("Block: %s" % pointer.block_index)
+    text.normal("Transaction: %s" % pointer.tx_index)
+    text.normal("Certificate: %s" % pointer.certificate_index)
+    text.normal("Continue?")
+    await require_confirm(ctx, text)
