@@ -30,12 +30,8 @@ def to_account_path(path: List[int]) -> List[int]:
     return path[: ACCOUNT_PATH_INDEX + 1]
 
 
-def to_account_number(path: List[int]) -> int:
+def format_account_number(path: List[int]) -> string:
     if len(path) <= ACCOUNT_PATH_INDEX:
         raise ValueError("Path is too short.")
 
-    return unharden(path[ACCOUNT_PATH_INDEX]) + 1
-
-
-def to_formatted_account_number(path: List[int]) -> string:
-    return "#%d" % to_account_number(path)
+    return "#%d" % (unharden(path[ACCOUNT_PATH_INDEX]) + 1)
