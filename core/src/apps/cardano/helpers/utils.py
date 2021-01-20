@@ -1,8 +1,4 @@
-from apps.cardano.helpers.paths import (
-    ACCOUNT_PATH_INDEX,
-    SCHEMA_ACCOUNT_LOOSE,
-    unharden,
-)
+from apps.cardano.helpers.paths import ACCOUNT_PATH_INDEX, unharden
 
 if False:
     from typing import List
@@ -35,7 +31,11 @@ def to_account_path(path: List[int]) -> List[int]:
 
 
 def to_account_number(path: List[int]) -> int:
-    if not SCHEMA_ACCOUNT_LOOSE.match(path):
-        raise ValueError
+    if len(path) <= ACCOUNT_PATH_INDEX:
+        raise ValueError("Path is too short.")
 
     return unharden(path[ACCOUNT_PATH_INDEX]) + 1
+
+
+def to_formatted_account_number(path: List[int]) -> string:
+    return "#%d" % to_account_number(path)

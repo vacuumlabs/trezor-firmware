@@ -25,7 +25,7 @@ from .address import (
     pack_reward_address_bytes,
 )
 from .helpers import protocol_magics
-from .helpers.utils import to_account_number, to_account_path
+from .helpers.utils import to_account_path, to_formatted_account_number
 
 if False:
     from typing import List, Optional
@@ -122,7 +122,9 @@ async def show_warning_tx_different_staking_account(
     page1.normal("the current account.")
 
     page2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
-    page2.normal("Staking account #%d:" % to_account_number(staking_account_path))
+    page2.normal(
+        "Staking account %s:" % to_formatted_account_number(staking_account_path)
+    )
     page2.bold(address_n_to_str(staking_account_path))
     page2.normal("Change amount:")
     page2.bold(format_coin_amount(amount))
@@ -191,7 +193,7 @@ async def confirm_certificate(
     page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     page1.normal("Confirm:")
     page1.bold(CERTIFICATE_TYPE_NAMES[certificate.type])
-    page1.normal("for account #%d:" % to_account_number(certificate.path))
+    page1.normal("for account %s:" % to_formatted_account_number(certificate.path))
     page1.bold(address_n_to_str(to_account_path(certificate.path)))
     pages.append(page1)
 
@@ -313,7 +315,7 @@ async def confirm_withdrawal(
 ) -> None:
     page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     page1.normal("Confirm withdrawal")
-    page1.normal("for account #%d:" % to_account_number(withdrawal.path))
+    page1.normal("for account %s:" % to_formatted_account_number(withdrawal.path))
     page1.bold(address_n_to_str(to_account_path(withdrawal.path)))
     page1.normal("Amount:")
     page1.bold(format_coin_amount(withdrawal.amount))
@@ -398,12 +400,14 @@ async def show_warning_address_foreign_staking_key(
     page1.normal("Stake rights associated")
     page1.normal("with this address do")
     page1.normal("not match your")
-    page1.normal("account #%d:" % to_account_number(account_path))
+    page1.normal("account %s:" % to_formatted_account_number(account_path))
     page1.bold(address_n_to_str(account_path))
 
     page2 = Text("Warning", ui.ICON_WRONG, ui.RED)
     if staking_account_path:
-        page2.normal("Stake account #%d:" % to_account_number(staking_account_path))
+        page2.normal(
+            "Stake account %s:" % to_formatted_account_number(staking_account_path)
+        )
         page2.bold(address_n_to_str(staking_account_path))
         page2.br_half()
     else:
