@@ -35,7 +35,7 @@ if False:
         CardanoTxCertificateType,
         CardanoTxWithdrawalType,
         CardanoPoolParametersType,
-        CardanoTokenGroupType
+        CardanoTokenGroupType,
     )
     from trezor.messages.CardanoAddressParametersType import EnumTypeCardanoAddressType
 
@@ -63,9 +63,14 @@ def format_coin_amount(amount: int) -> str:
     return "%s %s" % (format_amount(amount, 6), "ADA")
 
 
-async def confirm_sending(ctx: wire.Context, ada_amount: int, token_bundle: List[CardanoTokenGroupType] ,to: str) -> None:
+async def confirm_sending(
+    ctx: wire.Context,
+    ada_amount: int,
+    token_bundle: List[CardanoTokenGroupType],
+    to: str,
+) -> None:
     pages = []
-    
+
     for token_group in token_bundle:
         page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
         page1.normal("Confirm sending tokens")
@@ -81,7 +86,6 @@ async def confirm_sending(ctx: wire.Context, ada_amount: int, token_bundle: List
             page2.bold(format_amount(token_amount.amount, 0))
             pages.append(page2)
 
-
     page_ada = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     page_ada.normal("Confirm sending:")
     page_ada.bold(format_coin_amount(ada_amount))
@@ -90,7 +94,9 @@ async def confirm_sending(ctx: wire.Context, ada_amount: int, token_bundle: List
     to_lines = list(chunks(to, 17))
     page_ada.bold(to_lines[0])
 
-    pages.extend([page_ada] + _paginate_lines(to_lines, 1, "Confirm transaction", ui.ICON_SEND))
+    pages.extend(
+        [page_ada] + _paginate_lines(to_lines, 1, "Confirm transaction", ui.ICON_SEND)
+    )
 
     await require_confirm(ctx, Paginated(pages))
 
@@ -317,7 +323,9 @@ async def confirm_stake_pool_metadata(
     await require_confirm(ctx, Paginated([page1, page2]))
 
 
-async def confirm_transaction_network_ttl(ctx, protocol_magic: int, ttl: Optional[int], validity_interval_start: Optional[int]) -> None:
+async def confirm_transaction_network_ttl(
+    ctx, protocol_magic: int, ttl: Optional[int], validity_interval_start: Optional[int]
+) -> None:
     page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     page1.normal("Network:")
     page1.bold(protocol_magics.to_ui_string(protocol_magic))

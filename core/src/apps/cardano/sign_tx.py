@@ -22,8 +22,8 @@ from .helpers import (
     INVALID_METADATA,
     INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE,
     INVALID_STAKEPOOL_REGISTRATION_TX_INPUTS,
-    INVALID_WITHDRAWAL,
     INVALID_TOKEN_BUNDLE_OUTPUT,
+    INVALID_WITHDRAWAL,
     LOVELACE_MAX_SUPPLY,
     network_ids,
     protocol_magics,
@@ -63,7 +63,7 @@ if False:
     from trezor.messages.CardanoTxWithdrawalType import CardanoTxWithdrawalType
     from trezor.messages.CardanoTokenGroupType import CardanoTokenGroupType
     from typing import Dict, List, Tuple
-    
+
     CborizedTokenBundle = Dict[bytes, Dict[bytes, int]]
 
 METADATA_HASH_SIZE = 32
@@ -202,16 +202,15 @@ def _validate_outputs(
             raise wire.ProcessError(
                 "Each output must have an address field or address_parameters!"
             )
-        
+
         if output.token_bundle:
             _validate_token_bundle(output.token_bundle)
 
     if total_amount > LOVELACE_MAX_SUPPLY:
         raise wire.ProcessError("Total transaction amount is out of range!")
 
-def _validate_token_bundle(
-    token_bundle: List[CardanoTokenGroupType]
-) -> None:
+
+def _validate_token_bundle(token_bundle: List[CardanoTokenGroupType]) -> None:
     seen_policy_ids = set()
 
     for token_group in token_bundle:
@@ -219,7 +218,7 @@ def _validate_token_bundle(
 
         if len(policy_id) != MONETARY_POLICY_ID_LENGTH:
             raise INVALID_TOKEN_BUNDLE_OUTPUT
-        
+
         if policy_id in seen_policy_ids:
             raise INVALID_TOKEN_BUNDLE_OUTPUT
         else:
@@ -311,7 +310,7 @@ def _cborize_tx_body(keychain: seed.Keychain, msg: CardanoSignTx) -> Dict:
 
     if msg.ttl:
         tx_body[3] = msg.ttl
-    
+
     if msg.validity_interval_start:
         tx_body[8] = msg.validity_interval_start
 
@@ -357,28 +356,29 @@ def _cborize_outputs(
         if not output.token_bundle:
             result.append((address, amount))
         else:
-            result.append((address, (
-                amount,
-                _cborize_token_bundle(output.token_bundle)
-            )))
+            result.append(
+                (address, (amount, _cborize_token_bundle(output.token_bundle)))
+            )
 
     return result
 
+
 def _cborize_token_bundle(
-    token_bundle: List[CardanoTokenGroupType]
+    token_bundle: List[CardanoTokenGroupType],
 ) -> CborizedTokenBundle:
     result = {}
 
     for token_group in token_bundle:
         cborized_policy_id = bytes(token_group.policy_id)
         result[cborized_policy_id] = {}
-        
+
         for token_amount in token_group.token_amounts:
-            cborized_asset_name = bytes(token_amount.asset_name, 'ascii')
+            cborized_asset_name = bytes(token_amount.asset_name, "ascii")
 
             result[cborized_policy_id][cborized_asset_name] = token_amount.amount
 
     return result
+
 
 def _cborize_certificates(
     keychain: seed.Keychain,
@@ -543,7 +543,7 @@ async def _show_standard_tx(
         fee=msg.fee,
         protocol_magic=msg.protocol_magic,
         ttl=msg.ttl,
-        validity_interval_start=msg.validity_interval_start
+        validity_interval_start=msg.validity_interval_start,
         has_metadata=has_metadata,
         is_network_id_verifiable=is_network_id_verifiable,
     )
@@ -563,7 +563,9 @@ async def _show_stake_pool_registration_tx(
         ctx, keychain, pool_parameters.owners, msg.network_id
     )
     await confirm_stake_pool_metadata(ctx, pool_parameters.metadata)
-    await confirm_transaction_network_ttl(ctx, msg.protocol_magic, msg.ttl, msg.validity_interval_start)
+    await confirm_transaction_network_ttl(
+        ctx, msg.protocol_magic, msg.ttl, msg.validity_interval_start
+    )
     await confirm_stake_pool_registration_final(ctx)
 
 

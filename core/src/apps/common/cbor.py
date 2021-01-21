@@ -75,10 +75,7 @@ def _cbor_encode(value: Value) -> Iterable[bytes]:
             yield from _cbor_encode(x)
     elif isinstance(value, dict):
         yield _header(_CBOR_MAP, len(value))
-        sorted_map = sorted(
-            (encode(k), v) for k, v in value.items(),
-            key=lambda x: (len(x[0]), x[0])
-        )
+        sorted_map = sorted((encode(k), v) for k, v in value.items())
         for k, v in sorted_map:
             yield k
             yield from _cbor_encode(v)

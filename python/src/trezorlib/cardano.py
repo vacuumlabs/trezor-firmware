@@ -127,7 +127,7 @@ def create_output(output) -> messages.CardanoTxOutputType:
         address=address,
         address_parameters=address_parameters,
         amount=int(output["amount"]),
-        token_bundle=token_bundle
+        token_bundle=token_bundle,
     )
 
 
@@ -140,10 +140,10 @@ def _create_token_bundle(token_bundle) -> List[messages.CardanoTokenGroupType]:
         result.append(
             messages.CardanoTokenGroupType(
                 policy_id=bytes.fromhex(token_group["policy_id"]),
-                token_amounts=_create_token_amounts(token_group["token_amounts"])
+                token_amounts=_create_token_amounts(token_group["token_amounts"]),
             )
         )
-    
+
     return result
 
 
@@ -153,15 +153,19 @@ def _create_token_amounts(token_amounts) -> List[messages.CardanoTokenAmountType
         if not all(k in token_amount for k in REQUIRED_FIELDS_TOKEN_AMOUNT):
             raise ValueError(INVALID_OUTPUT_TOKEN_BUNDLE_ENTRY)
 
-        result.append(messages.CardanoTokenAmountType(
-            asset_name=token_amount["asset_name"],
-            amount=int(token_amount["amount"])
-        ))
-    
+        result.append(
+            messages.CardanoTokenAmountType(
+                asset_name=token_amount["asset_name"],
+                amount=int(token_amount["amount"]),
+            )
+        )
+
     return result
 
 
-def _create_change_output_address_parameters(output) -> messages.CardanoAddressParametersType:
+def _create_change_output_address_parameters(
+    output,
+) -> messages.CardanoAddressParametersType:
     if "path" not in output:
         raise ValueError(INCOMPLETE_OUTPUT_ERROR_MESSAGE)
 
@@ -177,10 +181,6 @@ def _create_change_output_address_parameters(output) -> messages.CardanoAddressP
         output.get("blockIndex"),
         output.get("txIndex"),
         output.get("certificateIndex"),
-    )
-
-    return messages.CardanoTxOutputType(
-        address_parameters=address_parameters, amount=int(output["amount"])
     )
 
 
