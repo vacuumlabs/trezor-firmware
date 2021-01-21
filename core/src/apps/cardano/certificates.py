@@ -8,7 +8,7 @@ from .address import (
     validate_reward_address,
 )
 from .helpers import INVALID_CERTIFICATE, LOVELACE_MAX_SUPPLY
-from .helpers.paths import SCHEMA_STAKING
+from .helpers.paths import SCHEMA_STAKING_ANY_ACCOUNT
 
 if False:
     from trezor.messages.CardanoTxCertificateType import CardanoTxCertificateType
@@ -42,7 +42,7 @@ def validate_certificate(
         CardanoCertificateType.STAKE_REGISTRATION,
         CardanoCertificateType.STAKE_DEREGISTRATION,
     ):
-        if not SCHEMA_STAKING.match(certificate.path):
+        if not SCHEMA_STAKING_ANY_ACCOUNT.match(certificate.path):
             raise INVALID_CERTIFICATE
 
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
@@ -142,7 +142,9 @@ def _validate_pool_owners(owners: List[CardanoPoolOwnerType]) -> None:
         if owner.staking_key_hash is not None:
             assert_certificate_cond(len(owner.staking_key_hash) == PUBLIC_KEY_HASH_SIZE)
         if owner.staking_key_path:
-            assert_certificate_cond(SCHEMA_STAKING.match(owner.staking_key_path))
+            assert_certificate_cond(
+                SCHEMA_STAKING_ANY_ACCOUNT.match(owner.staking_key_path)
+            )
 
         if owner.staking_key_path:
             owners_as_path_count += 1
