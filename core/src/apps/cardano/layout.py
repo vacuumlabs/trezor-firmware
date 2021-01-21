@@ -36,6 +36,7 @@ if False:
         CardanoTxWithdrawalType,
         CardanoPoolParametersType,
         CardanoTokenGroupType,
+        CardanoTokenAmountType,
     )
     from trezor.messages.CardanoAddressParametersType import EnumTypeCardanoAddressType
 
@@ -63,42 +64,69 @@ def format_coin_amount(amount: int) -> str:
     return "%s %s" % (format_amount(amount, 6), "ADA")
 
 
+def is_printable_ascii_bytestring(bytestr: bytes) -> bool:
+    return all((32 <= b < 127) for b in bytestr)
+
+
 async def confirm_sending(
     ctx: wire.Context,
     ada_amount: int,
     token_bundle: List[CardanoTokenGroupType],
     to: str,
 ) -> None:
-    pages = []
-
     for token_group in token_bundle:
-        page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
-        page1.normal("Confirm sending tokens")
-        page1.bold("Policy id: ")
-        page1.mono(hexlify(token_group.policy_id).decode())
-        pages.append(page1)
-        for token_amount in token_group.token_amounts:
-            page2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
-            page2.normal("Asset name: ")
-            # TODO fall back to bytes if asset name has non-printable characters
-            page2.bold(token_amount.asset_name)
-            page2.normal("Amount:")
-            page2.bold(format_amount(token_amount.amount, 0))
-            pages.append(page2)
+        await confirm_sending_token_group(ctx, token_group)
 
-    page_ada = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
-    page_ada.normal("Confirm sending:")
-    page_ada.bold(format_coin_amount(ada_amount))
-    page_ada.normal("to")
+    page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    page1.normal("Confirm sending:")
+    page1.bold(format_coin_amount(ada_amount))
+    page1.normal("to")
 
     to_lines = list(chunks(to, 17))
-    page_ada.bold(to_lines[0])
+    page1.bold(to_lines[0])
 
-    pages.extend(
-        [page_ada] + _paginate_lines(to_lines, 1, "Confirm transaction", ui.ICON_SEND)
-    )
+    pages = [page1] + _paginate_lines(to_lines, 1, "Confirm transaction", ui.ICON_SEND)
 
     await require_confirm(ctx, Paginated(pages))
+
+
+async def confirm_sending_token_group(
+    ctx: wire.Context, token_group: CardanoTokenGroupType
+) -> None:
+    page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    page1.normal("Confirm sending tokens")
+    page1.bold("Policy id: ")
+    page1.mono(hexlify(token_group.policy_id).decode())
+    await require_confirm(ctx, page1)
+
+    for token_amount in token_group.token_amounts:
+        if is_printable_ascii_bytestring(token_amount.raw_asset_name):
+            await confirm_sending_token_amount_ascii(ctx, token_amount)
+        else:
+            await confirm_sending_token_amount_hex(ctx, token_amount)
+
+
+async def confirm_sending_token_amount_ascii(
+    ctx: wire.Context, token_amount: CardanoTokenAmountType
+) -> None:
+    page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    page1.normal("Asset name (ascii):")
+    page1.bold(token_amount.raw_asset_name.decode("ascii"))
+    page1.normal("Amount:")
+    page1.bold(format_amount(token_amount.amount, 0))
+    await require_confirm(ctx, page1)
+
+
+async def confirm_sending_token_amount_hex(
+    ctx: wire.Context, token_amount: CardanoTokenAmountType
+) -> None:
+    page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    page1.normal("Asset name (hex):")
+    page1.bold(hexlify(token_amount.raw_asset_name).decode())
+    page2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    page2.normal("Amount:")
+    page2.bold(format_amount(token_amount.amount, 0))
+    await require_confirm(ctx, Paginated([page1, page2]))
 
 
 async def show_warning_tx_no_staking_info(

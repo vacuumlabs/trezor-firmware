@@ -553,7 +553,7 @@
         "certificates": [],
         "withdrawals": [],
         "metadata": "",
-        "input_flow": [["SWIPE", "YES"], ["SWIPE", "YES"]],
+        "input_flow": [["YES"], ["YES"], ["SWIPE", "YES"], ["SWIPE", "YES"]],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -570,7 +570,7 @@
                   "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
                   "token_amounts": [
                     {
-                      "asset_name": "te$tCoin",
+                      "raw_asset_name": "74652474436f696e",
                       "amount": "7878754"
                     }
                   ]

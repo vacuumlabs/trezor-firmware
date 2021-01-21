@@ -15,15 +15,15 @@ class CardanoTokenAmountType(p.MessageType):
     def __init__(
         self,
         *,
-        asset_name: str,
+        raw_asset_name: bytes,
         amount: int,
     ) -> None:
-        self.asset_name = asset_name
+        self.raw_asset_name = raw_asset_name
         self.amount = amount
 
     @classmethod
     def get_fields(cls) -> Dict:
         return {
-            1: ('asset_name', p.UnicodeType, p.FLAG_REQUIRED),
+            1: ('raw_asset_name', p.BytesType, p.FLAG_REQUIRED),
             2: ('amount', p.UVarintType, p.FLAG_REQUIRED),
         }

@@ -224,16 +224,16 @@ def _validate_token_bundle(token_bundle: List[CardanoTokenGroupType]) -> None:
         else:
             seen_policy_ids.add(policy_id)
 
-        seen_asset_names = set()
+        seen_raw_asset_names = set()
         for token_amount in token_group.token_amounts:
-            asset_name = token_amount.asset_name
-            if len(asset_name) > ASSET_NAME_MAX_LENGTH:
+            raw_asset_name = bytes(token_amount.raw_asset_name)
+            if len(raw_asset_name) > ASSET_NAME_MAX_LENGTH:
                 raise INVALID_TOKEN_BUNDLE_OUTPUT
 
-            if asset_name in seen_asset_names:
+            if raw_asset_name in seen_raw_asset_names:
                 raise INVALID_TOKEN_BUNDLE_OUTPUT
             else:
-                seen_asset_names.add(asset_name)
+                seen_raw_asset_names.add(raw_asset_name)
 
 
 def _ensure_no_signing_inputs(inputs: List[CardanoTxInputType]):
@@ -373,7 +373,7 @@ def _cborize_token_bundle(
         result[cborized_policy_id] = {}
 
         for token_amount in token_group.token_amounts:
-            cborized_asset_name = bytes(token_amount.asset_name, "ascii")
+            cborized_asset_name = bytes(token_amount.raw_asset_name)
 
             result[cborized_policy_id][cborized_asset_name] = token_amount.amount
 

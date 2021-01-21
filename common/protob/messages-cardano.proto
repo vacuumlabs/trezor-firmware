@@ -155,8 +155,8 @@ message CardanoSignTx {
     }
 
     message CardanoTokenAmountType {
-        required string asset_name = 1;     // asset name as ASCII string
-        required uint64 amount = 2;         // asset amount
+        required bytes raw_asset_name = 1;     // asset name as bytestring (may be either ascii string or hash)
+        required uint64 amount = 2;        // asset amount
     }
 
     /**

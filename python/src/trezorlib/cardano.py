@@ -37,7 +37,7 @@ REQUIRED_FIELDS_POOL_PARAMETERS = (
 )
 REQUIRED_FIELDS_WITHDRAWAL = ("path", "amount")
 REQUIRED_FIELDS_TOKEN_BUNDLE = ("policy_id", "token_amounts")
-REQUIRED_FIELDS_TOKEN_AMOUNT = ("asset_name", "amount")
+REQUIRED_FIELDS_TOKEN_AMOUNT = ("raw_asset_name", "amount")
 
 INCOMPLETE_OUTPUT_ERROR_MESSAGE = "The output is missing some fields"
 
@@ -155,7 +155,7 @@ def _create_token_amounts(token_amounts) -> List[messages.CardanoTokenAmountType
 
         result.append(
             messages.CardanoTokenAmountType(
-                asset_name=token_amount["asset_name"],
+                raw_asset_name=bytes.fromhex(token_amount["raw_asset_name"]),
                 amount=int(token_amount["amount"]),
             )
         )
