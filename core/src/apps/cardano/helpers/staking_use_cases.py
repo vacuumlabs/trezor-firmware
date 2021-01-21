@@ -2,7 +2,7 @@ from trezor.messages import CardanoAddressType
 
 from ..address import get_public_key_hash
 from ..seed import is_shelley_path
-from .paths import SCHEMA_ADDRESS
+from .paths import SCHEMA_ADDRESS_ANY_ACCOUNT
 from .utils import to_account_path
 
 if False:
@@ -29,7 +29,7 @@ def get(
 ) -> int:
     address_type = address_parameters.address_type
     if address_type == CardanoAddressType.BASE:
-        if not SCHEMA_ADDRESS.match(address_parameters.address_n):
+        if not SCHEMA_ADDRESS_ANY_ACCOUNT.match(address_parameters.address_n):
             return MISMATCH
         if not is_shelley_path(address_parameters.address_n):
             return MISMATCH

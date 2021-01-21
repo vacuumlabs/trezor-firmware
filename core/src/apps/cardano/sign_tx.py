@@ -30,7 +30,7 @@ from .helpers import (
     protocol_magics,
     staking_use_cases,
 )
-from .helpers.paths import SCHEMA_ADDRESS, SCHEMA_STAKING
+from .helpers.paths import SCHEMA_ADDRESS, SCHEMA_STAKING, SCHEMA_STAKING_ANY_ACCOUNT
 from .helpers.utils import to_account_path
 from .layout import (
     confirm_certificate,
@@ -42,6 +42,10 @@ from .layout import (
     confirm_transaction,
     confirm_transaction_network_ttl,
     confirm_withdrawal,
+    show_warning_certificate_path,
+    show_warning_change_output_path,
+    show_warning_change_output_staking_path,
+    show_warning_pool_owner_path,
     show_warning_tx_different_staking_account,
     show_warning_tx_network_unverifiable,
     show_warning_tx_no_staking_info,
@@ -58,6 +62,7 @@ if False:
     from trezor.messages.CardanoTxWithdrawalType import CardanoTxWithdrawalType
     from typing import Dict, List, Tuple
 
+MAX_ACCOUNT = const(100)
 # the maximum allowed change address.  this should be large enough for normal
 # use and still allow to quickly brute-force the correct bip32 path
 MAX_CHANGE_ADDRESS_INDEX = const(1_000_000)
@@ -217,7 +222,7 @@ def _validate_certificates(
 
 def _validate_withdrawals(withdrawals: List[CardanoTxWithdrawalType]) -> None:
     for withdrawal in withdrawals:
-        if not SCHEMA_STAKING.match(withdrawal.path):
+        if not SCHEMA_STAKING_ANY_ACCOUNT.match(withdrawal.path):
             raise INVALID_WITHDRAWAL
 
         if not 0 <= withdrawal.amount < LOVELACE_MAX_SUPPLY:
@@ -471,6 +476,8 @@ async def _show_standard_tx(
     total_amount = await _show_outputs(ctx, keychain, msg)
 
     for certificate in msg.certificates:
+        if not SCHEMA_STAKING.match(certificate.path):
+            await show_warning_certificate_path(ctx, certificate.path)
         await confirm_certificate(ctx, certificate)
 
     for withdrawal in msg.withdrawals:
@@ -498,9 +505,14 @@ async def _show_stake_pool_registration_tx(
     await confirm_stake_pool_parameters(
         ctx, pool_parameters, msg.network_id, msg.protocol_magic
     )
+
+    for owner in pool_parameters.owners:
+        if owner.staking_key_path and not SCHEMA_STAKING.match(owner.staking_key_path):
+            await show_warning_pool_owner_path(ctx, owner.staking_key_path)
     await confirm_stake_pool_owners(
         ctx, keychain, pool_parameters.owners, msg.network_id
     )
+
     await confirm_stake_pool_metadata(ctx, pool_parameters.metadata)
     await confirm_transaction_network_ttl(ctx, msg.protocol_magic, msg.ttl)
     await confirm_stake_pool_registration_final(ctx)
@@ -512,16 +524,21 @@ async def _show_outputs(
     total_amount = 0
     for output in msg.outputs:
         if output.address_parameters:
-            address = derive_human_readable_address(
-                keychain, output.address_parameters, msg.protocol_magic, msg.network_id
-            )
+            if not SCHEMA_ADDRESS.match(output.address_parameters.address_n):
+                await show_warning_change_output_path(
+                    ctx, output.address_parameters.address_n
+                )
 
             await _show_change_output_staking_warnings(
-                ctx, keychain, output.address_parameters, address, output.amount
+                ctx, keychain, output.address_parameters, output.amount
             )
 
             if _should_hide_output(output.address_parameters.address_n, msg.inputs):
                 continue
+
+            address = derive_human_readable_address(
+                keychain, output.address_parameters, msg.protocol_magic, msg.network_id
+            )
         else:
             address = output.address
 
@@ -536,10 +553,19 @@ async def _show_change_output_staking_warnings(
     ctx: wire.Context,
     keychain: seed.Keychain,
     address_parameters: CardanoAddressParametersType,
-    address: str,
     amount: int,
-):
+) -> None:
     address_type = address_parameters.address_type
+
+    if (
+        address_type == CardanoAddressType.BASE
+        and not address_parameters.staking_key_hash
+        and not SCHEMA_STAKING.match(address_parameters.address_n_staking)
+    ):
+        await show_warning_change_output_staking_path(
+            ctx,
+            address_parameters.address_n_staking,
+        )
 
     staking_use_case = staking_use_cases.get(keychain, address_parameters)
     if staking_use_case == staking_use_cases.NO_STAKING:
@@ -572,6 +598,7 @@ def _should_hide_output(output: List[int], inputs: List[CardanoTxInputType]) -> 
         if (
             len(output) != BIP_PATH_LENGTH
             or output[: (ACCOUNT_PATH_INDEX + 1)] != inp[: (ACCOUNT_PATH_INDEX + 1)]
+            or output[(ACCOUNT_PATH_INDEX + 1)] > MAX_ACCOUNT
             or output[-2] >= 2
             or output[-1] >= MAX_CHANGE_ADDRESS_INDEX
         ):
