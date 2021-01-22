@@ -74,6 +74,9 @@ async def confirm_sending(
     token_bundle: List[CardanoTokenGroupType],
     to: str,
 ) -> None:
+    if len(token_bundle) > 0:
+        await show_warning_tx_tokens(ctx)
+
     for token_group in token_bundle:
         await confirm_sending_token_group(ctx, token_group)
 
@@ -94,40 +97,50 @@ async def confirm_sending_token_group(
     ctx: wire.Context, token_group: CardanoTokenGroupType
 ) -> None:
     page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
-    page1.normal("Confirm sending tokens")
     page1.bold("Policy id: ")
     page1.mono(hexlify(token_group.policy_id).decode())
     await require_confirm(ctx, page1)
 
-    for token_amount in token_group.token_amounts:
+    for idx, token_amount in enumerate(token_group.token_amounts):
         if is_printable_ascii_bytestring(token_amount.raw_asset_name):
-            await confirm_sending_token_amount_ascii(ctx, token_amount)
+            await confirm_sending_token_amount_ascii(ctx, token_amount, idx)
         else:
-            await confirm_sending_token_amount_hex(ctx, token_amount)
+            await confirm_sending_token_amount_hex(ctx, token_amount, idx)
 
 
 async def confirm_sending_token_amount_ascii(
-    ctx: wire.Context, token_amount: CardanoTokenAmountType
+    ctx: wire.Context, token_amount: CardanoTokenAmountType, token_index: int
 ) -> None:
     page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
-    page1.normal("Asset name (ascii):")
+    page1.normal("Asset #%s name (ascii):" % (token_index + 1))
     page1.bold(token_amount.raw_asset_name.decode("ascii"))
-    page1.normal("Amount:")
+    page1.normal("Amount sent:")
     page1.bold(format_amount(token_amount.amount, 0))
     await require_confirm(ctx, page1)
 
 
 async def confirm_sending_token_amount_hex(
-    ctx: wire.Context, token_amount: CardanoTokenAmountType
+    ctx: wire.Context, token_amount: CardanoTokenAmountType, token_index
 ) -> None:
     page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
-    page1.normal("Asset name (hex):")
-    page1.bold(hexlify(token_amount.raw_asset_name).decode())
+    page1.bold("Asset #%s name (hex):" % (token_index + 1))
+    page1.mono(hexlify(token_amount.raw_asset_name).decode())
     page2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
-    page2.normal("Amount:")
+    page2.normal("Amount sent:")
     page2.bold(format_amount(token_amount.amount, 0))
     await require_confirm(ctx, Paginated([page1, page2]))
 
+async def show_warning_tx_tokens(
+    ctx: wire.Context
+) -> None:
+    page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    page1.normal("The following")
+    page1.normal("transaction output")
+    page1.normal("contains tokens.")
+    page1.br_half()
+    page1.normal("Continue?")
+
+    await require_confirm(ctx, page1)
 
 async def show_warning_tx_no_staking_info(
     ctx: wire.Context, address_type: EnumTypeCardanoAddressType, amount: int
@@ -227,8 +240,6 @@ async def confirm_transaction(
     if is_network_id_verifiable:
         page2.normal("Network:")
         page2.bold(protocol_magics.to_ui_string(protocol_magic))
-    page2.normal("Transaction TTL:")
-    page2.bold(str(ttl))
     page2.normal("Valid since: %s" % str(validity_interval_start))
     page2.normal("TTL: %s" % str(ttl))
     pages.append(page2)
