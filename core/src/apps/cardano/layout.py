@@ -130,9 +130,8 @@ async def confirm_sending_token_amount_hex(
     page2.bold(format_amount(token_amount.amount, 0))
     await require_confirm(ctx, Paginated([page1, page2]))
 
-async def show_warning_tx_tokens(
-    ctx: wire.Context
-) -> None:
+
+async def show_warning_tx_tokens(ctx: wire.Context) -> None:
     page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
     page1.normal("The following")
     page1.normal("transaction output")
@@ -141,6 +140,7 @@ async def show_warning_tx_tokens(
     page1.normal("Continue?")
 
     await require_confirm(ctx, page1)
+
 
 async def show_warning_tx_no_staking_info(
     ctx: wire.Context, address_type: EnumTypeCardanoAddressType, amount: int

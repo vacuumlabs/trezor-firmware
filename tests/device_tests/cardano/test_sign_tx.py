@@ -97,7 +97,7 @@ def test_cardano_sign_tx_failed(client, parameters, result):
                 inputs=inputs,
                 outputs=outputs,
                 fee=parameters["fee"],
-                ttl=parameters["ttl"],
+                ttl=parameters.get("ttl"),
                 validity_interval_start=parameters.get("validity_interval_start"),
                 certificates=certificates,
                 withdrawals=withdrawals,

@@ -220,8 +220,10 @@ def _validate_token_bundle(token_bundle: List[CardanoTokenGroupType]) -> None:
     # currently the full Cardano transaction is held in-memory.
     # Once Cardano-transaction signing is refactored to be streamed, this
     # limit can be lifted
-    if (assets_count > MAX_ASSETS_PER_OUTPUT):
-        raise wire.ProcessError("Maximum count of assets per output (%s) exceeded!" % MAX_ASSETS_PER_OUTPUT)
+    if assets_count > MAX_ASSETS_PER_OUTPUT:
+        raise wire.ProcessError(
+            "Maximum count of assets per output (%s) exceeded!" % MAX_ASSETS_PER_OUTPUT
+        )
 
     seen_policy_ids = set()
 
