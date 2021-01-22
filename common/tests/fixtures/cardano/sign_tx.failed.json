@@ -635,6 +635,205 @@
       "result": {
         "error_message": "Invalid metadata"
       }
+    },
+    {
+      "description": "Too many tokens in output",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "metadata": "",
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "Ae2tdPwUPEZCanmBz5g2GEwFqKTKpNJcGYPKfDxoNeKZ8bRHr8366kseiK2",
+            "amount": "3003112",
+            "token_bundle": [
+              {
+                "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                "token_amounts": [
+                  {
+                    "raw_asset_name": "01",
+                    "amount": "7878754"
+                  },
+                  {
+                    "raw_asset_name": "02",
+                    "amount": "1234"
+                  },
+                  {
+                    "raw_asset_name": "03",
+                    "amount": "1234"
+                  },
+                  {
+                    "raw_asset_name": "04",
+                    "amount": "1234"
+                  },
+                  {
+                    "raw_asset_name": "05",
+                    "amount": "1234"
+                  },
+                  {
+                    "raw_asset_name": "06",
+                    "amount": "1234"
+                  },
+                  {
+                    "raw_asset_name": "07",
+                    "amount": "1234"
+                  },
+                  {
+                    "raw_asset_name": "08",
+                    "amount": "1234"
+                  },
+                  {
+                    "raw_asset_name": "09",
+                    "amount": "1234"
+                  }
+                ]
+              },
+              {
+                "policy_id": "75a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                "token_amounts": [
+                  {
+                    "raw_asset_name": "10",
+                    "amount": "47"
+                  },
+                  {
+                    "raw_asset_name": "11",
+                    "amount": "47"
+                  },
+                  {
+                    "raw_asset_name": "12",
+                    "amount": "47"
+                  },
+                  {
+                    "raw_asset_name": "13",
+                    "amount": "47"
+                  },
+                  {
+                    "raw_asset_name": "14",
+                    "amount": "47"
+                  },
+                  {
+                    "raw_asset_name": "15",
+                    "amount": "47"
+                  },
+                  {
+                    "raw_asset_name": "16",
+                    "amount": "47"
+                  },
+                  {
+                    "raw_asset_name": "17",
+                    "amount": "47"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "result": {
+        "error_message": "Maximum count of assets per output .16. exceeded!"
+      }
+    },
+    {
+      "description": "Repeated asset name in multiasset token group",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "metadata": "",
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "Ae2tdPwUPEZCanmBz5g2GEwFqKTKpNJcGYPKfDxoNeKZ8bRHr8366kseiK2",
+            "amount": "3003112",
+            "token_bundle": [
+              {
+                "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                "token_amounts": [
+                  {
+                    "raw_asset_name": "74652474436f696e",
+                    "amount": "7878754"
+                  },
+                  {
+                    "raw_asset_name": "74652474436f696e",
+                    "amount": "1234"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "result": {
+        "error_message": "Invalid token bundle in output"
+      }
+    },
+    {
+      "description": "Repeated policyId in multiasset output",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "metadata": "",
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "Ae2tdPwUPEZCanmBz5g2GEwFqKTKpNJcGYPKfDxoNeKZ8bRHr8366kseiK2",
+            "amount": "3003112",
+            "token_bundle": [
+              {
+                "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                "token_amounts": [
+                  {
+                    "raw_asset_name": "74652474436f696e",
+                    "amount": "7878754"
+                  }
+                ]
+              },
+              {
+                "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                "token_amounts": [
+                  {
+                    "raw_asset_name": "74652474436f696f",
+                    "amount": "7878754"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "result": {
+        "error_message": "Invalid token bundle in output"
+      }
     }
   ]
 }

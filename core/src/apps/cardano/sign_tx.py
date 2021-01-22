@@ -70,6 +70,7 @@ METADATA_HASH_SIZE = 32
 MAX_METADATA_LENGTH = 500
 MONETARY_POLICY_ID_LENGTH = 28
 ASSET_NAME_MAX_LENGTH = 32
+MAX_ASSETS_PER_OUTPUT = 16
 
 
 @seed.with_keychain
@@ -211,6 +212,17 @@ def _validate_outputs(
 
 
 def _validate_token_bundle(token_bundle: List[CardanoTokenGroupType]) -> None:
+    assets_count = sum([len(token_group.token_amounts) for token_group in token_bundle])
+
+    # This limitation is a mitigation measure to prevent sending
+    # large (especially change) outputs containing many tokens that Trezor
+    # would not be able to spend given that
+    # currently the full Cardano transaction is held in-memory.
+    # Once Cardano-transaction signing is refactored to be streamed, this
+    # limit can be lifted
+    if (assets_count > MAX_ASSETS_PER_OUTPUT):
+        raise wire.ProcessError("Maximum count of assets per output (%s) exceeded!" % MAX_ASSETS_PER_OUTPUT)
+
     seen_policy_ids = set()
 
     for token_group in token_bundle:
