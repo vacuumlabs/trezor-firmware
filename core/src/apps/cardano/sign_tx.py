@@ -31,7 +31,7 @@ from .helpers import (
     staking_use_cases,
 )
 from .helpers.paths import SCHEMA_ADDRESS, SCHEMA_STAKING, SCHEMA_STAKING_ANY_ACCOUNT
-from .helpers.utils import to_account_path
+from .helpers.utils import fail_if_strict, to_account_path
 from .layout import (
     confirm_certificate,
     confirm_sending,
@@ -473,11 +473,14 @@ async def _show_standard_tx(
 
     if not is_network_id_verifiable:
         await show_warning_tx_network_unverifiable(ctx)
+
     total_amount = await _show_outputs(ctx, keychain, msg)
 
     for certificate in msg.certificates:
         if not SCHEMA_STAKING.match(certificate.path):
+            fail_if_strict("Invalid certificate path")
             await show_warning_certificate_path(ctx, certificate.path)
+
         await confirm_certificate(ctx, certificate)
 
     for withdrawal in msg.withdrawals:
@@ -508,7 +511,9 @@ async def _show_stake_pool_registration_tx(
 
     for owner in pool_parameters.owners:
         if owner.staking_key_path and not SCHEMA_STAKING.match(owner.staking_key_path):
-            await show_warning_pool_owner_path(ctx, owner.staking_key_path)
+            fail_if_strict("Invalid staking pool owner path")
+            await show_warning_pool_owner_path(ctx, owner.staking_key_path),
+
     await confirm_stake_pool_owners(
         ctx, keychain, pool_parameters.owners, msg.network_id
     )
@@ -525,6 +530,7 @@ async def _show_outputs(
     for output in msg.outputs:
         if output.address_parameters:
             if not SCHEMA_ADDRESS.match(output.address_parameters.address_n):
+                fail_if_strict("Invalid change output path")
                 await show_warning_change_output_path(
                     ctx, output.address_parameters.address_n
                 )
@@ -562,6 +568,7 @@ async def _show_change_output_staking_warnings(
         and not address_parameters.staking_key_hash
         and not SCHEMA_STAKING.match(address_parameters.address_n_staking)
     ):
+        fail_if_strict("Invalid change output staking path")
         await show_warning_change_output_staking_path(
             ctx,
             address_parameters.address_n_staking,
