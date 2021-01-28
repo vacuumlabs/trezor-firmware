@@ -32,17 +32,17 @@ from .helpers import (
 from .helpers.paths import (
     ACCOUNT_PATH_INDEX,
     BIP_PATH_LENGTH,
-    MAX_ACCOUNT_INDEX,
-    MAX_CHANGE_ADDRESS_INDEX,
     CERTIFICATE_PATH_NAME,
     CHANGE_OUTPUT_PATH_NAME,
     CHANGE_OUTPUT_STAKING_PATH_NAME,
+    MAX_ACCOUNT_INDEX,
+    MAX_CHANGE_ADDRESS_INDEX,
     POOL_OWNER_STAKING_PATH_NAME,
     SCHEMA_ADDRESS,
     SCHEMA_STAKING,
     SCHEMA_STAKING_ANY_ACCOUNT,
 )
-from .helpers.utils import fail_if_strict, to_account_path
+from .helpers.utils import to_account_path
 from .layout import (
     confirm_certificate,
     confirm_sending,

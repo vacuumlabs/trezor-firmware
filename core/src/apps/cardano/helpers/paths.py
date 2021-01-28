@@ -28,5 +28,6 @@ CHANGE_OUTPUT_STAKING_PATH_NAME = "Change output staking path"
 CERTIFICATE_PATH_NAME = "Certificate path"
 POOL_OWNER_STAKING_PATH_NAME = "Pool owner staking path"
 
+
 def unharden(item: int) -> int:
     return item ^ (item & HARDENED)

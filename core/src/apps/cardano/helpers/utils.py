@@ -1,8 +1,4 @@
-from trezor import wire
-
 from apps.cardano.helpers.paths import ACCOUNT_PATH_INDEX, unharden
-from apps.common import safety_checks
-from micropython import const
 
 if False:
     from typing import List, Optional
@@ -46,8 +42,3 @@ def format_optional_int(number: Optional[int]) -> str:
         return "n/a"
 
     return str(number)
-
-
-def fail_if_strict(msg):
-    if safety_checks.is_strict():
-        raise wire.DataError(msg)
