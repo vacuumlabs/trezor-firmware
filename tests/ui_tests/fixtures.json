@@ -1,4 +1,5 @@
 {
+"cardano-test_sign_tx.py::test_cardano_sign_tx[byron_to_shelley_transfer]": "f0e91af34e0be910cafbb885305bd553470a69ec50c2f2dae1afd2374fe5947a",
 "cardano-test_sign_tx.py::test_cardano_sign_tx[mainnet_transaction_with_change0]": "5e2334cff9d0946ec722d69d7065023d707d8208a0ceee928824fd006edb93ad",
 "cardano-test_sign_tx.py::test_cardano_sign_tx[mainnet_transaction_with_change1]": "1ac78675dd64f4acbf7cf8f24bc1492bec5f0bce32a3f860742d5fa1922afb24",
 "cardano-test_sign_tx.py::test_cardano_sign_tx[mainnet_transaction_with_multiple_inputs]": "8151b1b3cfa5ef79a256409d78b0219eb43b8fb498776b16e2f43bb5c9a38c55",
