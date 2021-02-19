@@ -10,7 +10,7 @@ from trezor import log, utils
 from . import readers
 
 if False:
-    from typing import Any, Iterable, List, Tuple, Union
+    from typing import Any, List, Tuple, Union, Iterator
 
     Value = Any
     CborSequence = Union[List[Value], Tuple[Value, ...]]
@@ -55,7 +55,7 @@ def _header(typ: int, l: int) -> bytes:
         raise NotImplementedError("Length %d not suppported" % l)
 
 
-def _cbor_encode(value: Value) -> Iterable[bytes]:
+def _cbor_encode(value: Value) -> Iterator[bytes]:
     if isinstance(value, int):
         if value >= 0:
             yield _header(_CBOR_UNSIGNED_INT, value)
@@ -228,6 +228,15 @@ class IndefiniteLengthArray:
 
 def encode(value: Value) -> bytes:
     return b"".join(_cbor_encode(value))
+
+
+def encode_chunked(value: Value) -> Iterator[bytes]:
+    """
+    Returns the encoded value as an iterable of the individual
+    CBOR "chunks", removing the need to reserve a continuous
+    chunk of memory for the full serialized representation of the value
+    """
+    return _cbor_encode(value)
 
 
 def decode(cbor: bytes) -> Value:

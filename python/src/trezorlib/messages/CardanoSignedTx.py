@@ -18,13 +18,16 @@ class CardanoSignedTx(p.MessageType):
         *,
         tx_hash: bytes,
         serialized_tx: bytes,
+        expect_more_chunks: bool = None,
     ) -> None:
         self.tx_hash = tx_hash
         self.serialized_tx = serialized_tx
+        self.expect_more_chunks = expect_more_chunks
 
     @classmethod
     def get_fields(cls) -> Dict:
         return {
             1: ('tx_hash', p.BytesType, p.FLAG_REQUIRED),
             2: ('serialized_tx', p.BytesType, p.FLAG_REQUIRED),
+            3: ('expect_more_chunks', p.BoolType, None),
         }

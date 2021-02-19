@@ -370,4 +370,15 @@ def sign_tx(
         )
     )
 
-    return response
+    result = response.serialized_tx
+    tx_hash = response.tx_hash
+
+    while response.expect_more_chunks:
+        response = client.call(messages.CardanoSignedTxAck())
+        result += response.serialized_tx
+
+    return messages.CardanoSignedTx(
+        tx_hash=tx_hash,
+        serialized_tx=result,
+        expect_more_chunks=False,
+    )
