@@ -10,5 +10,5 @@ if __debug__:
         pass
 
 
-class CardanoSignedTxAck(p.MessageType):
-    MESSAGE_WIRE_TYPE = 311
+class CardanoSignedTxChunkAck(p.MessageType):
+    MESSAGE_WIRE_TYPE = 312

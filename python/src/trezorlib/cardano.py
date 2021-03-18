@@ -17,7 +17,7 @@
 from ipaddress import ip_address
 from typing import List, Optional
 
-from . import messages, tools
+from . import exceptions, messages, tools
 from .tools import expect
 
 PROTOCOL_MAGICS = {"mainnet": 764824073, "testnet": 42}
@@ -370,15 +370,17 @@ def sign_tx(
         )
     )
 
-    result = response.serialized_tx
+    result = bytearray()
+    while isinstance(response, messages.CardanoSignedTxChunk):
+        result.extend(response.signed_tx_chunk)
+        response = client.call(messages.CardanoSignedTxChunkAck())
+
+    if not isinstance(response, messages.CardanoSignedTx):
+        raise exceptions.TrezorException("Unexpected response: {response}")
+
+    if response.serialized_tx is not None:
+        result.extend(response.serialized_tx)
+
     tx_hash = response.tx_hash
 
-    while response.expect_more_chunks:
-        response = client.call(messages.CardanoSignedTxAck())
-        result += response.serialized_tx
-
-    return messages.CardanoSignedTx(
-        tx_hash=tx_hash,
-        serialized_tx=result,
-        expect_more_chunks=False,
-    )
+    return messages.CardanoSignedTx(tx_hash=tx_hash, serialized_tx=result)
