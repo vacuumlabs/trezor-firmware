@@ -4,9 +4,10 @@ from trezor.crypto.curve import ed25519
 from trezor.messages import CardanoAddressType, CardanoCertificateType
 from trezor.messages.CardanoAddressParametersType import CardanoAddressParametersType
 from trezor.messages.CardanoSignedTx import CardanoSignedTx
-from trezor.messages.CardanoSignedTxAck import CardanoSignedTxAck
+from trezor.messages.CardanoSignedTxChunk import CardanoSignedTxChunk
+from trezor.messages.CardanoSignedTxChunkAck import CardanoSignedTxChunkAck
 
-from apps.common import cbor, safety_checks
+from apps.common import cbor, safety_checks, writers
 from apps.common.paths import validate_path
 from apps.common.seed import remove_ed25519_prefix
 
@@ -82,7 +83,6 @@ if False:
     CborizedSignedTx = Tuple[Dict, Dict, Optional[cbor.Raw]]
     TxHash = bytes
 
-
 METADATA_HASH_SIZE = 32
 MINTING_POLICY_ID_LENGTH = 28
 MAX_METADATA_LENGTH = 500
@@ -109,18 +109,11 @@ async def sign_tx(
 
         signed_tx_chunks = _get_signed_tx_chunks(cborized_tx)
 
-        for signed_tx_chunk, expect_more_chunks in signed_tx_chunks:
-            response = CardanoSignedTx(
-                tx_hash=tx_hash,
-                serialized_tx=signed_tx_chunk,
-                expect_more_chunks=expect_more_chunks,
-            )
-            if expect_more_chunks:
-                await ctx.call(response, CardanoSignedTxAck)
-            else:
-                return response
+        for signed_tx_chunk in signed_tx_chunks:
+            response = CardanoSignedTxChunk(signed_tx_chunk=signed_tx_chunk)
+            await ctx.call(response, CardanoSignedTxChunkAck)
 
-        raise AssertionError("Should not be reached")
+        return CardanoSignedTx(tx_hash=tx_hash, serialized_tx=None)
 
     except ValueError as e:
         if __debug__:
@@ -300,32 +293,27 @@ def _validate_metadata(metadata: Optional[bytes]) -> None:
 
 def _get_signed_tx_chunks(
     cborized_tx: CborizedSignedTx,
-) -> Iterator[Tuple[bytes, bool]]:
-    remaining_len = 0
-    for token in cbor.encode_chunked(cborized_tx):
-        remaining_len += len(token)
-
+) -> Iterator[bytearray]:
     chunks = cbor.encode_chunked(cborized_tx)
-    current_chunk_view = utils.BufferReader(b"")
-    while remaining_len > 0:
-        payload_len = min(remaining_len, MAX_TX_CHUNK_SIZE)
-        payload_writer = utils.BufferWriter(bytearray(payload_len))
+    chunk_buffer = writers.empty_bytearray(MAX_TX_CHUNK_SIZE)
 
-        while payload_writer.offset < payload_len:
-            if current_chunk_view.remaining_count() == 0:
-                current_chunk_view = utils.BufferReader(next(chunks))
-
+    try:
+        current_chunk_view = utils.BufferReader(next(chunks))
+        while True:
             num_bytes_to_write = min(
                 current_chunk_view.remaining_count(),
-                payload_len - payload_writer.offset,
+                MAX_TX_CHUNK_SIZE - len(chunk_buffer),
             )
+            chunk_buffer.extend(current_chunk_view.read(num_bytes_to_write))
 
-            payload_writer.write(current_chunk_view.read(num_bytes_to_write))
+            if len(chunk_buffer) >= MAX_TX_CHUNK_SIZE:
+                yield chunk_buffer
+                chunk_buffer[:] = bytes()
 
-        remaining_len -= payload_len
-        expect_more_chunks = remaining_len > 0
-
-        yield payload_writer.buffer, expect_more_chunks
+            if current_chunk_view.remaining_count() == 0:
+                current_chunk_view = utils.BufferReader(next(chunks))
+    except StopIteration:
+        yield chunk_buffer
 
 
 def _cborize_signed_tx(

@@ -221,19 +221,26 @@ message CardanoSignTx {
 }
 
 /**
- * Response: Serialised signed cardano transaction
- * @end
- * @next CardanoSignedTxAck
+ * Response: Serialised signed cardano transaction chunk
+ * @next CardanoSignedTxChunkAck
  */
-message CardanoSignedTx {
-    required bytes tx_hash = 1;               // hash of the transaction body
-    required bytes serialized_tx = 2;         // serialized, signed transaction
-    optional bool expect_more_chunks = 3;     // whether more chunks of the transaction follow
+message CardanoSignedTxChunk {
+    required bytes signed_tx_chunk = 1;         // serialised, signed transaction chunk
 }
 
 /**
- * Request: Serialised signed cardano transaction acknowledgement
+ * Request: Serialised signed cardano transaction chunk acknowledgement
+ * @next CardanoSignedTxChunk
  * @next CardanoSignedTx
  */
-message CardanoSignedTxAck {
+message CardanoSignedTxChunkAck {
+}
+
+/**
+ * Response: Serialised signed cardano transaction
+ * @end
+ */
+message CardanoSignedTx {
+    required bytes tx_hash = 1;               // hash of the transaction body
+    optional bytes serialized_tx = 2;         // deprecated since transaction is sent in chunks now - kept for backwards compatibility
 }
