@@ -107,7 +107,7 @@ async def sign_tx(
         else:
             cborized_tx, tx_hash = await _sign_ordinary_tx(ctx, msg, keychain)
 
-        signed_tx_chunks = _get_signed_tx_chunks(cborized_tx)
+        signed_tx_chunks = cbor.encode_chunked(cborized_tx, MAX_TX_CHUNK_SIZE)
 
         for signed_tx_chunk in signed_tx_chunks:
             response = CardanoSignedTxChunk(signed_tx_chunk=signed_tx_chunk)
@@ -291,31 +291,6 @@ def _validate_metadata(metadata: Optional[bytes]) -> None:
         raise INVALID_METADATA
 
 
-def _get_signed_tx_chunks(
-    cborized_tx: CborizedSignedTx,
-) -> Iterator[bytearray]:
-    chunks = cbor.encode_chunked(cborized_tx)
-    chunk_buffer = writers.empty_bytearray(MAX_TX_CHUNK_SIZE)
-
-    try:
-        current_chunk_view = utils.BufferReader(next(chunks))
-        while True:
-            num_bytes_to_write = min(
-                current_chunk_view.remaining_count(),
-                MAX_TX_CHUNK_SIZE - len(chunk_buffer),
-            )
-            chunk_buffer.extend(current_chunk_view.read(num_bytes_to_write))
-
-            if len(chunk_buffer) >= MAX_TX_CHUNK_SIZE:
-                yield chunk_buffer
-                chunk_buffer[:] = bytes()
-
-            if current_chunk_view.remaining_count() == 0:
-                current_chunk_view = utils.BufferReader(next(chunks))
-    except StopIteration:
-        yield chunk_buffer
-
-
 def _cborize_signed_tx(
     keychain: seed.Keychain, msg: CardanoSignTx
 ) -> Tuple[CborizedSignedTx, TxHash]:
@@ -462,7 +437,7 @@ def _hash_metadata(metadata: bytes) -> bytes:
 
 
 def _hash_tx_body(tx_body: Dict) -> bytes:
-    tx_body_cbor_chunks = cbor.encode_chunked(tx_body)
+    tx_body_cbor_chunks = cbor.encode_streamed(tx_body)
 
     hashfn = hashlib.blake2b(outlen=32)
     for chunk in tx_body_cbor_chunks:

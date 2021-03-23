@@ -376,11 +376,9 @@ def sign_tx(
         response = client.call(messages.CardanoSignedTxChunkAck())
 
     if not isinstance(response, messages.CardanoSignedTx):
-        raise exceptions.TrezorException("Unexpected response: {response}")
+        raise exceptions.TrezorException("Unexpected response")
 
     if response.serialized_tx is not None:
         result.extend(response.serialized_tx)
 
-    tx_hash = response.tx_hash
-
-    return messages.CardanoSignedTx(tx_hash=tx_hash, serialized_tx=result)
+    return messages.CardanoSignedTx(tx_hash=response.tx_hash, serialized_tx=result)
