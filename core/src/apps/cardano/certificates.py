@@ -7,7 +7,7 @@ from .address import (
     get_public_key_hash,
     validate_reward_address,
 )
-from .helpers import INVALID_CERTIFICATE, LOVELACE_MAX_SUPPLY, ADDRESS_KEY_HASH_SIZE
+from .helpers import ADDRESS_KEY_HASH_SIZE, INVALID_CERTIFICATE, LOVELACE_MAX_SUPPLY
 from .helpers.paths import SCHEMA_STAKING_ANY_ACCOUNT
 
 if False:
@@ -139,7 +139,9 @@ def _validate_pool_owners(owners: list[CardanoPoolOwnerType]) -> None:
             owner.staking_key_hash is not None or owner.staking_key_path is not None
         )
         if owner.staking_key_hash is not None:
-            assert_certificate_cond(len(owner.staking_key_hash) == ADDRESS_KEY_HASH_SIZE)
+            assert_certificate_cond(
+                len(owner.staking_key_hash) == ADDRESS_KEY_HASH_SIZE
+            )
         if owner.staking_key_path:
             assert_certificate_cond(
                 SCHEMA_STAKING_ANY_ACCOUNT.match(owner.staking_key_path)

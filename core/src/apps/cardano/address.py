@@ -3,10 +3,10 @@ from trezor.messages import CardanoAddressType
 
 from .byron_address import derive_byron_address, validate_byron_address
 from .helpers import (
+    ADDRESS_KEY_HASH_SIZE,
     INVALID_ADDRESS,
     INVALID_ADDRESS_PARAMETERS,
     NETWORK_MISMATCH,
-    ADDRESS_KEY_HASH_SIZE,
     bech32,
     network_ids,
 )
@@ -15,6 +15,7 @@ from .helpers.utils import derive_public_key, variable_length_encode
 from .seed import is_byron_path, is_shelley_path
 
 if False:
+    from typing import List, Optional
     from trezor.messages.CardanoBlockchainPointerType import (
         CardanoBlockchainPointerType,
     )
@@ -71,18 +72,20 @@ def _validate_address_parameters_structure(
     staking_key_hash = parameters.staking_key_hash
     certificate_pointer = parameters.certificate_pointer
 
+    fields_to_be_empty: List[
+        List[int] | Optional[bytes] | Optional[CardanoBlockchainPointerType]
+    ] = []
+
     if parameters.address_type in (
         CardanoAddressType.BYRON,
         CardanoAddressType.REWARD,
         CardanoAddressType.ENTERPRISE,
     ):
-        fields_to_be_empty = (address_n_staking, staking_key_hash, certificate_pointer)
+        fields_to_be_empty = [address_n_staking, staking_key_hash, certificate_pointer]
     elif parameters.address_type == CardanoAddressType.BASE:
-        fields_to_be_empty = (certificate_pointer,)
+        fields_to_be_empty = [certificate_pointer]
     elif parameters.address_type == CardanoAddressType.POINTER:
-        fields_to_be_empty = (address_n_staking, staking_key_hash)
-    else:
-        fields_to_be_empty = ()
+        fields_to_be_empty = [address_n_staking, staking_key_hash]
 
     if any(fields_to_be_empty):
         raise INVALID_ADDRESS_PARAMETERS
