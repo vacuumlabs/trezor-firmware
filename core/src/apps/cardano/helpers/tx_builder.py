@@ -16,6 +16,7 @@ TX_BODY_KEY_CERTIFICATES = const(4)
 TX_BODY_KEY_WITHDRAWALS = const(5)
 TX_BODY_KEY_AUXILIARY_DATA = const(7)
 TX_BODY_KEY_VALIDITY_INTERVAL_START = const(8)
+TX_BODY_KEY_MINT = const(9)
 
 POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT = 10
 
@@ -216,6 +217,35 @@ class TxBuilder:
             self.cbor_hash_builder.add_item(
                 (TX_BODY_KEY_VALIDITY_INTERVAL_START, validity_interval_start)
             )
+
+    def start_minting(self, asset_groups_count: int) -> None:
+        self.state_machine.transition(TxBuilderStateMachine.ACTION_MINTING_START)
+        self.cbor_hash_builder.add_lazy_collection_at_key(
+            TX_BODY_KEY_MINT, LazyCborDict(asset_groups_count)
+        )
+
+    def add_asset_group_mint(self, policy_id: bytes, tokens_count: int) -> None:
+        self.state_machine.transition(
+            TxBuilderStateMachine.ACTION_MINTING_ASSET_GROUP_ADD
+        )
+        self.cbor_hash_builder.add_lazy_collection_at_key(
+            key=policy_id,
+            collection=LazyCborDict(tokens_count),
+        )
+
+    def add_token_mint(self, asset_name_bytes: bytes, mint_amount: int) -> None:
+        self.state_machine.transition(TxBuilderStateMachine.ACTION_MINTING_TOKEN_ADD)
+        self.cbor_hash_builder.add_item((asset_name_bytes, mint_amount))
+
+    def finish_tokens_mint(self) -> None:
+        self.state_machine.transition(
+            TxBuilderStateMachine.ACTION_MINTING_TOKENS_FINISH
+        )
+        self.cbor_hash_builder.finish_current_lazy_collection()
+
+    def finish_asset_groups_mint(self) -> None:
+        self.state_machine.transition(TxBuilderStateMachine.ACTION_MINTING_FINISH)
+        self.cbor_hash_builder.finish_current_lazy_collection()
 
     def finish(self) -> None:
         self.state_machine.transition(TxBuilderStateMachine.ACTION_FINISH)

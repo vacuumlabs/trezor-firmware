@@ -158,6 +158,9 @@ if not utils.BITCOIN_ONLY:
     CardanoTxAuxiliaryData = 327
     CardanoPoolOwner = 328
     CardanoPoolRelayParameters = 329
+    CardanoGetScriptHash = 330
+    CardanoScriptHash = 331
+    CardanoTxMint = 332
     RippleGetAddress = 400
     RippleAddress = 401
     RippleSignTx = 402

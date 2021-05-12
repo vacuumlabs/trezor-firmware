@@ -81,6 +81,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
@@ -172,6 +173,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
@@ -264,6 +266,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
@@ -322,6 +325,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
@@ -380,6 +384,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
@@ -473,6 +478,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {

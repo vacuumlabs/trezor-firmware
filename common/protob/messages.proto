@@ -254,7 +254,9 @@ enum MessageType {
     MessageType_CardanoTxAuxiliaryData = 327 [(wire_in) = true];
     MessageType_CardanoPoolOwner = 328 [(wire_in) = true];
     MessageType_CardanoPoolRelayParameters = 329 [(wire_in) = true];
-
+    MessageType_CardanoGetScriptHash = 330 [(wire_in) = true];
+    MessageType_CardanoScriptHash = 331 [(wire_in) = true, (wire_out) = true];
+    MessageType_CardanoTxMint = 332 [(wire_in) = true];
 
     // Ripple
     MessageType_RippleGetAddress = 400 [(wire_in) = true];

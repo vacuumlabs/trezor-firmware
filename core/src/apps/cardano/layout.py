@@ -1,5 +1,11 @@
 from trezor import ui
-from trezor.enums import ButtonRequestType, CardanoAddressType, CardanoCertificateType
+from trezor.enums import (
+    ButtonRequestType,
+    CardanoAddressType,
+    CardanoCertificateType,
+    CardanoScriptType,
+)
+from trezor.messages import CardanoAddressParametersType
 from trezor.strings import format_amount
 from trezor.ui.layouts import (
     confirm_metadata,
@@ -11,11 +17,7 @@ from trezor.ui.layouts import (
 from apps.common.layout import address_n_to_str
 
 from . import seed
-from .address import (
-    encode_human_readable_address,
-    get_public_key_hash,
-    pack_reward_address_bytes,
-)
+from .address import derive_human_readable_address
 from .helpers import protocol_magics
 from .helpers.utils import (
     format_account_number,
@@ -34,18 +36,35 @@ if False:
         CardanoPoolParametersType,
         CardanoPoolOwner,
         CardanoPoolMetadataType,
+        CardanoScript,
         CardanoToken,
     )
 
     from trezor.ui.layouts import PropertyType
 
 
+# TODO GK perhaps the user doesn't care about the "script" part at all?
 ADDRESS_TYPE_NAMES = {
     CardanoAddressType.BYRON: "Legacy",
     CardanoAddressType.BASE: "Base",
+    CardanoAddressType.BASE_SCRIPT_KEY: "Base script",
+    CardanoAddressType.BASE_KEY_SCRIPT: "Base script",
+    CardanoAddressType.BASE_SCRIPT_SCRIPT: "Base script",
     CardanoAddressType.POINTER: "Pointer",
+    CardanoAddressType.POINTER_SCRIPT: "Pointer script",
     CardanoAddressType.ENTERPRISE: "Enterprise",
+    CardanoAddressType.ENTERPRISE_SCRIPT: "Enterprise script",
     CardanoAddressType.REWARD: "Reward",
+    CardanoAddressType.REWARD_SCRIPT: "Reward script",
+}
+
+SCRIPT_TYPE_NAMES = {
+    CardanoScriptType.PUB_KEY: "Key",
+    CardanoScriptType.ALL: "All",
+    CardanoScriptType.ANY: "Any",
+    CardanoScriptType.N_OF_K: "N of K",
+    CardanoScriptType.INVALID_BEFORE: "Invalid before",
+    CardanoScriptType.INVALID_HEREAFTER: "Invalid hereafter",
 }
 
 CERTIFICATE_TYPE_NAMES = {
@@ -62,6 +81,72 @@ def format_coin_amount(amount: int) -> str:
 
 def is_printable_ascii_bytestring(bytestr: bytes) -> bool:
     return all((32 < b < 127) for b in bytestr)
+
+
+# TODO switch to new layout system
+async def show_script(
+    ctx: wire.Context,
+    script: CardanoScript,
+    indices: list[int] = [],
+) -> None:
+    indices_str = ".".join([str(i) for i in indices])
+
+    props: list[PropertyType] = [
+        (
+            "Script%s:" % (" " + indices_str if indices_str else ""),
+            SCRIPT_TYPE_NAMES[script.type].lower(),
+        )
+    ]
+
+    if script.type in (
+        CardanoScriptType.ALL,
+        CardanoScriptType.ANY,
+        CardanoScriptType.N_OF_K,
+    ):
+        assert script.scripts  # validate_script
+        props.append(("Confirm %i nested scripts" % len(script.scripts), None))
+
+    if script.type == CardanoScriptType.PUB_KEY:
+        assert script.key_hash is not None or script.key_path  # validate_script
+        if script.key_hash:
+            props.append(("Key:", script.key_hash))
+        elif script.key_path:
+            props.append(("Key path: %s" % address_n_to_str(script.key_path), None))
+    elif script.type == CardanoScriptType.N_OF_K:
+        assert script.required_signatures_count is not None  # validate_script
+        props.append(
+            ("Required signatures: %s" % script.required_signatures_count, None)
+        )
+    elif script.type == CardanoScriptType.INVALID_BEFORE:
+        assert script.invalid_before is not None  # validate_script
+        props.append(("Invalid before: %s" % script.invalid_before, None))
+    elif script.type == CardanoScriptType.INVALID_HEREAFTER:
+        assert script.invalid_hereafter is not None  # validate_script
+        props.append(("Invalid hereafter: %s" % script.invalid_hereafter, None))
+
+    await confirm_properties(
+        ctx,
+        "verify_script",
+        title="Verify script",
+        props=props,
+        br_code=ButtonRequestType.Other,
+    )
+
+    for i, sub_script in enumerate(script.scripts):
+        await show_script(ctx, sub_script, indices + [(i + 1)])
+
+
+# TODO verify this works
+async def show_human_readable_script_hash(
+    ctx: wire.Context, human_readable_script_hash: str
+) -> None:
+    await confirm_properties(
+        ctx,
+        "verify_script",
+        title="Verify script",
+        props=[("Script hash:", human_readable_script_hash)],
+        br_code=ButtonRequestType.Other,
+    )
 
 
 async def confirm_sending(
@@ -86,6 +171,8 @@ async def confirm_sending(
 async def confirm_sending_token(
     ctx: wire.Context, policy_id: bytes, token: CardanoToken
 ) -> None:
+    assert token.amount is not None  # _validate_token
+
     await confirm_properties(
         ctx,
         "confirm_token",
@@ -298,6 +385,7 @@ async def confirm_stake_pool_owner(
     ctx: wire.Context,
     keychain: seed.Keychain,
     owner: CardanoPoolOwner,
+    protocol_magic: int,
     network_id: int,
 ) -> None:
     props: list[tuple[str, str | None]] = []
@@ -305,11 +393,14 @@ async def confirm_stake_pool_owner(
         props.append(("Pool owner:", address_n_to_str(owner.staking_key_path)))
         props.append(
             (
-                encode_human_readable_address(
-                    pack_reward_address_bytes(
-                        get_public_key_hash(keychain, owner.staking_key_path),
-                        network_id,
-                    )
+                derive_human_readable_address(
+                    keychain,
+                    CardanoAddressParametersType(
+                        address_type=CardanoAddressType.REWARD,
+                        address_n=owner.staking_key_path,
+                    ),
+                    protocol_magic,
+                    network_id,
                 ),
                 None,
             )
@@ -319,8 +410,14 @@ async def confirm_stake_pool_owner(
         props.append(
             (
                 "Pool owner:",
-                encode_human_readable_address(
-                    pack_reward_address_bytes(owner.staking_key_hash, network_id)
+                derive_human_readable_address(
+                    keychain,
+                    CardanoAddressParametersType(
+                        address_type=CardanoAddressType.REWARD,
+                        staking_key_hash=owner.staking_key_hash,
+                    ),
+                    protocol_magic,
+                    network_id,
                 ),
             )
         )
@@ -433,6 +530,44 @@ async def show_auxiliary_data_hash(
         "confirm_auxiliary_data",
         title="Confirm transaction",
         props=[("Auxiliary data hash:", auxiliary_data_hash)],
+        br_code=ButtonRequestType.Other,
+    )
+
+
+async def show_warning_tx_contains_mint(ctx: wire.Context) -> None:
+    await confirm_metadata(
+        ctx,
+        "confirm_tokens",
+        title="Confirm transaction",
+        content="The transaction contains\nminting or burning of\ntokens.",
+        larger_vspace=True,
+        br_code=ButtonRequestType.Other,
+    )
+
+
+async def confirm_token_minting(
+    ctx: wire.Context, policy_id: bytes, token: CardanoToken
+) -> None:
+    assert token.mint_amount is not None  # _validate_token
+    is_minting = token.mint_amount >= 0
+
+    await confirm_properties(
+        ctx,
+        "confirm_mint",
+        title="Confirm transaction",
+        props=[
+            (
+                "Asset fingerprint:",
+                format_asset_fingerprint(
+                    policy_id=policy_id,
+                    asset_name_bytes=token.asset_name_bytes,
+                ),
+            ),
+            (
+                "Amount %s:" % ("minted" if is_minting else "burnt"),
+                format_amount(token.mint_amount, 0),
+            ),
+        ],
         br_code=ButtonRequestType.Other,
     )
 

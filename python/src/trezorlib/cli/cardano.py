@@ -26,9 +26,15 @@ PATH_HELP = "BIP-32 path to key, e.g. m/44'/1815'/0'/0/0"
 ADDRESS_TYPES = {
     "byron": messages.CardanoAddressType.BYRON,
     "base": messages.CardanoAddressType.BASE,
+    "base-key-script": messages.CardanoAddressType.BASE_KEY_SCRIPT,
+    "base-script-key": messages.CardanoAddressType.BASE_SCRIPT_KEY,
+    "base-script-script": messages.CardanoAddressType.BASE_SCRIPT_SCRIPT,
     "pointer": messages.CardanoAddressType.POINTER,
+    "pointer-script": messages.CardanoAddressType.POINTER_SCRIPT,
     "enterprise": messages.CardanoAddressType.ENTERPRISE,
+    "enterprise-script": messages.CardanoAddressType.ENTERPRISE_SCRIPT,
     "reward": messages.CardanoAddressType.REWARD,
+    "reward-script": messages.CardanoAddressType.REWARD_SCRIPT,
 }
 
 
@@ -75,6 +81,7 @@ def sign_tx(client, file, signing_mode, protocol_magic, network_id, testnet):
         for withdrawal in transaction.get("withdrawals", ())
     ]
     auxiliary_data = cardano.parse_auxiliary_data(transaction.get("auxiliary_data"))
+    mint = cardano.parse_mint(transaction.get("mint", ()))
 
     sign_tx_response = cardano.sign_tx(
         client,
@@ -89,6 +96,7 @@ def sign_tx(client, file, signing_mode, protocol_magic, network_id, testnet):
         protocol_magic,
         network_id,
         auxiliary_data,
+        mint,
     )
 
     sign_tx_response["tx_hash"] = sign_tx_response["tx_hash"].hex()
@@ -116,7 +124,7 @@ def sign_tx(client, file, signing_mode, protocol_magic, network_id, testnet):
 
 
 @cli.command()
-@click.option("-n", "--address", required=True, help=PATH_HELP)
+@click.option("-n", "--address", type=str, default=None, help=PATH_HELP)
 @click.option("-d", "--show-display", is_flag=True)
 @click.option("-t", "--address-type", type=ChoiceType(ADDRESS_TYPES), default="base")
 @click.option("-s", "--staking-address", type=str, default=None)
@@ -124,6 +132,10 @@ def sign_tx(client, file, signing_mode, protocol_magic, network_id, testnet):
 @click.option("-b", "--block_index", type=int, default=None)
 @click.option("-x", "--tx_index", type=int, default=None)
 @click.option("-c", "--certificate_index", type=int, default=None)
+# TODO GK move to script verification
+# @click.option("--script-payment-file", default=None)
+@click.option("--script-payment-hash", type=str, default=None)
+@click.option("--script-staking-hash", type=str, default=None)
 @click.option(
     "-p", "--protocol-magic", type=int, default=cardano.PROTOCOL_MAGICS["mainnet"]
 )
@@ -139,6 +151,8 @@ def get_address(
     block_index,
     tx_index,
     certificate_index,
+    script_payment_hash,
+    script_staking_hash,
     protocol_magic,
     network_id,
     show_display,
@@ -166,6 +180,14 @@ def get_address(
     if staking_key_hash:
         staking_key_hash_bytes = bytes.fromhex(staking_key_hash)
 
+    script_payment_hash_bytes = None
+    if script_payment_hash:
+        script_payment_hash_bytes = bytes.fromhex(script_payment_hash)
+
+    script_staking_hash_bytes = None
+    if script_staking_hash:
+        script_staking_hash_bytes = bytes.fromhex(script_staking_hash)
+
     address_parameters = cardano.create_address_parameters(
         address_type,
         tools.parse_path(address),
@@ -174,6 +196,8 @@ def get_address(
         block_index,
         tx_index,
         certificate_index,
+        script_payment_hash_bytes,
+        script_staking_hash_bytes,
     )
 
     return cardano.get_address(
@@ -188,3 +212,15 @@ def get_public_key(client, address):
     """Get Cardano public key."""
     address_n = tools.parse_path(address)
     return cardano.get_public_key(client, address_n)
+
+
+@cli.command()
+@click.argument("file", type=click.File("r"))
+@click.option("-f", "--file", "_ignore", is_flag=True, hidden=True, expose_value=False)
+@click.option("-d", "--show-display", is_flag=True)
+@with_client
+def get_script_hash(client, file, show_display):
+    script_json = json.load(file)
+    script = cardano.parse_script(script_json)
+
+    return cardano.get_script_hash(client, script, show_display)

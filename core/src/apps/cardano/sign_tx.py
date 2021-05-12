@@ -20,6 +20,7 @@ from trezor.messages import (
     CardanoTxHostAck,
     CardanoTxInput,
     CardanoTxItemAck,
+    CardanoTxMint,
     CardanoTxOutput,
     CardanoTxWithdrawal,
     CardanoTxWitnessRequest,
@@ -55,6 +56,7 @@ from .certificates import (
 from .helpers import (
     INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE,
     INVALID_STAKEPOOL_REGISTRATION_TX_WITNESSES,
+    INVALID_TOKEN_BUNDLE_MINT,
     INVALID_TOKEN_BUNDLE_OUTPUT,
     INVALID_WITHDRAWAL,
     LOVELACE_MAX_SUPPLY,
@@ -86,9 +88,11 @@ from .layout import (
     confirm_stake_pool_owner,
     confirm_stake_pool_parameters,
     confirm_stake_pool_registration_final,
+    confirm_token_minting,
     confirm_transaction,
     confirm_withdrawal,
     show_warning_path,
+    show_warning_tx_contains_mint,
     show_warning_tx_different_staking_account,
     show_warning_tx_network_unverifiable,
     show_warning_tx_no_staking_info,
@@ -122,6 +126,7 @@ async def sign_tx(
             msg.withdrawals_count > 0,
             msg.has_auxiliary_data,
             msg.validity_interval_start is not None,
+            msg.has_token_minting,
         )
     )
     builder = TxBuilder(tx_body_map_item_count)
@@ -209,6 +214,7 @@ async def _process_transaction(
         msg.network_id,
     )
     builder.add_validity_interval_start(msg.validity_interval_start)
+    await _process_minting(ctx, builder, msg.has_token_minting)
     builder.finish()
 
 
@@ -307,7 +313,7 @@ async def _process_asset_groups(
             CardanoTxItemAck(), CardanoAssetGroup
         )
         asset_group.policy_id = bytes(asset_group.policy_id)
-        _validate_asset_group(asset_group, seen_policy_ids)
+        _validate_asset_group(asset_group, seen_policy_ids, False)
         seen_policy_ids.add(asset_group.policy_id)
         builder.add_asset_group(asset_group.policy_id, asset_group.tokens_count)
 
@@ -335,10 +341,11 @@ async def _process_tokens(
     for _ in range(tokens_count):
         token: CardanoToken = await ctx.call(CardanoTxItemAck(), CardanoToken)
         token.asset_name_bytes = bytes(token.asset_name_bytes)
-        _validate_token(token, seen_asset_name_bytes)
+        _validate_token(token, seen_asset_name_bytes, False)
         seen_asset_name_bytes.add(token.asset_name_bytes)
         if should_show_tokens:
             await confirm_sending_token(ctx, policy_id, token)
+        assert token.amount is not None  # _validate_token
         builder.add_token(token.asset_name_bytes, token.amount)
 
     builder.finish_tokens()
@@ -372,7 +379,12 @@ async def _process_certificates(
                 cborize_initial_pool_registration_certificate_fields(certificate)
             )
             await _process_pool_owners(
-                ctx, keychain, builder, pool_parameters.owners_count, network_id
+                ctx,
+                keychain,
+                builder,
+                pool_parameters.owners_count,
+                protocol_magic,
+                network_id,
             )
             await _process_pool_relays(ctx, builder, pool_parameters.relays_count)
             builder.add_pool_metadata(cborize_pool_metadata(pool_parameters.metadata))
@@ -388,6 +400,7 @@ async def _process_pool_owners(
     keychain: seed.Keychain,
     builder: TxBuilder,
     owners_count: int,
+    protocol_magic: int,
     network_id: int,
 ) -> None:
     owners_as_path_count = 0
@@ -395,7 +408,7 @@ async def _process_pool_owners(
     for _ in range(owners_count):
         owner: CardanoPoolOwner = await ctx.call(CardanoTxItemAck(), CardanoPoolOwner)
         validate_pool_owner(owner)
-        await _show_pool_owner(ctx, keychain, owner, network_id)
+        await _show_pool_owner(ctx, keychain, owner, protocol_magic, network_id)
         builder.add_pool_owner(cborize_pool_owner(keychain, owner))
 
         if owner.staking_key_path:
@@ -488,6 +501,62 @@ async def _process_auxiliary_data(
     )
     builder.add_auxiliary_data_hash(auxiliary_data_hash)
     await ctx.call(auxiliary_data_supplement, CardanoTxHostAck)
+
+
+# TODO somehow unite with token processing? 90% similar
+async def _process_minting(
+    ctx: wire.Context, builder: TxBuilder, has_token_minting: int
+) -> None:
+    """Read, validate and serialize the asset groups of token minting."""
+    if not has_token_minting:
+        return
+
+    token_minting: CardanoTxMint = await ctx.call(CardanoTxItemAck(), CardanoTxMint)
+
+    await show_warning_tx_contains_mint(ctx)
+
+    # until the CIP with canonical CBOR is finalized storing the seen_policy_ids is the only way we can check for
+    # duplicate policy_ids
+    seen_policy_ids: set[bytes] = set()
+    builder.start_minting(token_minting.asset_groups_count)
+    for _ in range(token_minting.asset_groups_count):
+        asset_group: CardanoAssetGroup = await ctx.call(
+            CardanoTxItemAck(), CardanoAssetGroup
+        )
+        asset_group.policy_id = bytes(asset_group.policy_id)
+        _validate_asset_group(asset_group, seen_policy_ids, True)
+        seen_policy_ids.add(asset_group.policy_id)
+        builder.add_asset_group_mint(asset_group.policy_id, asset_group.tokens_count)
+
+        await _process_minting_token(
+            ctx,
+            builder,
+            asset_group.policy_id,
+            asset_group.tokens_count,
+        )
+    builder.finish_asset_groups_mint()
+
+
+async def _process_minting_token(
+    ctx: wire.Context,
+    builder: TxBuilder,
+    policy_id: bytes,
+    tokens_count: int,
+) -> None:
+    """Read, validate, confirm and serialize the tokens of an asset group."""
+    # until the CIP with canonical CBOR is finalized storing the seen_asset_name_bytes is the only way we can check for
+    # duplicate tokens
+    seen_asset_name_bytes: set[bytes] = set()
+    for _ in range(tokens_count):
+        token: CardanoToken = await ctx.call(CardanoTxItemAck(), CardanoToken)
+        token.asset_name_bytes = bytes(token.asset_name_bytes)
+        _validate_token(token, seen_asset_name_bytes, True)
+        seen_asset_name_bytes.add(token.asset_name_bytes)
+        await confirm_token_minting(ctx, policy_id, token)
+        assert token.mint_amount is not None  # _validate_token
+        builder.add_token_mint(token.asset_name_bytes, token.mint_amount)
+
+    builder.finish_tokens_mint()
 
 
 async def _process_witnesses(
@@ -616,21 +685,38 @@ async def _show_output(
 
 
 def _validate_asset_group(
-    asset_group: CardanoAssetGroup, seen_policy_ids: set[bytes]
+    asset_group: CardanoAssetGroup, seen_policy_ids: set[bytes], is_mint: bool
 ) -> None:
+    INVALID_TOKEN_BUNDLE = (
+        INVALID_TOKEN_BUNDLE_MINT if is_mint else INVALID_TOKEN_BUNDLE_OUTPUT
+    )
+
     if len(asset_group.policy_id) != MINTING_POLICY_ID_LENGTH:
-        raise INVALID_TOKEN_BUNDLE_OUTPUT
+        raise INVALID_TOKEN_BUNDLE
     if asset_group.tokens_count == 0:
-        raise INVALID_TOKEN_BUNDLE_OUTPUT
+        raise INVALID_TOKEN_BUNDLE
     if asset_group.policy_id in seen_policy_ids:
-        raise INVALID_TOKEN_BUNDLE_OUTPUT
+        raise INVALID_TOKEN_BUNDLE
 
 
-def _validate_token(token: CardanoToken, seen_asset_name_bytes: set[bytes]) -> None:
+def _validate_token(
+    token: CardanoToken, seen_asset_name_bytes: set[bytes], is_mint: bool
+) -> None:
+    INVALID_TOKEN_BUNDLE = (
+        INVALID_TOKEN_BUNDLE_MINT if is_mint else INVALID_TOKEN_BUNDLE_OUTPUT
+    )
+
+    if is_mint:
+        if token.mint_amount is None or token.amount is not None:
+            raise INVALID_TOKEN_BUNDLE
+    else:
+        if token.amount is None or token.mint_amount is not None:
+            raise INVALID_TOKEN_BUNDLE
+
     if len(token.asset_name_bytes) > MAX_ASSET_NAME_LENGTH:
-        raise INVALID_TOKEN_BUNDLE_OUTPUT
+        raise INVALID_TOKEN_BUNDLE
     if token.asset_name_bytes in seen_asset_name_bytes:
-        raise INVALID_TOKEN_BUNDLE_OUTPUT
+        raise INVALID_TOKEN_BUNDLE
 
 
 async def _show_certificate(
@@ -700,7 +786,11 @@ async def _show_stake_pool_registration_certificate(
 
 
 async def _show_pool_owner(
-    ctx: wire.Context, keychain: seed.Keychain, owner: CardanoPoolOwner, network_id: int
+    ctx: wire.Context,
+    keychain: seed.Keychain,
+    owner: CardanoPoolOwner,
+    protocol_magic: int,
+    network_id: int,
 ) -> None:
     if owner.staking_key_path:
         await _fail_or_warn_if_invalid_path(
@@ -710,7 +800,7 @@ async def _show_pool_owner(
             POOL_OWNER_STAKING_PATH_NAME,
         )
 
-    await confirm_stake_pool_owner(ctx, keychain, owner, network_id)
+    await confirm_stake_pool_owner(ctx, keychain, owner, protocol_magic, network_id)
 
 
 def _validate_witness(

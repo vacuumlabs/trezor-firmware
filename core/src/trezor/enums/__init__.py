@@ -163,6 +163,9 @@ if TYPE_CHECKING:
         CardanoTxAuxiliaryData = 327
         CardanoPoolOwner = 328
         CardanoPoolRelayParameters = 329
+        CardanoGetScriptHash = 330
+        CardanoScriptHash = 331
+        CardanoTxMint = 332
         RippleGetAddress = 400
         RippleAddress = 401
         RippleSignTx = 402
@@ -335,6 +338,14 @@ if TYPE_CHECKING:
         BYRON = 8
         REWARD = 14
         REWARD_SCRIPT = 15
+
+    class CardanoScriptType(IntEnum):
+        PUB_KEY = 0
+        ALL = 1
+        ANY = 2
+        N_OF_K = 3
+        INVALID_BEFORE = 4
+        INVALID_HEREAFTER = 5
 
     class CardanoCertificateType(IntEnum):
         STAKE_REGISTRATION = 0

@@ -9,6 +9,7 @@ HRP_REWARD_ADDRESS = "stake"
 HRP_TESTNET_REWARD_ADDRESS = "stake_test"
 # Jormungandr public key prefix - https://github.com/input-output-hk/voting-tools-lib/blob/18dae637e80db72444476606ab264b973bcf1a9d/src/Cardano/API/Extended.hs#L226
 HRP_JORMUN_PUBLIC_KEY = "ed25519_pk"
+HRP_SCRIPT_HASH = "script"
 
 
 def encode(hrp: str, data: bytes) -> str:

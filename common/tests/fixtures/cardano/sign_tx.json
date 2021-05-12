@@ -27,6 +27,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -69,6 +70,7 @@
             "amount": "1000000"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -112,6 +114,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -164,6 +167,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -225,6 +229,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -269,6 +274,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -313,6 +319,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -356,6 +363,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -401,6 +409,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -443,6 +452,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -485,6 +495,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -522,6 +533,7 @@
           }
         ],
         "outputs": [],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -569,6 +581,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -617,6 +630,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -670,6 +684,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -719,6 +734,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -764,6 +780,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -812,6 +829,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -863,6 +881,7 @@
             "amount": "1000000"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -918,6 +937,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -986,6 +1006,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -1024,6 +1045,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -1071,6 +1093,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -1120,6 +1143,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -1164,6 +1188,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -1173,6 +1198,98 @@
             "type": 1,
             "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
             "signature": "a1f28828038757949ac319ca24bcd41d6af41ced07db20d5b6ed7392e4b6aa663ee92e873fa571a257ddeef945bee76694107da50edbd4f6c12b8654e0a22b02",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "Mary era transaction with token minting",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "validity_interval_start": 47,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+              "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+              "amount": "1234",
+              "token_bundle": [
+                {
+                  "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                  "tokens": [
+                    {
+                      "asset_name_bytes": "74652474436f696e",
+                      "amount": "100"
+                    }
+                  ]
+                },
+                {
+                  "policy_id": "a5a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                  "tokens": [
+                    {
+                      "asset_name_bytes": "74652474436f696e",
+                      "amount": "100"
+                    }
+                  ]
+                }
+              ]
+          },
+          {
+            "addressType": 0,
+            "path": "m/1852'/1815'/0'/0/0",
+            "stakingPath": "m/1852'/1815'/0'/2/0",
+            "amount": "7120787"
+          }
+        ],
+        "mint": [
+          {
+            "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+            "tokens": [
+              {
+                "asset_name_bytes": "74652474436f696e",
+                "mint_amount": "100"
+              },
+              {
+                "asset_name_bytes": "75652474436f696e",
+                "mint_amount": "-100"
+              }
+            ]
+          },
+          {
+            "policy_id": "a5a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+            "tokens": [
+              {
+                "asset_name_bytes": "74652474436f696e",
+                "mint_amount": "100"
+              },
+              {
+                "asset_name_bytes": "75652474436f696e",
+                "mint_amount": "-100"
+              }
+            ]
+          }
+        ],
+        "signing_mode": "ORDINARY_TRANSACTION"
+      },
+      "result": {
+        "tx_hash": "bda2759db8bd38b3561c1acbd5df4288ae6873a5b90f6c22192930b6c0a48995",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "9459c5ea6273afb8708ef2d7bf8ad3be5393e6bbfb3de520bd3447b7d3ebdfc6694fe0cc16c4671e105a0c1c91b8ccf98c1fd7db9d3713679ef2b5a73cafc700",
             "chain_code": null
           }
         ]

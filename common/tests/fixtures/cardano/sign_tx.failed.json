@@ -27,6 +27,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -56,6 +57,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -85,6 +87,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -114,6 +117,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -143,6 +147,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -172,6 +177,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -206,6 +212,7 @@
             "amount": "1000000"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -235,6 +242,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -264,6 +272,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -293,6 +302,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -322,6 +332,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -351,6 +362,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -380,6 +392,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -409,6 +422,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -441,6 +455,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -475,6 +490,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -510,6 +526,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -544,6 +561,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -578,6 +596,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -616,6 +635,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -647,6 +667,7 @@
             "amount": "3003112"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -686,6 +707,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -727,6 +749,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -762,6 +785,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -797,6 +821,7 @@
             "amount": "7120787"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -831,6 +856,7 @@
             "amount": "1"
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -875,6 +901,7 @@
             ]
           }
         ],
+        "mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
@@ -924,6 +951,7 @@
             ]
           }
         ],
+"mint": [],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
