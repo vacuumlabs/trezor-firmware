@@ -29,13 +29,14 @@ async def get_address(
 ) -> CardanoAddress:
     address_parameters = msg.address_parameters
 
-    await paths.validate_path(
-        ctx,
-        keychain,
-        address_parameters.address_n,
-        # path must match the ADDRESS schema
-        SCHEMA_ADDRESS.match(address_parameters.address_n),
-    )
+    if address_parameters.address_n:
+        await paths.validate_path(
+            ctx,
+            keychain,
+            address_parameters.address_n,
+            # path must match the ADDRESS schema
+            SCHEMA_ADDRESS.match(address_parameters.address_n),
+        )
 
     validate_network_info(msg.network_id, msg.protocol_magic)
     validate_address_parameters(address_parameters)

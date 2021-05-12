@@ -12,6 +12,7 @@ from .helpers import (
 )
 from .helpers.paths import SCHEMA_STAKING_ANY_ACCOUNT
 from .helpers.utils import derive_public_key, variable_length_encode
+from .script import get_script_hash, validate_script
 from .seed import is_byron_path, is_shelley_path
 
 if False:
@@ -41,36 +42,77 @@ MIN_ADDRESS_BYTES_LENGTH = 29
 MAX_ADDRESS_BYTES_LENGTH = 65
 
 
+# TODO GK unit tests
+# TODO GK refactor
 def validate_address_parameters(parameters: CardanoAddressParametersType) -> None:
     _validate_address_parameters_structure(parameters)
 
     if parameters.address_type == CardanoAddressType.BYRON:
         if not is_byron_path(parameters.address_n):
             raise INVALID_ADDRESS_PARAMETERS
-    elif parameters.address_type in ADDRESS_TYPES_SHELLEY:
-        if not is_shelley_path(parameters.address_n):
-            raise INVALID_ADDRESS_PARAMETERS
 
+    elif parameters.address_type in ADDRESS_TYPES_SHELLEY:
         if parameters.address_type == CardanoAddressType.BASE:
+            if not is_shelley_path(parameters.address_n):
+                raise INVALID_ADDRESS_PARAMETERS
             _validate_base_address_staking_info(
                 parameters.address_n_staking, parameters.staking_key_hash
             )
+
+        elif parameters.address_n == CardanoAddressType.BASE_SCRIPT_KEY:
+            _validate_base_address_staking_info(
+                parameters.address_n_staking, parameters.staking_key_hash
+            )
+            validate_script(parameters.script_payment)
+
+        elif parameters.address_n == CardanoAddressType.BASE_KEY_SCRIPT:
+            validate_script(parameters.script_staking)
+
+        elif parameters.address_n == CardanoAddressType.BASE_SCRIPT_SCRIPT:
+            validate_script(parameters.script_payment)
+            validate_script(parameters.script_staking)
+
         elif parameters.address_type == CardanoAddressType.POINTER:
+            if not is_shelley_path(parameters.address_n):
+                raise INVALID_ADDRESS_PARAMETERS
             if parameters.certificate_pointer is None:
                 raise INVALID_ADDRESS_PARAMETERS
+
+        elif parameters.address_n == CardanoAddressType.POINTER_SCRIPT:
+            if parameters.certificate_pointer is None:
+                raise INVALID_ADDRESS_PARAMETERS
+            validate_script(parameters.script_payment)
+
+        elif parameters.address_type == CardanoAddressType.ENTERPRISE:
+            if not is_shelley_path(parameters.address_n):
+                raise INVALID_ADDRESS_PARAMETERS
+
+        elif parameters.address_type == CardanoAddressType.ENTERPRISE_SCRIPT:
+            validate_script(parameters.script_payment)
+
         elif parameters.address_type == CardanoAddressType.REWARD:
+            if not is_shelley_path(parameters.address_n):
+                raise INVALID_ADDRESS_PARAMETERS
             if not SCHEMA_STAKING_ANY_ACCOUNT.match(parameters.address_n):
                 raise INVALID_ADDRESS_PARAMETERS
+
+        elif parameters.address_type == CardanoAddressType.REWARD_SCRIPT:
+            # TODO GK staking or payment script?
+            validate_script(parameters.script_staking)
     else:
         raise INVALID_ADDRESS_PARAMETERS
 
 
+# TODO GK can perhaps be rewritten in the form of a dict
 def _validate_address_parameters_structure(
     parameters: CardanoAddressParametersType,
 ) -> None:
+    address_n = parameters.address_n
     address_n_staking = parameters.address_n_staking
     staking_key_hash = parameters.staking_key_hash
     certificate_pointer = parameters.certificate_pointer
+    script_payment = parameters.script_payment
+    script_staking = parameters.script_staking
 
     fields_to_be_empty: List[
         List[int] | Optional[bytes] | Optional[CardanoBlockchainPointerType]
@@ -81,11 +123,56 @@ def _validate_address_parameters_structure(
         CardanoAddressType.REWARD,
         CardanoAddressType.ENTERPRISE,
     ):
-        fields_to_be_empty = [address_n_staking, staking_key_hash, certificate_pointer]
+        fields_to_be_empty = [
+            address_n_staking,
+            staking_key_hash,
+            certificate_pointer,
+            script_payment,
+            script_staking,
+        ]
+
+    elif parameters.address_type in (
+        CardanoAddressType.REWARD_SCRIPT,
+        CardanoAddressType.ENTERPRISE_SCRIPT,
+    ):
+        fields_to_be_empty = [
+            address_n,
+            address_n_staking,
+            staking_key_hash,
+            certificate_pointer,
+            script_staking,
+        ]
+
     elif parameters.address_type == CardanoAddressType.BASE:
-        fields_to_be_empty = [certificate_pointer]
+        fields_to_be_empty = [certificate_pointer, script_payment, script_staking]
+
+    elif parameters.address_type == CardanoAddressType.BASE_KEY_SCRIPT:
+        fields_to_be_empty = [address_n_staking, certificate_pointer, script_payment]
+
+    elif parameters.address_type == CardanoAddressType.BASE_SCRIPT_KEY:
+        fields_to_be_empty = [address_n, certificate_pointer, script_staking]
+
+    elif parameters.address_type == CardanoAddressType.BASE_SCRIPT_SCRIPT:
+        fields_to_be_empty = [address_n, address_n_staking, certificate_pointer]
+
     elif parameters.address_type == CardanoAddressType.POINTER:
-        fields_to_be_empty = [address_n_staking, staking_key_hash]
+        fields_to_be_empty = [
+            address_n_staking,
+            staking_key_hash,
+            script_payment,
+            script_staking,
+        ]
+
+    elif parameters.address_type == CardanoAddressType.POINTER_SCRIPT:
+        fields_to_be_empty = [
+            address_n,
+            address_n_staking,
+            staking_key_hash,
+            script_staking,
+        ]
+
+    else:
+        fields_to_be_empty = ()
 
     if any(fields_to_be_empty):
         raise INVALID_ADDRESS_PARAMETERS
@@ -196,7 +283,10 @@ def _get_bech32_hrp_for_address(
         # Byron address uses base58 encoding
         raise ValueError
 
-    if address_type == CardanoAddressType.REWARD:
+    if (
+        address_type == CardanoAddressType.REWARD
+        or address_type == CardanoAddressType.REWARD_SCRIPT
+    ):
         if network_ids.is_mainnet(network_id):
             return bech32.HRP_REWARD_ADDRESS
         else:
@@ -228,6 +318,23 @@ def derive_human_readable_address(
     protocol_magic: int,
     network_id: int,
 ) -> str:
+    from ubinascii import hexlify
+
+    # hash = get_script_hash(parameters.script_payment)
+    # print(hexlify(hash))
+    # print(
+    #     encode_human_readable_address(
+    #         _derive_enterprise_address(keychain, parameters.address_n, network_id)
+    #     )
+    # )
+    # print(
+    #     hexlify(
+    #         bech32.decode_unsafe(
+    #             "addr1wyf7438h7etkh6uynvzlr052k54uj5zhkj9l32kpkzdkvwgypg4xe"
+    #         )[1:]
+    #     )
+    # )
+
     address_bytes = derive_address_bytes(
         keychain, parameters, protocol_magic, network_id
     )
@@ -289,6 +396,10 @@ def _derive_shelley_address(
         )
     elif parameters.address_type == CardanoAddressType.ENTERPRISE:
         address = _derive_enterprise_address(keychain, parameters.address_n, network_id)
+    elif parameters.address_type == CardanoAddressType.ENTERPRISE_SCRIPT:
+        address = _derive_script_enterprise_address(
+            parameters.script_payment, network_id
+        )
     elif parameters.address_type == CardanoAddressType.REWARD:
         address = _derive_reward_address(keychain, parameters.address_n, network_id)
     else:
@@ -350,6 +461,16 @@ def _derive_enterprise_address(
     spending_key_hash = get_public_key_hash(keychain, path)
 
     return header + spending_key_hash
+
+
+def _derive_script_enterprise_address(
+    script,
+    network_id: int,
+):
+    header = _create_address_header(CardanoAddressType.ENTERPRISE_SCRIPT, network_id)
+    script_hash = get_script_hash(script)
+
+    return header + script_hash
 
 
 def _derive_reward_address(

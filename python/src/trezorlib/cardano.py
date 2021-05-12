@@ -55,6 +55,7 @@ ADDRESS_TYPES = (
     messages.CardanoAddressType.POINTER,
     messages.CardanoAddressType.ENTERPRISE,
     messages.CardanoAddressType.REWARD,
+    messages.CardanoAddressType.ENTERPRISE_SCRIPT,
 )
 
 
@@ -66,6 +67,9 @@ def create_address_parameters(
     block_index: int = None,
     tx_index: int = None,
     certificate_index: int = None,
+    # TODO GK types
+    script_payment = None,
+    script_staking = None,
 ) -> messages.CardanoAddressParametersType:
     certificate_pointer = None
 
@@ -83,6 +87,8 @@ def create_address_parameters(
         address_n_staking=address_n_staking,
         staking_key_hash=staking_key_hash,
         certificate_pointer=certificate_pointer,
+        script_payment=script_payment,
+        script_staking=script_staking,
     )
 
 
@@ -190,6 +196,28 @@ def _parse_address_parameters(
         address_parameters.get("certificateIndex"),
     )
 
+
+def parse_script(script):
+    if "type" not in script:
+        raise ValueError("Script is missing some fields")
+
+    type = script["type"]
+    scripts = [parse_script(sub_script) for sub_script in script.get("scripts", ())]
+
+    key_hash = bytes.fromhex(script.get("key_hash")) if "key_hash" in script else None
+    required = script.get("required")
+    invalid_before = script.get("invalid_before")
+    invalid_hereafter = script.get("invalid_hereafter")
+
+    return messages.CardanoScriptT(
+        type=type,
+        scripts = scripts,
+
+        key_hash=key_hash,
+        required=required,
+        invalid_before=invalid_before,
+        invalid_hereafter=invalid_hereafter
+    )
 
 def parse_certificate(certificate) -> messages.CardanoTxCertificateType:
     CERTIFICATE_MISSING_FIELDS_ERROR = ValueError(
