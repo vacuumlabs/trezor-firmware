@@ -114,67 +114,74 @@ def _validate_address_parameters_structure(
     script_payment = parameters.script_payment
     script_staking = parameters.script_staking
 
-    fields_to_be_empty: List[
-        List[int] | Optional[bytes] | Optional[CardanoBlockchainPointerType]
-    ] = []
-
-    if parameters.address_type in (
-        CardanoAddressType.BYRON,
-        CardanoAddressType.REWARD,
-        CardanoAddressType.ENTERPRISE,
-    ):
-        fields_to_be_empty = [
+    fields_to_be_empty = {
+        CardanoAddressType.BASE: [certificate_pointer, script_payment, script_staking],
+        CardanoAddressType.BASE_KEY_SCRIPT: [
+            address_n_staking,
+            certificate_pointer,
+            script_payment,
+        ],
+        CardanoAddressType.BASE_SCRIPT_KEY: [
+            address_n,
+            certificate_pointer,
+            script_staking,
+        ],
+        CardanoAddressType.BASE_SCRIPT_SCRIPT: [
+            address_n,
+            address_n_staking,
+            certificate_pointer,
+        ],
+        CardanoAddressType.POINTER: [
+            address_n_staking,
+            staking_key_hash,
+            script_payment,
+            script_staking,
+        ],
+        CardanoAddressType.POINTER_SCRIPT: [
+            address_n,
+            address_n_staking,
+            staking_key_hash,
+            script_staking,
+        ],
+        CardanoAddressType.ENTERPRISE: [
             address_n_staking,
             staking_key_hash,
             certificate_pointer,
             script_payment,
             script_staking,
-        ]
-
-    elif parameters.address_type in (
-        CardanoAddressType.REWARD_SCRIPT,
-        CardanoAddressType.ENTERPRISE_SCRIPT,
-    ):
-        fields_to_be_empty = [
+        ],
+        CardanoAddressType.ENTERPRISE_SCRIPT: [
             address_n,
             address_n_staking,
             staking_key_hash,
             certificate_pointer,
             script_staking,
-        ]
-
-    elif parameters.address_type == CardanoAddressType.BASE:
-        fields_to_be_empty = [certificate_pointer, script_payment, script_staking]
-
-    elif parameters.address_type == CardanoAddressType.BASE_KEY_SCRIPT:
-        fields_to_be_empty = [address_n_staking, certificate_pointer, script_payment]
-
-    elif parameters.address_type == CardanoAddressType.BASE_SCRIPT_KEY:
-        fields_to_be_empty = [address_n, certificate_pointer, script_staking]
-
-    elif parameters.address_type == CardanoAddressType.BASE_SCRIPT_SCRIPT:
-        fields_to_be_empty = [address_n, address_n_staking, certificate_pointer]
-
-    elif parameters.address_type == CardanoAddressType.POINTER:
-        fields_to_be_empty = [
+        ],
+        CardanoAddressType.BYRON: [
             address_n_staking,
             staking_key_hash,
+            certificate_pointer,
             script_payment,
             script_staking,
-        ]
-
-    elif parameters.address_type == CardanoAddressType.POINTER_SCRIPT:
-        fields_to_be_empty = [
+        ],
+        CardanoAddressType.REWARD: [
+            address_n_staking,
+            staking_key_hash,
+            certificate_pointer,
+            script_payment,
+            script_staking,
+        ],
+        CardanoAddressType.REWARD_SCRIPT: [
             address_n,
             address_n_staking,
             staking_key_hash,
+            certificate_pointer,
+            # TODO GK which script? rename scripts to script and script_staking?
             script_staking,
-        ]
+        ],
+    }
 
-    else:
-        fields_to_be_empty = ()
-
-    if any(fields_to_be_empty):
+    if any(fields_to_be_empty[parameters.address_type]):
         raise INVALID_ADDRESS_PARAMETERS
 
 

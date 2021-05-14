@@ -176,6 +176,10 @@ trezor.messages.CardanoPoolRelayType
 import trezor.messages.CardanoPoolRelayType
 trezor.messages.CardanoPublicKey
 import trezor.messages.CardanoPublicKey
+trezor.messages.CardanoScriptT
+import trezor.messages.CardanoScriptT
+trezor.messages.CardanoScriptType
+import trezor.messages.CardanoScriptType
 trezor.messages.CardanoSignTx
 import trezor.messages.CardanoSignTx
 trezor.messages.CardanoSignedTx
@@ -900,6 +904,8 @@ apps.cardano.helpers.utils
 import apps.cardano.helpers.utils
 apps.cardano.layout
 import apps.cardano.layout
+apps.cardano.script
+import apps.cardano.script
 apps.cardano.seed
 import apps.cardano.seed
 apps.cardano.sign_tx
