@@ -18,7 +18,7 @@ class CardanoScriptT(p.MessageType):
         self,
         *,
         type: EnumTypeCardanoScriptType,
-        scripts: Optional[List[any]] = None,
+        scripts: Optional[List['CardanoScriptT']] = None,
         key_hash: Optional[bytes] = None,
         required: Optional[int] = None,
         invalid_before: Optional[int] = None,

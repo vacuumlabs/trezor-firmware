@@ -184,6 +184,10 @@ def import_statement_from_path(path):
         return "import {}".format(import_name)
 
 
+def is_recursive_field(field_name, message_name):
+    return field_name == message_name
+
+
 class Descriptor:
     def __init__(self, data, message_type="MessageType", import_path="protobuf"):
         self.descriptor = descriptor_pb2.FileDescriptorSet()
@@ -255,11 +259,12 @@ class Descriptor:
     def create_message_import(self, name):
         return "from .{0} import {0}".format(name)
 
-    def process_subtype_imports(self, fields):
+    def process_subtype_imports(self, message_name, fields):
         imports = set(
             field.proto_type
             for field in fields
             if field.orig.type == field.orig.TYPE_MESSAGE
+            and not is_recursive_field(field.proto_type, message_name)
         )
 
         if len(imports) > 0:
@@ -267,7 +272,7 @@ class Descriptor:
         for name in sorted(imports):
             yield self.create_message_import(name)
 
-    def create_init_method(self, fields):
+    def create_init_method(self, message_name, fields):
         required_fields = [f for f in fields if f.required]
         repeated_fields = [f for f in fields if f.repeated]
         optional_fields = [f for f in fields if f.optional]
@@ -279,7 +284,10 @@ class Descriptor:
         for field in required_fields:
             yield f"        {field.name}: {field.py_type},"
         for field in repeated_fields:
-            yield f"        {field.name}: Optional[List[{field.py_type}]] = None,"
+            if is_recursive_field(field.proto_type, message_name):
+                yield f"        {field.name}: Optional[List['{field.py_type}']] = None,"
+            else:
+                yield f"        {field.name}: Optional[List[{field.py_type}]] = None,"
         for field in optional_fields:
             if field.default_value is None:
                 yield f"        {field.name}: Optional[{field.py_type}] = None,"
@@ -354,7 +362,7 @@ class Descriptor:
         if not include_deprecated:
             fields = [field for field in fields if not field.orig.options.deprecated]
 
-        yield from self.process_subtype_imports(fields)
+        yield from self.process_subtype_imports(message.name, fields)
 
         yield ""
         yield "if __debug__:"
@@ -383,7 +391,7 @@ class Descriptor:
 
         if fields:
             yield ""
-            yield from self.create_init_method(fields)
+            yield from self.create_init_method(message.name, fields)
             yield ""
             yield from self.create_fields_method(fields)
 
