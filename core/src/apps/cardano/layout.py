@@ -6,6 +6,7 @@ from trezor.messages import (
     ButtonRequestType,
     CardanoAddressType,
     CardanoCertificateType,
+    CardanoScriptType,
 )
 from trezor.strings import format_amount
 from trezor.ui.components.tt.button import ButtonDefault
@@ -43,14 +44,31 @@ if False:
     from trezor.messages.CardanoPoolMetadataType import CardanoPoolMetadataType
     from trezor.messages.CardanoAssetGroupType import CardanoAssetGroupType
     from trezor.messages.CardanoAddressParametersType import EnumTypeCardanoAddressType
+    from trezor.messages.CardanoScriptT import CardanoScriptT
 
 
+# TODO GK update names
 ADDRESS_TYPE_NAMES = {
     CardanoAddressType.BYRON: "Legacy",
     CardanoAddressType.BASE: "Base",
+    CardanoAddressType.BASE_SCRIPT_KEY: "Base sk",
+    CardanoAddressType.BASE_KEY_SCRIPT: "Base ks",
+    CardanoAddressType.BASE_SCRIPT_SCRIPT: "Base ss",
     CardanoAddressType.POINTER: "Pointer",
+    CardanoAddressType.POINTER_SCRIPT: "Pointer script",
     CardanoAddressType.ENTERPRISE: "Enterprise",
+    CardanoAddressType.ENTERPRISE_SCRIPT: "Enterprise script",
     CardanoAddressType.REWARD: "Reward",
+    CardanoAddressType.REWARD_SCRIPT: "Reward script",
+}
+
+SCRIPT_TYPE_NAMES = {
+    CardanoScriptType.PUB_KEY: "Key",
+    CardanoScriptType.ALL: "All",
+    CardanoScriptType.ANY: "Any",
+    CardanoScriptType.N_OF_K: "N of K",
+    CardanoScriptType.INVALID_BEFORE: "Invalid before",
+    CardanoScriptType.INVALID_HEREAFTER: "Invalid hereafter",
 }
 
 CERTIFICATE_TYPE_NAMES = {
@@ -70,6 +88,50 @@ def format_coin_amount(amount: int) -> str:
 
 def is_printable_ascii_bytestring(bytestr: bytes) -> bool:
     return all((32 < b < 127) for b in bytestr)
+
+
+async def confirm_script(
+    ctx: wire.Context,
+    title: str,
+    script: CardanoScriptT,
+    indices: List[int] = [],
+):
+    page1 = Text("Confirm %s script" % title, ui.ICON_SEND, ui.GREEN)
+    page1.bold(
+        "Script %s: %s"
+        % (".".join([str(i) for i in indices]), SCRIPT_TYPE_NAMES[script.type].lower())
+    )
+
+    if script.type in (
+        CardanoScriptType.ALL,
+        CardanoScriptType.ANY,
+        CardanoScriptType.N_OF_K,
+    ):
+        assert script.scripts  # validate_script
+        page1.normal("Confirm %i scripts" % len(script.scripts))
+
+    if script.type == CardanoScriptType.PUB_KEY:
+        assert script.key_hash is not None or script.key_path  # validate_script
+        if script.key_hash:
+            page1.normal("Key:")
+            page1.bold(hexlify(script.key_hash).decode())
+        elif script.key_path:
+            page1.normal("Key path:")
+            page1.bold(address_n_to_str(script.key_path))
+    elif script.type == CardanoScriptType.N_OF_K:
+        assert script.required is not None  # validate_script
+        page1.normal("Required signatures: %s" % script.required)
+    elif script.type == CardanoScriptType.INVALID_BEFORE:
+        assert script.invalid_before is not None  # validate_script
+        page1.normal("Invalid before: %s" % script.invalid_before)
+    elif script.type == CardanoScriptType.INVALID_HEREAFTER:
+        assert script.invalid_hereafter is not None  # validate_script
+        page1.normal("Invalid hereafter: %s" % script.invalid_hereafter)
+
+    await require_confirm(ctx, page1)
+
+    for i, sub_script in enumerate(script.scripts):
+        await confirm_script(ctx, title, sub_script, indices + [(i + 1)])
 
 
 async def confirm_sending(
@@ -304,6 +366,7 @@ async def confirm_stake_pool_owners(
         page = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
         page.normal("Pool owner #%d:" % (index))
 
+        # TODO GK probably needs to be adjusted for scripts
         if owner.staking_key_path:
             page.bold(address_n_to_str(owner.staking_key_path))
             page.normal(
@@ -311,6 +374,7 @@ async def confirm_stake_pool_owners(
                     pack_reward_address_bytes(
                         get_public_key_hash(keychain, owner.staking_key_path),
                         network_id,
+                        False,
                     )
                 )
             )
@@ -318,7 +382,7 @@ async def confirm_stake_pool_owners(
             assert owner.staking_key_hash is not None  # validate_pool_owners
             page.bold(
                 encode_human_readable_address(
-                    pack_reward_address_bytes(owner.staking_key_hash, network_id)
+                    pack_reward_address_bytes(owner.staking_key_hash, network_id, False)
                 )
             )
 
@@ -443,6 +507,8 @@ async def show_address(
     address: str,
     address_type: EnumTypeCardanoAddressType,
     path: list[int],
+    script_payment: CardanoScriptT | None,
+    script_staking: CardanoScriptT | None,
     network: str | None = None,
 ) -> bool:
     """
@@ -476,6 +542,11 @@ async def show_address(
         lines_per_page=lines_per_page,
         lines_used_on_first_page=lines_used_on_first_page,
     )
+
+    if script_payment:
+        await confirm_script(ctx, "payment", script_payment)
+    if script_staking:
+        await confirm_script(ctx, "staking", script_staking)
 
     return await confirm(
         ctx,

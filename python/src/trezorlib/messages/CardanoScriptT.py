@@ -19,12 +19,14 @@ class CardanoScriptT(p.MessageType):
         *,
         type: EnumTypeCardanoScriptType,
         scripts: Optional[List['CardanoScriptT']] = None,
+        key_path: Optional[List[int]] = None,
         key_hash: Optional[bytes] = None,
         required: Optional[int] = None,
         invalid_before: Optional[int] = None,
         invalid_hereafter: Optional[int] = None,
     ) -> None:
         self.scripts = scripts if scripts is not None else []
+        self.key_path = key_path if key_path is not None else []
         self.type = type
         self.key_hash = key_hash
         self.required = required
@@ -37,7 +39,8 @@ class CardanoScriptT(p.MessageType):
             1: ('type', p.EnumType("CardanoScriptType", (0, 1, 2, 3, 4, 5,)), p.FLAG_REQUIRED),
             2: ('scripts', CardanoScriptT, p.FLAG_REPEATED),
             3: ('key_hash', p.BytesType, None),
-            4: ('required', p.UVarintType, None),
-            5: ('invalid_before', p.UVarintType, None),
-            6: ('invalid_hereafter', p.UVarintType, None),
+            4: ('key_path', p.UVarintType, p.FLAG_REPEATED),
+            5: ('required', p.UVarintType, None),
+            6: ('invalid_before', p.UVarintType, None),
+            7: ('invalid_hereafter', p.UVarintType, None),
         }

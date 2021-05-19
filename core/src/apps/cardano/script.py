@@ -4,6 +4,10 @@ from trezor.messages import CardanoAddressType, CardanoScriptT, CardanoScriptTyp
 from apps.cardano.helpers import ADDRESS_KEY_HASH_SIZE, INVALID_SCRIPT
 from apps.common import cbor
 
+from .helpers.paths import SCHEMA_ADDRESS, SCHEMA_STAKING_ANY_ACCOUNT
+from .helpers.utils import derive_public_key
+from .seed import Keychain, is_multisig_path
+
 SCRIPT_ADDRESS_TYPES = (
     CardanoAddressType.BASE_SCRIPT_KEY,
     CardanoAddressType.BASE_KEY_SCRIPT,
@@ -19,8 +23,19 @@ def validate_script(script: CardanoScriptT | None) -> None:
         raise INVALID_SCRIPT
 
     if script.type == CardanoScriptType.PUB_KEY:
-        # TODO GK or path
-        if len(script.key_hash) != ADDRESS_KEY_HASH_SIZE:
+        if script.key_hash and script.key_path:
+            raise INVALID_SCRIPT
+        if script.key_hash:
+            if len(script.key_hash) != ADDRESS_KEY_HASH_SIZE:
+                raise INVALID_SCRIPT
+        elif script.key_path:
+            if not SCHEMA_ADDRESS.match(
+                script.key_path
+            ) and not SCHEMA_STAKING_ANY_ACCOUNT.match(script.key_path):
+                raise INVALID_SCRIPT
+            if not is_multisig_path(script.key_path):
+                raise INVALID_SCRIPT
+        else:
             raise INVALID_SCRIPT
     elif script.type == CardanoScriptType.ALL:
         if not script.scripts:
@@ -47,27 +62,34 @@ def validate_script(script: CardanoScriptT | None) -> None:
             raise INVALID_SCRIPT
 
 
-def get_script_hash(script: CardanoScriptT) -> bytes:
-    script_cbor = cbor.encode(cborize_script(script))
+def get_script_hash(keychain: Keychain, script: CardanoScriptT) -> bytes:
+    script_cbor = cbor.encode(cborize_script(keychain, script))
     prefixed_script_cbor = b"\00" + script_cbor
     return hashlib.blake2b(data=prefixed_script_cbor, outlen=28).digest()
 
 
 # TODO GK return type
-def cborize_script(script: CardanoScriptT):
+def cborize_script(keychain: Keychain, script: CardanoScriptT):
     script_content = []
     if script.type == CardanoScriptType.PUB_KEY:
         # TODO GK or path
-        script_content = [script.key_hash]
+        if script.key_hash:
+            script_content = [script.key_hash]
+        elif script.key_path:
+            script_content = [derive_public_key(keychain, script.key_path)]
     elif script.type == CardanoScriptType.ALL:
-        script_content = [[cborize_script(sub_script) for sub_script in script.scripts]]
+        script_content = [
+            [cborize_script(keychain, sub_script) for sub_script in script.scripts]
+        ]
     elif script.type == CardanoScriptType.ANY:
-        script_content = [[cborize_script(sub_script) for sub_script in script.scripts]]
+        script_content = [
+            [cborize_script(keychain, sub_script) for sub_script in script.scripts]
+        ]
     elif script.type == CardanoScriptType.N_OF_K:
         # TODO GK rename script.required
         script_content = [
             script.required,
-            [cborize_script(sub_script) for sub_script in script.scripts],
+            [cborize_script(keychain, sub_script) for sub_script in script.scripts],
         ]
     elif script.type == CardanoScriptType.INVALID_BEFORE:
         script_content = [script.invalid_before]
@@ -75,8 +97,3 @@ def cborize_script(script: CardanoScriptT):
         script_content = [script.invalid_hereafter]
 
     return [script.type] + script_content
-
-
-# TODO GK
-def show_script(script: CardanoScriptT) -> None:
-    pass

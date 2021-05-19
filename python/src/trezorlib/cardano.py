@@ -52,10 +52,15 @@ INVALID_OUTPUT_TOKEN_BUNDLE_ENTRY = "The output's token_bundle entry is invalid"
 ADDRESS_TYPES = (
     messages.CardanoAddressType.BYRON,
     messages.CardanoAddressType.BASE,
+    messages.CardanoAddressType.BASE_SCRIPT_KEY,
+    messages.CardanoAddressType.BASE_KEY_SCRIPT,
+    messages.CardanoAddressType.BASE_SCRIPT_SCRIPT,
     messages.CardanoAddressType.POINTER,
+    messages.CardanoAddressType.POINTER_SCRIPT,
     messages.CardanoAddressType.ENTERPRISE,
-    messages.CardanoAddressType.REWARD,
     messages.CardanoAddressType.ENTERPRISE_SCRIPT,
+    messages.CardanoAddressType.REWARD,
+    messages.CardanoAddressType.REWARD_SCRIPT,
 )
 
 
@@ -67,9 +72,8 @@ def create_address_parameters(
     block_index: int = None,
     tx_index: int = None,
     certificate_index: int = None,
-    # TODO GK types
-    script_payment = None,
-    script_staking = None,
+    script_payment: messages.CardanoScriptT = None,
+    script_staking: messages.CardanoScriptT = None,
 ) -> messages.CardanoAddressParametersType:
     certificate_pointer = None
 
@@ -205,19 +209,21 @@ def parse_script(script):
     scripts = [parse_script(sub_script) for sub_script in script.get("scripts", ())]
 
     key_hash = bytes.fromhex(script.get("key_hash")) if "key_hash" in script else None
+    key_path = tools.parse_path(script.get("key_path"))
     required = script.get("required")
     invalid_before = script.get("invalid_before")
     invalid_hereafter = script.get("invalid_hereafter")
 
     return messages.CardanoScriptT(
         type=type,
-        scripts = scripts,
-
+        scripts=scripts,
         key_hash=key_hash,
+        key_path=key_path,
         required=required,
         invalid_before=invalid_before,
-        invalid_hereafter=invalid_hereafter
+        invalid_hereafter=invalid_hereafter,
     )
+
 
 def parse_certificate(certificate) -> messages.CardanoTxCertificateType:
     CERTIFICATE_MISSING_FIELDS_ERROR = ValueError(

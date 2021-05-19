@@ -16,7 +16,6 @@ from .script import get_script_hash, validate_script
 from .seed import is_byron_path, is_shelley_path
 
 if False:
-    from typing import List, Optional
     from trezor.messages.CardanoBlockchainPointerType import (
         CardanoBlockchainPointerType,
     )
@@ -177,7 +176,7 @@ def _validate_address_parameters_structure(
             staking_key_hash,
             certificate_pointer,
             # TODO GK which script? rename scripts to script and script_staking?
-            script_staking,
+            script_payment,
         ],
     }
 
@@ -379,40 +378,15 @@ def derive_address_bytes(
 
 
 def _derive_shelley_address(
-    keychain: seed.Keychain,
-    parameters: CardanoAddressParametersType,
-    network_id: int,
-) -> bytes:
-    if parameters.address_type == CardanoAddressType.BASE:
-        address = _derive_base_address(
-            keychain,
-            parameters.address_n,
-            parameters.address_n_staking,
-            parameters.staking_key_hash,
-            network_id,
-        )
-    elif parameters.address_type == CardanoAddressType.POINTER:
-        # ensured by validate_address_parameters
-        assert parameters.certificate_pointer is not None
+    keychain: seed.Keychain, parameters: CardanoAddressParametersType, network_id: int
+):
+    header = _create_address_header(parameters.address_type, network_id)
 
-        address = _derive_pointer_address(
-            keychain,
-            parameters.address_n,
-            parameters.certificate_pointer,
-            network_id,
-        )
-    elif parameters.address_type == CardanoAddressType.ENTERPRISE:
-        address = _derive_enterprise_address(keychain, parameters.address_n, network_id)
-    elif parameters.address_type == CardanoAddressType.ENTERPRISE_SCRIPT:
-        address = _derive_script_enterprise_address(
-            parameters.script_payment, network_id
-        )
-    elif parameters.address_type == CardanoAddressType.REWARD:
-        address = _derive_reward_address(keychain, parameters.address_n, network_id)
-    else:
-        raise INVALID_ADDRESS_PARAMETERS
+    # TODO GK can payment part be script_staking? (e.g. for reward address)
+    payment_part = _get_address_payment_part(keychain, parameters)
+    staking_part = _get_address_staking_part(keychain, parameters)
 
-    return address
+    return header + payment_part + staking_part
 
 
 def _create_address_header(
@@ -422,33 +396,30 @@ def _create_address_header(
     return header.to_bytes(1, "little")
 
 
-def _derive_base_address(
-    keychain: seed.Keychain,
-    path: list[int],
-    staking_path: list[int],
-    staking_key_hash: bytes | None,
-    network_id: int,
+def _get_address_payment_part(
+    keychain: seed.Keychain, parameters: CardanoAddressParametersType
 ) -> bytes:
-    header = _create_address_header(CardanoAddressType.BASE, network_id)
-    spending_key_hash = get_public_key_hash(keychain, path)
+    if parameters.address_n:
+        return get_public_key_hash(keychain, parameters.address_n)
+    elif parameters.script_payment:
+        return get_script_hash(keychain, parameters.script_payment)
+    else:
+        return bytes()
 
-    if staking_key_hash is None:
-        staking_key_hash = get_public_key_hash(keychain, staking_path)
 
-    return header + spending_key_hash + staking_key_hash
-
-
-def _derive_pointer_address(
-    keychain: seed.Keychain,
-    path: list[int],
-    pointer: CardanoBlockchainPointerType,
-    network_id: int,
+def _get_address_staking_part(
+    keychain: seed.Keychain, parameters: CardanoAddressParametersType
 ) -> bytes:
-    header = _create_address_header(CardanoAddressType.POINTER, network_id)
-    spending_key_hash = get_public_key_hash(keychain, path)
-    encoded_pointer = _encode_certificate_pointer(pointer)
-
-    return header + spending_key_hash + encoded_pointer
+    if parameters.staking_key_hash:
+        return parameters.staking_key_hash
+    elif parameters.address_n_staking:
+        return get_public_key_hash(keychain, parameters.address_n_staking)
+    elif parameters.script_staking:
+        return get_script_hash(keychain, parameters.script_staking)
+    elif parameters.certificate_pointer:
+        return _encode_certificate_pointer(parameters.certificate_pointer)
+    else:
+        return bytes()
 
 
 def _encode_certificate_pointer(pointer: CardanoBlockchainPointerType) -> bytes:
@@ -459,44 +430,17 @@ def _encode_certificate_pointer(pointer: CardanoBlockchainPointerType) -> bytes:
     return bytes(block_index_encoded + tx_index_encoded + certificate_index_encoded)
 
 
-def _derive_enterprise_address(
-    keychain: seed.Keychain,
-    path: list[int],
-    network_id: int,
-) -> bytes:
-    header = _create_address_header(CardanoAddressType.ENTERPRISE, network_id)
-    spending_key_hash = get_public_key_hash(keychain, path)
-
-    return header + spending_key_hash
-
-
-def _derive_script_enterprise_address(
-    script,
-    network_id: int,
-):
-    header = _create_address_header(CardanoAddressType.ENTERPRISE_SCRIPT, network_id)
-    script_hash = get_script_hash(script)
-
-    return header + script_hash
-
-
-def _derive_reward_address(
-    keychain: seed.Keychain,
-    path: list[int],
-    network_id: int,
-) -> bytes:
-    staking_key_hash = get_public_key_hash(keychain, path)
-
-    return pack_reward_address_bytes(staking_key_hash, network_id)
-
-
 def pack_reward_address_bytes(
     staking_key_hash: bytes,
     network_id: int,
+    is_script: bool,
 ) -> bytes:
     """
     Helper function to transform raw staking key hash into reward address
     """
-    header = _create_address_header(CardanoAddressType.REWARD, network_id)
+    header = _create_address_header(
+        CardanoAddressType.REWARD_SCRIPT if is_script else CardanoAddressType.REWARD,
+        network_id,
+    )
 
     return header + staking_key_hash
