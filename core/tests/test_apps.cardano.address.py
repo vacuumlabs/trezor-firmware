@@ -1,9 +1,10 @@
 from common import *
 from trezor import wire
 from trezor.crypto import bip32, slip39
-from trezor.messages import CardanoAddressType
+from trezor.messages import CardanoAddressType, CardanoScriptType
 from trezor.messages.CardanoAddressParametersType import CardanoAddressParametersType
 from trezor.messages.CardanoBlockchainPointerType import CardanoBlockchainPointerType
+from trezor.messages.CardanoScriptT import CardanoScriptT
 
 from apps.common import HARDENED, seed
 
@@ -284,121 +285,6 @@ class TestCardanoAddress(unittest.TestCase):
             self.assertEqual(hexlify(seed.remove_ed25519_prefix(n.public_key())), pub)
             self.assertEqual(hexlify(n.chain_code()), chain)
 
-    def test_base_address(self):
-        mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
-        passphrase = ""
-        node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        keychain = Keychain(node)
-
-        test_vectors = [
-            # network id, account, expected result
-            # data generated with code under test
-            (network_ids.MAINNET, 4, "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r"),
-            (network_ids.TESTNET, 4, "addr_test1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlswzkqcu"),
-        ]
-
-        for network_id, account, expected_address in test_vectors:
-            address_parameters = CardanoAddressParametersType(
-                address_type=CardanoAddressType.BASE,
-                address_n=[1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0],
-                address_n_staking=[1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 2, 0]
-            )
-            actual_address = derive_human_readable_address(keychain, address_parameters, protocol_magics.MAINNET, network_id)
-
-            self.assertEqual(actual_address, expected_address)
-
-    def test_base_address_with_staking_key_hash(self):
-        mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
-        passphrase = ""
-        node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        keychain = Keychain(node)
-
-        test_vectors = [
-            # network id, account, staking key hash, expected result
-            # own staking key hash
-            # data generated with code under test
-            (network_ids.MAINNET, 4, unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff"), "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r"),
-            (network_ids.TESTNET, 4, unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff"), "addr_test1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlswzkqcu"),
-            # staking key hash not owned - derived with "all all..." mnenomnic, data generated with code under test
-            (network_ids.MAINNET, 4, unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277"), "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsxrrvc2"),
-            (network_ids.MAINNET, 0, unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277"), "addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzersj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms6xjnst"),
-            (network_ids.TESTNET, 4, unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277"), "addr_test1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms947v54"),
-        ]
-
-        for network_id, account, staking_key_hash, expected_address in test_vectors:
-            address_parameters = CardanoAddressParametersType(
-                address_type=CardanoAddressType.BASE,
-                address_n=[1852 | HARDENED, 1815 | HARDENED, account | HARDENED, 0, 0],
-                staking_key_hash=staking_key_hash,
-            )
-            actual_address = derive_human_readable_address(keychain, address_parameters, protocol_magics.MAINNET, network_id)
-
-            self.assertEqual(actual_address, expected_address)
-
-    def test_enterprise_address(self):
-        mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
-        passphrase = ""
-        node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        keychain = Keychain(node)
-
-        test_vectors = [
-            # network id, expected result
-            (network_ids.MAINNET, "addr1vx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers66hrl8"),
-            (network_ids.TESTNET, "addr_test1vz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzerspjrlsz")
-        ]
-
-        for network_id, expected_address in test_vectors:
-            address_parameters = CardanoAddressParametersType(
-                address_type=CardanoAddressType.ENTERPRISE,
-                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
-            )
-            actual_address = derive_human_readable_address(keychain, address_parameters, protocol_magics.MAINNET, network_id)
-
-            self.assertEqual(actual_address, expected_address)
-
-    def test_pointer_address(self):
-        mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
-        passphrase = ""
-        node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        keychain = Keychain(node)
-
-        test_vectors = [
-            # network id, pointer, expected result
-            (network_ids.MAINNET, CardanoBlockchainPointerType(block_index=1, tx_index=2, certificate_index=3), "addr1gx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzerspqgpse33frd"),
-            (network_ids.TESTNET, CardanoBlockchainPointerType(block_index=24157, tx_index=177, certificate_index=42), "addr_test1gz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer5ph3wczvf2pfz4ly")
-        ]
-
-        for network_id, pointer, expected_address in test_vectors:
-            address_parameters = CardanoAddressParametersType(
-                address_type=CardanoAddressType.POINTER,
-                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
-                certificate_pointer=pointer,
-            )
-            actual_address = derive_human_readable_address(keychain, address_parameters, protocol_magics.MAINNET, network_id)
-
-            self.assertEqual(actual_address, expected_address)
-
-    def test_reward_address(self):
-        mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
-        passphrase = ""
-        node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
-        keychain = Keychain(node)
-
-        test_vectors = [
-            # network id, expected result
-            (network_ids.MAINNET, "stake1uyevw2xnsc0pvn9t9r9c7qryfqfeerchgrlm3ea2nefr9hqxdekzz"),
-            (network_ids.TESTNET, "stake_test1uqevw2xnsc0pvn9t9r9c7qryfqfeerchgrlm3ea2nefr9hqp8n5xl")
-        ]
-
-        for network_id, expected_address in test_vectors:
-            address_parameters = CardanoAddressParametersType(
-                address_type=CardanoAddressType.REWARD,
-                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
-            )
-            actual_address = derive_human_readable_address(keychain, address_parameters, protocol_magics.MAINNET, network_id)
-
-            self.assertEqual(actual_address, expected_address)
-
     def test_testnet_byron_address(self):
         mnemonic = "all all all all all all all all all all all all"
         passphrase = ""
@@ -420,6 +306,136 @@ class TestCardanoAddress(unittest.TestCase):
             address = derive_human_readable_address(keychain, address_parameters, protocol_magics.TESTNET, 0)
             self.assertEqual(expected, address)
 
+    def test_derive_address(self):
+        # TODO GK change mnemonic to all all..
+        mnemonic = "test walk nut penalty hip pave soap entry language right filter choice"
+        passphrase = ""
+        node = bip32.from_mnemonic_cardano(mnemonic, passphrase)
+        keychain = Keychain(node)
+
+        address_parameters = {
+            "BASE": CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 4 | HARDENED, 0, 0],
+                address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 4 | HARDENED, 2, 0]
+            ),
+            "BASE_OWN_STAKING_KEY_HASH": CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 4 | HARDENED, 0, 0],
+                staking_key_hash=unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff")
+            ),
+            "BASE_OWN_STAKING_KEY_HASH": CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 4 | HARDENED, 0, 0],
+                staking_key_hash=unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff")
+            ),
+            # staking key hash not owned - derived with "all all..." mnenomnic
+            "BASE_FOREIGN_STAKING_KEY_HASH_ACCOUNT_4": CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 4 | HARDENED, 0, 0],
+                staking_key_hash=unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277")
+            ),
+            # staking key hash not owned - derived with "all all..." mnenomnic
+            "BASE_FOREIGN_STAKING_KEY_HASH_ACCOUNT_0": CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                staking_key_hash=unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277")
+            ),
+            "BASE_SCRIPT_KEY":CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_SCRIPT_KEY,
+                address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
+                script_payment=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
+            ),
+            "BASE_KEY_SCRIPT":CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_KEY_SCRIPT,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                script_staking=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
+            ),
+            "BASE_SCRIPT_SCRIPT": CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_SCRIPT_SCRIPT,
+                script_payment=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
+                script_staking=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
+            ),
+            "POINTER1": CardanoAddressParametersType(
+                address_type=CardanoAddressType.POINTER,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                certificate_pointer=CardanoBlockchainPointerType(block_index=1, tx_index=2, certificate_index=3),
+            ),
+            "POINTER2": CardanoAddressParametersType(
+                address_type=CardanoAddressType.POINTER,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                certificate_pointer=CardanoBlockchainPointerType(block_index=24157, tx_index=177, certificate_index=42),
+            ),
+            "POINTER_SCRIPT": CardanoAddressParametersType(
+                address_type=CardanoAddressType.POINTER_SCRIPT,
+                certificate_pointer=CardanoBlockchainPointerType(block_index=24157, tx_index=177, certificate_index=42),
+                script_payment=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
+            ),
+            "ENTERPRISE": CardanoAddressParametersType(
+                address_type=CardanoAddressType.ENTERPRISE,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+            ),
+            "ENTERPRISE_SCRIPT": CardanoAddressParametersType(
+                address_type=CardanoAddressType.ENTERPRISE_SCRIPT,
+                script_payment=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
+            ),
+            "REWARD": CardanoAddressParametersType(
+                address_type=CardanoAddressType.REWARD,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
+            ),
+            # TODO GK script_staking or script_payment?
+            "REWARD_SCRIPT": CardanoAddressParametersType(
+                address_type=CardanoAddressType.REWARD_SCRIPT,
+                script_staking=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
+            ),
+        }
+
+        test_vectors = [
+            # base address
+            (network_ids.MAINNET, CardanoAddressType.BASE, address_parameters["BASE"], "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r"),
+            (network_ids.TESTNET, CardanoAddressType.BASE, address_parameters["BASE"], "addr_test1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlswzkqcu"),
+            # base address with staking key hash
+            (network_ids.MAINNET, CardanoAddressType.BASE, address_parameters["BASE_OWN_STAKING_KEY_HASH"], "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r"),
+            (network_ids.TESTNET, CardanoAddressType.BASE, address_parameters["BASE_OWN_STAKING_KEY_HASH"], "addr_test1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlswzkqcu"),
+            (network_ids.MAINNET, CardanoAddressType.BASE, address_parameters["BASE_FOREIGN_STAKING_KEY_HASH_ACCOUNT_4"], "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsxrrvc2"),
+            (network_ids.MAINNET, CardanoAddressType.BASE, address_parameters["BASE_FOREIGN_STAKING_KEY_HASH_ACCOUNT_0"], "addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzersj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms6xjnst"),
+            (network_ids.TESTNET, CardanoAddressType.BASE, address_parameters["BASE_FOREIGN_STAKING_KEY_HASH_ACCOUNT_4"], "addr_test1qr4sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms947v54"),
+            # base_script_key address
+            (network_ids.MAINNET, CardanoAddressType.BASE_SCRIPT_KEY, address_parameters["BASE_SCRIPT_KEY"], "addr1zyx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq6pwv22"),
+            (network_ids.TESTNET, CardanoAddressType.BASE_SCRIPT_KEY, address_parameters["BASE_SCRIPT_KEY"], "addr_test1zqx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqehnvx4"),
+            # base_key_script address
+            (network_ids.MAINNET, CardanoAddressType.BASE_KEY_SCRIPT, address_parameters["BASE_KEY_SCRIPT"], "addr1yx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer5d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5szm34et"),
+            (network_ids.TESTNET, CardanoAddressType.BASE_KEY_SCRIPT, address_parameters["BASE_KEY_SCRIPT"], "addr_test1yz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer5d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5spdv445"),
+            # base_script_script address
+            (network_ids.MAINNET, CardanoAddressType.BASE_SCRIPT_SCRIPT, address_parameters["BASE_SCRIPT_SCRIPT"], "addr1xyx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5s3gftll"),
+            (network_ids.TESTNET, CardanoAddressType.BASE_SCRIPT_SCRIPT, address_parameters["BASE_SCRIPT_SCRIPT"], "addr_test1xqx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5sj75tnq"),
+            # pointer address
+            (network_ids.MAINNET, CardanoAddressType.POINTER, address_parameters["POINTER1"], "addr1gx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzerspqgpse33frd"),
+            (network_ids.TESTNET, CardanoAddressType.POINTER, address_parameters["POINTER2"], "addr_test1gz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer5ph3wczvf2pfz4ly"),
+            # pointer_script address
+            (network_ids.MAINNET, CardanoAddressType.POINTER_SCRIPT, address_parameters["POINTER_SCRIPT"], "addr12yx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5ph3wczvf2zmd4yp"),
+            (network_ids.TESTNET, CardanoAddressType.POINTER_SCRIPT, address_parameters["POINTER_SCRIPT"], "addr_test12qx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5ph3wczvf2d4sugn"),
+            # enterprise address
+            (network_ids.MAINNET, CardanoAddressType.ENTERPRISE, address_parameters["ENTERPRISE"], "addr1vx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers66hrl8"),
+            (network_ids.TESTNET, CardanoAddressType.ENTERPRISE, address_parameters["ENTERPRISE"], "addr_test1vz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzerspjrlsz"),
+            # enterprise_script address
+            (network_ids.MAINNET, CardanoAddressType.ENTERPRISE_SCRIPT, address_parameters["ENTERPRISE_SCRIPT"], "addr1wyx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3lsqee7sp"),
+            (network_ids.TESTNET, CardanoAddressType.ENTERPRISE_SCRIPT, address_parameters["ENTERPRISE_SCRIPT"], "addr_test1wqx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3lsm3dzly"),
+            # reward address
+            (network_ids.MAINNET, CardanoAddressType.REWARD, address_parameters["REWARD"], "stake1uyevw2xnsc0pvn9t9r9c7qryfqfeerchgrlm3ea2nefr9hqxdekzz"),
+            (network_ids.TESTNET, CardanoAddressType.REWARD, address_parameters["REWARD"], "stake_test1uqevw2xnsc0pvn9t9r9c7qryfqfeerchgrlm3ea2nefr9hqp8n5xl"),
+            # reward_script address
+            (network_ids.MAINNET, CardanoAddressType.REWARD_SCRIPT, address_parameters["REWARD_SCRIPT"], "stake17xxhh6785k83c76lklynjyr3anfm2xcry624ytuv24f582gt5mad4"),
+            (network_ids.TESTNET, CardanoAddressType.REWARD_SCRIPT, address_parameters["REWARD_SCRIPT"], "stake_test17zxhh6785k83c76lklynjyr3anfm2xcry624ytuv24f582gv73lfg"),
+        ]
+
+        for network_id, address_type, address_parameters, expected_address in test_vectors:
+            validate_address_parameters(address_parameters)
+            actual_address = derive_human_readable_address(keychain, address_parameters, protocol_magics.MAINNET, network_id)
+
+            self.assertEqual(actual_address, expected_address)
+
+    # TODO GK probably needs extending with script stuff
     def test_validate_address_parameters(self):
         test_vectors = [
             # base address - both address_n_staking and staking_key_hash are None
