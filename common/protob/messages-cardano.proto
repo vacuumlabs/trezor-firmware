@@ -58,10 +58,9 @@ message CardanoBlockchainPointerType {
     required uint32 certificate_index = 3;
 }
 
-// TODO GK: rename
-message CardanoScriptT {
+message CardanoScript {
     required CardanoScriptType type = 1;
-    repeated CardanoScriptT scripts = 2;
+    repeated CardanoScript scripts = 2;
 
     optional bytes key_hash = 3;
     repeated uint32 key_path = 4;
@@ -86,8 +85,8 @@ message CardanoAddressParametersType {
                                                                     // can be sent directly e.g. if it doesn't belong to
                                                                     // the same account as address_n
     optional CardanoBlockchainPointerType certificate_pointer = 5;  // a pointer to the staking key registration certificate
-    optional CardanoScriptT script_payment = 6;
-    optional CardanoScriptT script_staking = 7;
+    optional CardanoScript script_payment = 6;
+    optional CardanoScript script_staking = 7;
 }
 
 /**

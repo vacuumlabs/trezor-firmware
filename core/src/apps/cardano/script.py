@@ -1,5 +1,5 @@
 from trezor.crypto import hashlib
-from trezor.messages import CardanoAddressType, CardanoScriptT, CardanoScriptType
+from trezor.messages import CardanoAddressType, CardanoScript, CardanoScriptType
 
 from apps.cardano.helpers import ADDRESS_KEY_HASH_SIZE, INVALID_SCRIPT
 from apps.common import cbor
@@ -18,7 +18,7 @@ SCRIPT_ADDRESS_TYPES = (
 )
 
 # TODO GK unit tests
-def validate_script(script: CardanoScriptT | None) -> None:
+def validate_script(script: CardanoScript | None) -> None:
     if not script:
         raise INVALID_SCRIPT
 
@@ -62,14 +62,14 @@ def validate_script(script: CardanoScriptT | None) -> None:
             raise INVALID_SCRIPT
 
 
-def get_script_hash(keychain: Keychain, script: CardanoScriptT) -> bytes:
+def get_script_hash(keychain: Keychain, script: CardanoScript) -> bytes:
     script_cbor = cbor.encode(cborize_script(keychain, script))
     prefixed_script_cbor = b"\00" + script_cbor
     return hashlib.blake2b(data=prefixed_script_cbor, outlen=28).digest()
 
 
 # TODO GK return type
-def cborize_script(keychain: Keychain, script: CardanoScriptT):
+def cborize_script(keychain: Keychain, script: CardanoScript):
     script_content = []
     if script.type == CardanoScriptType.PUB_KEY:
         # TODO GK or path

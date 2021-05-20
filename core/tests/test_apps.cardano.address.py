@@ -4,7 +4,7 @@ from trezor.crypto import bip32, slip39
 from trezor.messages import CardanoAddressType, CardanoScriptType
 from trezor.messages.CardanoAddressParametersType import CardanoAddressParametersType
 from trezor.messages.CardanoBlockchainPointerType import CardanoBlockchainPointerType
-from trezor.messages.CardanoScriptT import CardanoScriptT
+from trezor.messages.CardanoScript import CardanoScript
 
 from apps.common import HARDENED, seed
 
@@ -344,17 +344,17 @@ class TestCardanoAddress(unittest.TestCase):
             "BASE_SCRIPT_KEY":CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_SCRIPT_KEY,
                 address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
-                script_payment=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
+                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
             ),
             "BASE_KEY_SCRIPT":CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_KEY_SCRIPT,
                 address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
-                script_staking=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
+                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
             ),
             "BASE_SCRIPT_SCRIPT": CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_SCRIPT_SCRIPT,
-                script_payment=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
-                script_staking=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
+                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
+                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
             ),
             "POINTER1": CardanoAddressParametersType(
                 address_type=CardanoAddressType.POINTER,
@@ -369,7 +369,7 @@ class TestCardanoAddress(unittest.TestCase):
             "POINTER_SCRIPT": CardanoAddressParametersType(
                 address_type=CardanoAddressType.POINTER_SCRIPT,
                 certificate_pointer=CardanoBlockchainPointerType(block_index=24157, tx_index=177, certificate_index=42),
-                script_payment=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
+                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
             ),
             "ENTERPRISE": CardanoAddressParametersType(
                 address_type=CardanoAddressType.ENTERPRISE,
@@ -377,7 +377,7 @@ class TestCardanoAddress(unittest.TestCase):
             ),
             "ENTERPRISE_SCRIPT": CardanoAddressParametersType(
                 address_type=CardanoAddressType.ENTERPRISE_SCRIPT,
-                script_payment=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
+                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
             ),
             "REWARD": CardanoAddressParametersType(
                 address_type=CardanoAddressType.REWARD,
@@ -386,7 +386,7 @@ class TestCardanoAddress(unittest.TestCase):
             # TODO GK script_staking or script_payment?
             "REWARD_SCRIPT": CardanoAddressParametersType(
                 address_type=CardanoAddressType.REWARD_SCRIPT,
-                script_staking=CardanoScriptT(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
+                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
             ),
         }
 

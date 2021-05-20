@@ -176,8 +176,8 @@ trezor.messages.CardanoPoolRelayType
 import trezor.messages.CardanoPoolRelayType
 trezor.messages.CardanoPublicKey
 import trezor.messages.CardanoPublicKey
-trezor.messages.CardanoScriptT
-import trezor.messages.CardanoScriptT
+trezor.messages.CardanoScript
+import trezor.messages.CardanoScript
 trezor.messages.CardanoScriptType
 import trezor.messages.CardanoScriptType
 trezor.messages.CardanoSignTx

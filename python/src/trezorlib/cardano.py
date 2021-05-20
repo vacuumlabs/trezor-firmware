@@ -72,8 +72,8 @@ def create_address_parameters(
     block_index: int = None,
     tx_index: int = None,
     certificate_index: int = None,
-    script_payment: messages.CardanoScriptT = None,
-    script_staking: messages.CardanoScriptT = None,
+    script_payment: messages.CardanoScript = None,
+    script_staking: messages.CardanoScript = None,
 ) -> messages.CardanoAddressParametersType:
     certificate_pointer = None
 
@@ -214,7 +214,7 @@ def parse_script(script):
     invalid_before = script.get("invalid_before")
     invalid_hereafter = script.get("invalid_hereafter")
 
-    return messages.CardanoScriptT(
+    return messages.CardanoScript(
         type=type,
         scripts=scripts,
         key_hash=key_hash,

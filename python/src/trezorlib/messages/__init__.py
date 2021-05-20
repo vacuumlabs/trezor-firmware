@@ -35,7 +35,7 @@ from .CardanoPoolOwnerType import CardanoPoolOwnerType
 from .CardanoPoolParametersType import CardanoPoolParametersType
 from .CardanoPoolRelayParametersType import CardanoPoolRelayParametersType
 from .CardanoPublicKey import CardanoPublicKey
-from .CardanoScriptT import CardanoScriptT
+from .CardanoScript import CardanoScript
 from .CardanoSignTx import CardanoSignTx
 from .CardanoSignedTx import CardanoSignedTx
 from .CardanoSignedTxChunk import CardanoSignedTxChunk

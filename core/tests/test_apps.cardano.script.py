@@ -1,7 +1,7 @@
 from common import *
 from trezor.crypto import bip32
 from trezor.messages import CardanoScriptType
-from trezor.messages.CardanoScriptT import CardanoScriptT
+from trezor.messages.CardanoScript import CardanoScript
 
 if not utils.BITCOIN_ONLY:
     from apps.cardano.seed import Keychain
@@ -20,7 +20,7 @@ class TestCardanoScript(unittest.TestCase):
         scripts = [
             # PUB_KEY
             [
-                CardanoScriptT(
+                CardanoScript(
                     type=CardanoScriptType.PUB_KEY,
                     key_hash=unhexlify(
                         "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
@@ -30,16 +30,16 @@ class TestCardanoScript(unittest.TestCase):
             ],
             # ALL
             [
-                CardanoScriptT(
+                CardanoScript(
                     type=CardanoScriptType.ALL,
                     scripts=[
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
                                 "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
                             ),
                         ),
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
                                 "4a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
@@ -51,16 +51,16 @@ class TestCardanoScript(unittest.TestCase):
             ],
             # ANY
             [
-                CardanoScriptT(
+                CardanoScript(
                     type=CardanoScriptType.ANY,
                     scripts=[
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
                                 "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
                             ),
                         ),
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
                                 "80f9e2c88e6c817008f3a812ed889b4a4da8e0bd103f86e7335422aa"
@@ -72,23 +72,23 @@ class TestCardanoScript(unittest.TestCase):
             ],
             # N OF K
             [
-                CardanoScriptT(
+                CardanoScript(
                     type=CardanoScriptType.N_OF_K,
                     required=2,
                     scripts=[
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
                                 "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
                             ),
                         ),
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
                                 "4a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
                             ),
                         ),
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
                                 "5a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
@@ -100,16 +100,16 @@ class TestCardanoScript(unittest.TestCase):
             ],
             # INVALID BEFORE
             [
-                CardanoScriptT(
+                CardanoScript(
                     type=CardanoScriptType.ALL,
                     scripts=[
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
                                 "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
                             ),
                         ),
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.INVALID_BEFORE, invalid_before=100
                         ),
                     ],
@@ -118,16 +118,16 @@ class TestCardanoScript(unittest.TestCase):
             ],
             # INVALID HEREAFTER
             [
-                CardanoScriptT(
+                CardanoScript(
                     type=CardanoScriptType.ALL,
                     scripts=[
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
                                 "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
                             ),
                         ),
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.INVALID_HEREAFTER,
                             invalid_hereafter=200,
                         ),
@@ -137,19 +137,19 @@ class TestCardanoScript(unittest.TestCase):
             ],
             # NESTED SCRIPT
             [
-                CardanoScriptT(
+                CardanoScript(
                     type=CardanoScriptType.ALL,
                     scripts=[
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
                                 "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
                             ),
                         ),
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.ALL,
                             scripts=[
-                                CardanoScriptT(
+                                CardanoScript(
                                     type=CardanoScriptType.PUB_KEY,
                                     key_hash=unhexlify(
                                         "4a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
@@ -157,10 +157,10 @@ class TestCardanoScript(unittest.TestCase):
                                 ),
                             ],
                         ),
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.INVALID_BEFORE, invalid_before=100
                         ),
-                        CardanoScriptT(
+                        CardanoScript(
                             type=CardanoScriptType.INVALID_HEREAFTER,
                             invalid_hereafter=200,
                         ),

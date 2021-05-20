@@ -12,13 +12,13 @@ if __debug__:
         pass
 
 
-class CardanoScriptT(p.MessageType):
+class CardanoScript(p.MessageType):
 
     def __init__(
         self,
         *,
         type: EnumTypeCardanoScriptType,
-        scripts: Optional[List['CardanoScriptT']] = None,
+        scripts: Optional[List['CardanoScript']] = None,
         key_path: Optional[List[int]] = None,
         key_hash: Optional[bytes] = None,
         required: Optional[int] = None,
@@ -37,7 +37,7 @@ class CardanoScriptT(p.MessageType):
     def get_fields(cls) -> Dict:
         return {
             1: ('type', p.EnumType("CardanoScriptType", (0, 1, 2, 3, 4, 5,)), p.FLAG_REQUIRED),
-            2: ('scripts', CardanoScriptT, p.FLAG_REPEATED),
+            2: ('scripts', CardanoScript, p.FLAG_REPEATED),
             3: ('key_hash', p.BytesType, None),
             4: ('key_path', p.UVarintType, p.FLAG_REPEATED),
             5: ('required', p.UVarintType, None),
