@@ -466,10 +466,53 @@ class TestCardanoAddress(unittest.TestCase):
                 address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
                 staking_key_hash=None,
             ),
+            # base_script_key address - script_payment is None
+            CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_SCRIPT_KEY,
+                script_payment=None,
+                staking_key_hash=unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8d"),
+            ),
+            # base_script_key address - both address_n_staking and staking_key_hash are set
+            CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_SCRIPT_KEY,
+                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
+                address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
+                staking_key_hash=unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff"),
+            ),
+            # base_script_key address - address_n_staking is not a staking path
+            CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_SCRIPT_KEY,
+                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
+                address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+            ),
+            # base_key_script address - script_staking is None
+            CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_KEY_SCRIPT,
+                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                script_staking=None,
+            ),
+            # base_script_script address - script_payment is None
+            CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_SCRIPT_SCRIPT,
+                script_payment=None,
+                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
+            ),
+            # base_script_script address - script_staking is None
+            CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_SCRIPT_SCRIPT,
+                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
+                script_staking=None,
+            ),
             # pointer address - pointer is None
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.POINTER,
                 address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                certificate_pointer=None,
+            ),
+            # pointer_script address - pointer is None
+            CardanoAddressParametersType(
+                address_type=CardanoAddressType.POINTER_SCRIPT,
+                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
                 certificate_pointer=None,
             ),
             # reward address - non staking path
@@ -477,11 +520,23 @@ class TestCardanoAddress(unittest.TestCase):
                 address_type=CardanoAddressType.REWARD,
                 address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0]
             ),
+            # reward_script address - script_staking is None
+            CardanoAddressParametersType(
+                address_type=CardanoAddressType.REWARD_SCRIPT,
+                # TODO GK which script? staking vs. payment?
+                script_staking=None,
+            ),
 
             # Shelley addresses with Byron namespace
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE,
-                address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0]
+                address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                staking_key_hash=unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff"),
+            ),
+            CardanoAddressParametersType(
+                address_type=CardanoAddressType.BASE_KEY_SCRIPT,
+                address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"))
             ),
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.POINTER,

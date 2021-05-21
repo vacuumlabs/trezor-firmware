@@ -3,7 +3,7 @@ from trezor.crypto import hashlib
 from apps.cardano.helpers.paths import ACCOUNT_PATH_INDEX, unharden
 from apps.common.seed import remove_ed25519_prefix
 
-from . import bech32
+from . import ADDRESS_KEY_HASH_SIZE, bech32
 
 if False:
     from .. import seed
@@ -62,6 +62,11 @@ def format_asset_fingerprint(policy_id: bytes, asset_name_bytes: bytes) -> str:
     ).digest()
 
     return bech32.encode("asset", fingerprint)
+
+
+def get_public_key_hash(keychain: seed.Keychain, path: list[int]) -> bytes:
+    public_key = derive_public_key(keychain, path)
+    return hashlib.blake2b(data=public_key, outlen=ADDRESS_KEY_HASH_SIZE).digest()
 
 
 def derive_public_key(

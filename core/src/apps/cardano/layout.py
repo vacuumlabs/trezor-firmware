@@ -44,7 +44,7 @@ if False:
     from trezor.messages.CardanoPoolMetadataType import CardanoPoolMetadataType
     from trezor.messages.CardanoAssetGroupType import CardanoAssetGroupType
     from trezor.messages.CardanoAddressParametersType import EnumTypeCardanoAddressType
-    from trezor.messages.CardanoScriptT import CardanoScriptT
+    from trezor.messages.CardanoScript import CardanoScript
 
 
 # TODO GK update names
@@ -93,9 +93,9 @@ def is_printable_ascii_bytestring(bytestr: bytes) -> bool:
 async def confirm_script(
     ctx: wire.Context,
     title: str,
-    script: CardanoScriptT,
-    indices: List[int] = [],
-):
+    script: CardanoScript,
+    indices: list[int] = [],
+) -> None:
     page1 = Text("Confirm %s script" % title, ui.ICON_SEND, ui.GREEN)
     page1.bold(
         "Script %s: %s"
@@ -119,8 +119,8 @@ async def confirm_script(
             page1.normal("Key path:")
             page1.bold(address_n_to_str(script.key_path))
     elif script.type == CardanoScriptType.N_OF_K:
-        assert script.required is not None  # validate_script
-        page1.normal("Required signatures: %s" % script.required)
+        assert script.required_signatures_count is not None  # validate_script
+        page1.normal("Required signatures: %s" % script.required_signatures_count)
     elif script.type == CardanoScriptType.INVALID_BEFORE:
         assert script.invalid_before is not None  # validate_script
         page1.normal("Invalid before: %s" % script.invalid_before)
@@ -507,8 +507,8 @@ async def show_address(
     address: str,
     address_type: EnumTypeCardanoAddressType,
     path: list[int],
-    script_payment: CardanoScriptT | None,
-    script_staking: CardanoScriptT | None,
+    script_payment: CardanoScript | None,
+    script_staking: CardanoScript | None,
     network: str | None = None,
 ) -> bool:
     """

@@ -64,7 +64,7 @@ message CardanoScript {
 
     optional bytes key_hash = 3;
     repeated uint32 key_path = 4;
-    optional uint32 required = 5;
+    optional uint32 required_signatures_count = 5;
     optional uint64 invalid_before = 6;
     optional uint64 invalid_hereafter = 7;
 }

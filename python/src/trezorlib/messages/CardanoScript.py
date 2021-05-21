@@ -21,7 +21,7 @@ class CardanoScript(p.MessageType):
         scripts: Optional[List['CardanoScript']] = None,
         key_path: Optional[List[int]] = None,
         key_hash: Optional[bytes] = None,
-        required: Optional[int] = None,
+        required_signatures_count: Optional[int] = None,
         invalid_before: Optional[int] = None,
         invalid_hereafter: Optional[int] = None,
     ) -> None:
@@ -29,7 +29,7 @@ class CardanoScript(p.MessageType):
         self.key_path = key_path if key_path is not None else []
         self.type = type
         self.key_hash = key_hash
-        self.required = required
+        self.required_signatures_count = required_signatures_count
         self.invalid_before = invalid_before
         self.invalid_hereafter = invalid_hereafter
 
@@ -40,7 +40,7 @@ class CardanoScript(p.MessageType):
             2: ('scripts', CardanoScript, p.FLAG_REPEATED),
             3: ('key_hash', p.BytesType, None),
             4: ('key_path', p.UVarintType, p.FLAG_REPEATED),
-            5: ('required', p.UVarintType, None),
+            5: ('required_signatures_count', p.UVarintType, None),
             6: ('invalid_before', p.UVarintType, None),
             7: ('invalid_hereafter', p.UVarintType, None),
         }

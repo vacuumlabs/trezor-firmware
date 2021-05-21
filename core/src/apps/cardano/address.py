@@ -1,4 +1,4 @@
-from trezor.crypto import base58, hashlib
+from trezor.crypto import base58
 from trezor.messages import CardanoAddressType
 
 from .byron_address import derive_byron_address, validate_byron_address
@@ -11,11 +11,13 @@ from .helpers import (
     network_ids,
 )
 from .helpers.paths import SCHEMA_STAKING_ANY_ACCOUNT
-from .helpers.utils import derive_public_key, variable_length_encode
+from .helpers.utils import get_public_key_hash, variable_length_encode
 from .script import get_script_hash, validate_script
 from .seed import is_byron_path, is_shelley_path
 
 if False:
+    from typing import Any
+
     from trezor.messages.CardanoBlockchainPointerType import (
         CardanoBlockchainPointerType,
     )
@@ -41,8 +43,6 @@ MIN_ADDRESS_BYTES_LENGTH = 29
 MAX_ADDRESS_BYTES_LENGTH = 65
 
 
-# TODO GK unit tests
-# TODO GK refactor
 def validate_address_parameters(parameters: CardanoAddressParametersType) -> None:
     _validate_address_parameters_structure(parameters)
 
@@ -58,16 +58,18 @@ def validate_address_parameters(parameters: CardanoAddressParametersType) -> Non
                 parameters.address_n_staking, parameters.staking_key_hash
             )
 
-        elif parameters.address_n == CardanoAddressType.BASE_SCRIPT_KEY:
+        elif parameters.address_type == CardanoAddressType.BASE_SCRIPT_KEY:
             _validate_base_address_staking_info(
                 parameters.address_n_staking, parameters.staking_key_hash
             )
             validate_script(parameters.script_payment)
 
-        elif parameters.address_n == CardanoAddressType.BASE_KEY_SCRIPT:
+        elif parameters.address_type == CardanoAddressType.BASE_KEY_SCRIPT:
+            if not is_shelley_path(parameters.address_n):
+                raise INVALID_ADDRESS_PARAMETERS
             validate_script(parameters.script_staking)
 
-        elif parameters.address_n == CardanoAddressType.BASE_SCRIPT_SCRIPT:
+        elif parameters.address_type == CardanoAddressType.BASE_SCRIPT_SCRIPT:
             validate_script(parameters.script_payment)
             validate_script(parameters.script_staking)
 
@@ -77,7 +79,7 @@ def validate_address_parameters(parameters: CardanoAddressParametersType) -> Non
             if parameters.certificate_pointer is None:
                 raise INVALID_ADDRESS_PARAMETERS
 
-        elif parameters.address_n == CardanoAddressType.POINTER_SCRIPT:
+        elif parameters.address_type == CardanoAddressType.POINTER_SCRIPT:
             if parameters.certificate_pointer is None:
                 raise INVALID_ADDRESS_PARAMETERS
             validate_script(parameters.script_payment)
@@ -102,7 +104,6 @@ def validate_address_parameters(parameters: CardanoAddressParametersType) -> Non
         raise INVALID_ADDRESS_PARAMETERS
 
 
-# TODO GK can perhaps be rewritten in the form of a dict
 def _validate_address_parameters_structure(
     parameters: CardanoAddressParametersType,
 ) -> None:
@@ -113,7 +114,7 @@ def _validate_address_parameters_structure(
     script_payment = parameters.script_payment
     script_staking = parameters.script_staking
 
-    fields_to_be_empty = {
+    fields_to_be_empty: dict[int, list[Any]] = {
         CardanoAddressType.BASE: [certificate_pointer, script_payment, script_staking],
         CardanoAddressType.BASE_KEY_SCRIPT: [
             address_n_staking,
@@ -313,34 +314,12 @@ def _get_address_network_id(address: bytes) -> int:
     return address[0] & 0x0F
 
 
-def get_public_key_hash(keychain: seed.Keychain, path: list[int]) -> bytes:
-    public_key = derive_public_key(keychain, path)
-    return hashlib.blake2b(data=public_key, outlen=ADDRESS_KEY_HASH_SIZE).digest()
-
-
 def derive_human_readable_address(
     keychain: seed.Keychain,
     parameters: CardanoAddressParametersType,
     protocol_magic: int,
     network_id: int,
 ) -> str:
-    from ubinascii import hexlify
-
-    # hash = get_script_hash(parameters.script_payment)
-    # print(hexlify(hash))
-    # print(
-    #     encode_human_readable_address(
-    #         _derive_enterprise_address(keychain, parameters.address_n, network_id)
-    #     )
-    # )
-    # print(
-    #     hexlify(
-    #         bech32.decode_unsafe(
-    #             "addr1wyf7438h7etkh6uynvzlr052k54uj5zhkj9l32kpkzdkvwgypg4xe"
-    #         )[1:]
-    #     )
-    # )
-
     address_bytes = derive_address_bytes(
         keychain, parameters, protocol_magic, network_id
     )
@@ -379,7 +358,7 @@ def derive_address_bytes(
 
 def _derive_shelley_address(
     keychain: seed.Keychain, parameters: CardanoAddressParametersType, network_id: int
-):
+) -> bytes:
     header = _create_address_header(parameters.address_type, network_id)
 
     # TODO GK can payment part be script_staking? (e.g. for reward address)
