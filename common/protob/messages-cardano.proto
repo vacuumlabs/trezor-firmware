@@ -58,6 +58,9 @@ message CardanoBlockchainPointerType {
     required uint32 certificate_index = 3;
 }
 
+/*
+ * @embed
+ */
 message CardanoScript {
     required CardanoScriptType type = 1;
     repeated CardanoScript scripts = 2;
