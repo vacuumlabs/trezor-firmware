@@ -153,14 +153,12 @@ def get_address(
     # TODO GK try to use click argument/option for the file
     script_payment = None
     if script_payment_file:
-        spf = open(script_payment_file, "r")
-        script_payment_json = json.load(spf)
+        script_payment_json = json.load(open(script_payment_file, "r"))
         script_payment = cardano.parse_script(script_payment_json)
 
     script_staking = None
     if script_staking_file:
-        ssf = open(script_staking_file, "r")
-        script_staking_json = json.load(ssf)
+        script_staking_json = json.load(open(script_staking_file, "r"))
         script_staking = cardano.parse_script(script_staking_json)
 
     address_parameters = cardano.create_address_parameters(

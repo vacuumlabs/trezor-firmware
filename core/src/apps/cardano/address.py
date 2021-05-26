@@ -98,7 +98,6 @@ def validate_address_parameters(parameters: CardanoAddressParametersType) -> Non
                 raise INVALID_ADDRESS_PARAMETERS
 
         elif parameters.address_type == CardanoAddressType.REWARD_SCRIPT:
-            # TODO GK staking or payment script?
             validate_script(parameters.script_staking)
     else:
         raise INVALID_ADDRESS_PARAMETERS
@@ -176,12 +175,13 @@ def _validate_address_parameters_structure(
             address_n_staking,
             staking_key_hash,
             certificate_pointer,
-            # TODO GK which script? rename scripts to script and script_staking?
             script_payment,
         ],
     }
 
-    if any(fields_to_be_empty[parameters.address_type]):
+    if parameters.address_type not in fields_to_be_empty or any(
+        fields_to_be_empty[parameters.address_type]
+    ):
         raise INVALID_ADDRESS_PARAMETERS
 
 
@@ -361,7 +361,6 @@ def _derive_shelley_address(
 ) -> bytes:
     header = _create_address_header(parameters.address_type, network_id)
 
-    # TODO GK can payment part be script_staking? (e.g. for reward address)
     payment_part = _get_address_payment_part(keychain, parameters)
     staking_part = _get_address_staking_part(keychain, parameters)
 

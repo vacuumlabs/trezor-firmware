@@ -210,7 +210,7 @@ def parse_script(script):
 
     key_hash = bytes.fromhex(script.get("key_hash")) if "key_hash" in script else None
     key_path = tools.parse_path(script.get("key_path"))
-    required = script.get("required")
+    required_signatures_count = script.get("required_signatures_count")
     invalid_before = script.get("invalid_before")
     invalid_hereafter = script.get("invalid_hereafter")
 
@@ -219,7 +219,7 @@ def parse_script(script):
         scripts=scripts,
         key_hash=key_hash,
         key_path=key_path,
-        required=required,
+        required_signatures_count=required_signatures_count,
         invalid_before=invalid_before,
         invalid_hereafter=invalid_hereafter,
     )

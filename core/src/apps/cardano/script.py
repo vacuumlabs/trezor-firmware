@@ -80,44 +80,44 @@ def _validate_script_structure(script: CardanoScript) -> None:
     invalid_hereafter = script.invalid_hereafter
 
     fields_to_be_empty: dict[int, list[Any]] = {
-        CardanoScriptType.PUB_KEY: [
+        CardanoScriptType.PUB_KEY: (
             scripts,
             required_signatures_count,
             invalid_before,
             invalid_hereafter,
-        ],
-        CardanoScriptType.ALL: [
+        ),
+        CardanoScriptType.ALL: (
             key_hash,
             key_path,
             required_signatures_count,
             invalid_before,
             invalid_hereafter,
-        ],
-        CardanoScriptType.ANY: [
+        ),
+        CardanoScriptType.ANY: (
             key_hash,
             key_path,
             required_signatures_count,
             invalid_before,
             invalid_hereafter,
-        ],
-        CardanoScriptType.N_OF_K: [
+        ),
+        CardanoScriptType.N_OF_K: (
             key_hash,
             key_path,
             invalid_before,
             invalid_hereafter,
-        ],
-        CardanoScriptType.INVALID_BEFORE: [
+        ),
+        CardanoScriptType.INVALID_BEFORE: (
             key_hash,
             key_path,
             required_signatures_count,
             invalid_hereafter,
-        ],
-        CardanoScriptType.INVALID_HEREAFTER: [
+        ),
+        CardanoScriptType.INVALID_HEREAFTER: (
             key_hash,
             key_path,
             required_signatures_count,
             invalid_before,
-        ],
+        ),
     }
 
     if script.type not in fields_to_be_empty or any(fields_to_be_empty[script.type]):

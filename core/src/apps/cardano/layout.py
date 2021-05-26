@@ -47,13 +47,13 @@ if False:
     from trezor.messages.CardanoScript import CardanoScript
 
 
-# TODO GK update names
+# TODO GK perhaps the user doesn't care about the "script" part at all?
 ADDRESS_TYPE_NAMES = {
     CardanoAddressType.BYRON: "Legacy",
     CardanoAddressType.BASE: "Base",
-    CardanoAddressType.BASE_SCRIPT_KEY: "Base sk",
-    CardanoAddressType.BASE_KEY_SCRIPT: "Base ks",
-    CardanoAddressType.BASE_SCRIPT_SCRIPT: "Base ss",
+    CardanoAddressType.BASE_SCRIPT_KEY: "Base script",
+    CardanoAddressType.BASE_KEY_SCRIPT: "Base script",
+    CardanoAddressType.BASE_SCRIPT_SCRIPT: "Base script",
     CardanoAddressType.POINTER: "Pointer",
     CardanoAddressType.POINTER_SCRIPT: "Pointer script",
     CardanoAddressType.ENTERPRISE: "Enterprise",
@@ -90,16 +90,21 @@ def is_printable_ascii_bytestring(bytestr: bytes) -> bool:
     return all((32 < b < 127) for b in bytestr)
 
 
-async def confirm_script(
+async def show_script(
     ctx: wire.Context,
     title: str,
     script: CardanoScript,
     indices: list[int] = [],
 ) -> None:
-    page1 = Text("Confirm %s script" % title, ui.ICON_SEND, ui.GREEN)
+    page1 = Text("%s script" % title, ui.ICON_SEND, ui.GREEN)
+
+    indices_str = ".".join([str(i) for i in indices])
     page1.bold(
-        "Script %s: %s"
-        % (".".join([str(i) for i in indices]), SCRIPT_TYPE_NAMES[script.type].lower())
+        "Script%s: %s"
+        % (
+            " " + indices_str if indices_str else "",
+            SCRIPT_TYPE_NAMES[script.type].lower(),
+        ),
     )
 
     if script.type in (
@@ -108,7 +113,7 @@ async def confirm_script(
         CardanoScriptType.N_OF_K,
     ):
         assert script.scripts  # validate_script
-        page1.normal("Confirm %i scripts" % len(script.scripts))
+        page1.normal("Confirm %i nested scripts" % len(script.scripts))
 
     if script.type == CardanoScriptType.PUB_KEY:
         assert script.key_hash is not None or script.key_path  # validate_script
@@ -131,7 +136,7 @@ async def confirm_script(
     await require_confirm(ctx, page1)
 
     for i, sub_script in enumerate(script.scripts):
-        await confirm_script(ctx, title, sub_script, indices + [(i + 1)])
+        await show_script(ctx, title, sub_script, indices + [(i + 1)])
 
 
 async def confirm_sending(
@@ -544,9 +549,9 @@ async def show_address(
     )
 
     if script_payment:
-        await confirm_script(ctx, "payment", script_payment)
+        await show_script(ctx, "payment", script_payment)
     if script_staking:
-        await confirm_script(ctx, "staking", script_staking)
+        await show_script(ctx, "staking", script_staking)
 
     return await confirm(
         ctx,
