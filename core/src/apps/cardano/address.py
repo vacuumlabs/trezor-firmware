@@ -465,19 +465,3 @@ def _encode_certificate_pointer(pointer: CardanoBlockchainPointerType) -> bytes:
     certificate_index_encoded = variable_length_encode(pointer.certificate_index)
 
     return bytes(block_index_encoded + tx_index_encoded + certificate_index_encoded)
-
-
-def pack_reward_address_bytes(
-    staking_key_hash: bytes,
-    network_id: int,
-    is_script: bool,
-) -> bytes:
-    """
-    Helper function to transform raw staking key hash into reward address
-    """
-    header = _create_address_header(
-        CardanoAddressType.REWARD_SCRIPT if is_script else CardanoAddressType.REWARD,
-        network_id,
-    )
-
-    return header + staking_key_hash

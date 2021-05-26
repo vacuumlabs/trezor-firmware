@@ -8,6 +8,7 @@ from trezor.messages import (
     CardanoCertificateType,
     CardanoScriptType,
 )
+from trezor.messages.CardanoAddressParametersType import CardanoAddressParametersType
 from trezor.strings import format_amount
 from trezor.ui.components.tt.button import ButtonDefault
 from trezor.ui.components.tt.scroll import Paginated
@@ -18,11 +19,7 @@ from apps.common.confirm import confirm, require_confirm, require_hold_to_confir
 from apps.common.layout import address_n_to_str
 
 from . import seed
-from .address import (
-    encode_human_readable_address,
-    get_public_key_hash,
-    pack_reward_address_bytes,
-)
+from .address import derive_human_readable_address
 from .helpers import protocol_magics
 from .helpers.utils import (
     format_account_number,
@@ -364,6 +361,7 @@ async def confirm_stake_pool_owners(
     ctx: wire.Context,
     keychain: seed.Keychain,
     owners: list[CardanoPoolOwnerType],
+    protocol_magic: int,
     network_id: int,
 ) -> None:
     pages: list[ui.Component] = []
@@ -371,23 +369,30 @@ async def confirm_stake_pool_owners(
         page = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
         page.normal("Pool owner #%d:" % (index))
 
-        # TODO GK probably needs to be adjusted for scripts
         if owner.staking_key_path:
             page.bold(address_n_to_str(owner.staking_key_path))
             page.normal(
-                encode_human_readable_address(
-                    pack_reward_address_bytes(
-                        get_public_key_hash(keychain, owner.staking_key_path),
-                        network_id,
-                        False,
-                    )
+                derive_human_readable_address(
+                    keychain,
+                    CardanoAddressParametersType(
+                        address_type=CardanoAddressType.REWARD,
+                        address_n=owner.staking_key_path,
+                    ),
+                    protocol_magic,
+                    network_id,
                 )
             )
         else:
             assert owner.staking_key_hash is not None  # validate_pool_owners
             page.bold(
-                encode_human_readable_address(
-                    pack_reward_address_bytes(owner.staking_key_hash, network_id, False)
+                derive_human_readable_address(
+                    keychain,
+                    CardanoAddressParametersType(
+                        address_type=CardanoAddressType.REWARD,
+                        staking_key_hash=owner.staking_key_hash,
+                    ),
+                    protocol_magic,
+                    network_id,
                 )
             )
 

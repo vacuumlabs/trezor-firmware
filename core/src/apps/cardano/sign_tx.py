@@ -636,7 +636,7 @@ async def _show_stake_pool_registration_tx(
             )
 
     await confirm_stake_pool_owners(
-        ctx, keychain, pool_parameters.owners, msg.network_id
+        ctx, keychain, pool_parameters.owners, msg.protocol_magic, msg.network_id
     )
     await confirm_stake_pool_metadata(ctx, pool_parameters.metadata)
     await confirm_transaction_network_ttl(
