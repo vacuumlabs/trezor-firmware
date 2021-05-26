@@ -105,7 +105,9 @@ def sign_tx(client, file, protocol_magic, network_id, testnet):
 @click.option("-x", "--tx_index", type=int, default=None)
 @click.option("-c", "--certificate_index", type=int, default=None)
 @click.option("--script-payment-file", default=None)
+@click.option("--script-payment-hash", type=str, default=None)
 @click.option("--script-staking-file", default=None)
+@click.option("--script-staking-hash", type=str, default=None)
 @click.option(
     "-p", "--protocol-magic", type=int, default=cardano.PROTOCOL_MAGICS["mainnet"]
 )
@@ -122,7 +124,9 @@ def get_address(
     tx_index,
     certificate_index,
     script_payment_file,
+    script_payment_hash,
     script_staking_file,
+    script_staking_hash,
     protocol_magic,
     network_id,
     show_display,
@@ -156,10 +160,18 @@ def get_address(
         script_payment_json = json.load(open(script_payment_file, "r"))
         script_payment = cardano.parse_script(script_payment_json)
 
+    script_payment_hash_bytes = None
+    if script_payment_hash:
+        script_payment_hash_bytes = bytes.fromhex(script_payment_hash)
+
     script_staking = None
     if script_staking_file:
         script_staking_json = json.load(open(script_staking_file, "r"))
         script_staking = cardano.parse_script(script_staking_json)
+
+    script_staking_hash_bytes = None
+    if script_staking_hash:
+        script_staking_hash_bytes = bytes.fromhex(script_staking_hash)
 
     address_parameters = cardano.create_address_parameters(
         address_type,
@@ -170,7 +182,9 @@ def get_address(
         tx_index,
         certificate_index,
         script_payment,
+        script_payment_hash_bytes,
         script_staking,
+        script_staking_hash_bytes,
     )
 
     return cardano.get_address(

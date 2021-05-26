@@ -89,7 +89,9 @@ message CardanoAddressParametersType {
                                                                     // the same account as address_n
     optional CardanoBlockchainPointerType certificate_pointer = 5;  // a pointer to the staking key registration certificate
     optional CardanoScript script_payment = 6;
-    optional CardanoScript script_staking = 7;
+    optional bytes script_payment_hash = 7;
+    optional CardanoScript script_staking = 8;
+    optional bytes script_staking_hash = 9;
 }
 
 /**

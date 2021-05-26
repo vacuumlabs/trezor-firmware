@@ -6,7 +6,9 @@ from .helpers import (
     ADDRESS_KEY_HASH_SIZE,
     INVALID_ADDRESS,
     INVALID_ADDRESS_PARAMETERS,
+    INVALID_SCRIPT,
     NETWORK_MISMATCH,
+    SCRIPT_HASH_SIZE,
     bech32,
     network_ids,
 )
@@ -62,16 +64,24 @@ def validate_address_parameters(parameters: CardanoAddressParametersType) -> Non
             _validate_base_address_staking_info(
                 parameters.address_n_staking, parameters.staking_key_hash
             )
-            validate_script(parameters.script_payment)
+            _validate_script_or_script_hash(
+                parameters.script_payment, parameters.script_payment_hash
+            )
 
         elif parameters.address_type == CardanoAddressType.BASE_KEY_SCRIPT:
             if not is_shelley_path(parameters.address_n):
                 raise INVALID_ADDRESS_PARAMETERS
-            validate_script(parameters.script_staking)
+            _validate_script_or_script_hash(
+                parameters.script_staking, parameters.script_staking_hash
+            )
 
         elif parameters.address_type == CardanoAddressType.BASE_SCRIPT_SCRIPT:
-            validate_script(parameters.script_payment)
-            validate_script(parameters.script_staking)
+            _validate_script_or_script_hash(
+                parameters.script_payment, parameters.script_payment_hash
+            )
+            _validate_script_or_script_hash(
+                parameters.script_staking, parameters.script_staking_hash
+            )
 
         elif parameters.address_type == CardanoAddressType.POINTER:
             if not is_shelley_path(parameters.address_n):
@@ -82,14 +92,18 @@ def validate_address_parameters(parameters: CardanoAddressParametersType) -> Non
         elif parameters.address_type == CardanoAddressType.POINTER_SCRIPT:
             if parameters.certificate_pointer is None:
                 raise INVALID_ADDRESS_PARAMETERS
-            validate_script(parameters.script_payment)
+            _validate_script_or_script_hash(
+                parameters.script_payment, parameters.script_payment_hash
+            )
 
         elif parameters.address_type == CardanoAddressType.ENTERPRISE:
             if not is_shelley_path(parameters.address_n):
                 raise INVALID_ADDRESS_PARAMETERS
 
         elif parameters.address_type == CardanoAddressType.ENTERPRISE_SCRIPT:
-            validate_script(parameters.script_payment)
+            _validate_script_or_script_hash(
+                parameters.script_payment, parameters.script_payment_hash
+            )
 
         elif parameters.address_type == CardanoAddressType.REWARD:
             if not is_shelley_path(parameters.address_n):
@@ -98,7 +112,9 @@ def validate_address_parameters(parameters: CardanoAddressParametersType) -> Non
                 raise INVALID_ADDRESS_PARAMETERS
 
         elif parameters.address_type == CardanoAddressType.REWARD_SCRIPT:
-            validate_script(parameters.script_staking)
+            _validate_script_or_script_hash(
+                parameters.script_staking, parameters.script_staking_hash
+            )
     else:
         raise INVALID_ADDRESS_PARAMETERS
 
@@ -111,19 +127,29 @@ def _validate_address_parameters_structure(
     staking_key_hash = parameters.staking_key_hash
     certificate_pointer = parameters.certificate_pointer
     script_payment = parameters.script_payment
+    script_payment_hash = parameters.script_payment_hash
     script_staking = parameters.script_staking
+    script_staking_hash = parameters.script_staking_hash
 
     fields_to_be_empty: dict[int, list[Any]] = {
-        CardanoAddressType.BASE: [certificate_pointer, script_payment, script_staking],
+        CardanoAddressType.BASE: [
+            certificate_pointer,
+            script_payment,
+            script_payment_hash,
+            script_staking,
+            script_staking_hash,
+        ],
         CardanoAddressType.BASE_KEY_SCRIPT: [
             address_n_staking,
             certificate_pointer,
             script_payment,
+            script_payment_hash,
         ],
         CardanoAddressType.BASE_SCRIPT_KEY: [
             address_n,
             certificate_pointer,
             script_staking,
+            script_staking_hash,
         ],
         CardanoAddressType.BASE_SCRIPT_SCRIPT: [
             address_n,
@@ -134,20 +160,25 @@ def _validate_address_parameters_structure(
             address_n_staking,
             staking_key_hash,
             script_payment,
+            script_payment_hash,
             script_staking,
+            script_staking_hash,
         ],
         CardanoAddressType.POINTER_SCRIPT: [
             address_n,
             address_n_staking,
             staking_key_hash,
             script_staking,
+            script_staking_hash,
         ],
         CardanoAddressType.ENTERPRISE: [
             address_n_staking,
             staking_key_hash,
             certificate_pointer,
             script_payment,
+            script_payment_hash,
             script_staking,
+            script_staking_hash,
         ],
         CardanoAddressType.ENTERPRISE_SCRIPT: [
             address_n,
@@ -155,20 +186,25 @@ def _validate_address_parameters_structure(
             staking_key_hash,
             certificate_pointer,
             script_staking,
+            script_staking_hash,
         ],
         CardanoAddressType.BYRON: [
             address_n_staking,
             staking_key_hash,
             certificate_pointer,
             script_payment,
+            script_payment_hash,
             script_staking,
+            script_staking_hash,
         ],
         CardanoAddressType.REWARD: [
             address_n_staking,
             staking_key_hash,
             certificate_pointer,
             script_payment,
+            script_payment_hash,
             script_staking,
+            script_staking_hash,
         ],
         CardanoAddressType.REWARD_SCRIPT: [
             address_n,
@@ -176,6 +212,7 @@ def _validate_address_parameters_structure(
             staking_key_hash,
             certificate_pointer,
             script_payment,
+            script_payment_hash,
         ],
     }
 
@@ -197,6 +234,24 @@ def _validate_base_address_staking_info(
             raise INVALID_ADDRESS_PARAMETERS
     elif staking_path:
         if not SCHEMA_STAKING_ANY_ACCOUNT.match(staking_path):
+            raise INVALID_ADDRESS_PARAMETERS
+    else:
+        raise INVALID_ADDRESS_PARAMETERS
+
+
+def _validate_script_or_script_hash(
+    script: CardanoScript | None, script_hash: bytes | None
+):
+    if script and script_hash:
+        raise INVALID_ADDRESS_PARAMETERS
+
+    if script:
+        try:
+            validate_script(script)
+        except INVALID_SCRIPT:
+            raise INVALID_ADDRESS_PARAMETERS
+    elif script_hash:
+        if len(script_hash) != SCRIPT_HASH_SIZE:
             raise INVALID_ADDRESS_PARAMETERS
     else:
         raise INVALID_ADDRESS_PARAMETERS
@@ -381,6 +436,8 @@ def _get_address_payment_part(
         return get_public_key_hash(keychain, parameters.address_n)
     elif parameters.script_payment:
         return get_script_hash(keychain, parameters.script_payment)
+    elif parameters.script_payment_hash:
+        return parameters.script_payment_hash
     else:
         return bytes()
 
@@ -394,6 +451,8 @@ def _get_address_staking_part(
         return get_public_key_hash(keychain, parameters.address_n_staking)
     elif parameters.script_staking:
         return get_script_hash(keychain, parameters.script_staking)
+    elif parameters.script_staking_hash:
+        return parameters.script_staking_hash
     elif parameters.certificate_pointer:
         return _encode_certificate_pointer(parameters.certificate_pointer)
     else:

@@ -73,7 +73,9 @@ def create_address_parameters(
     tx_index: int = None,
     certificate_index: int = None,
     script_payment: messages.CardanoScript = None,
+    script_payment_hash: bytes = None,
     script_staking: messages.CardanoScript = None,
+    script_staking_hash: bytes = None,
 ) -> messages.CardanoAddressParametersType:
     certificate_pointer = None
 
@@ -92,7 +94,9 @@ def create_address_parameters(
         staking_key_hash=staking_key_hash,
         certificate_pointer=certificate_pointer,
         script_payment=script_payment,
+        script_payment_hash=script_payment_hash,
         script_staking=script_staking,
+        script_staking_hash=script_staking_hash,
     )
 
 
@@ -180,6 +184,7 @@ def _parse_tokens(tokens) -> List[messages.CardanoTokenType]:
     return result
 
 
+# TODO GK update with scripts
 def _parse_address_parameters(
     address_parameters,
 ) -> messages.CardanoAddressParametersType:
