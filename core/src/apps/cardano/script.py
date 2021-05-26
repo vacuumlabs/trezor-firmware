@@ -79,7 +79,7 @@ def _validate_script_structure(script: CardanoScript) -> None:
     invalid_before = script.invalid_before
     invalid_hereafter = script.invalid_hereafter
 
-    fields_to_be_empty: dict[int, list[Any]] = {
+    fields_to_be_empty: dict[int, tuple[Any]] = {
         CardanoScriptType.PUB_KEY: (
             scripts,
             required_signatures_count,

@@ -131,47 +131,47 @@ def _validate_address_parameters_structure(
     script_staking = parameters.script_staking
     script_staking_hash = parameters.script_staking_hash
 
-    fields_to_be_empty: dict[int, list[Any]] = {
-        CardanoAddressType.BASE: [
+    fields_to_be_empty: dict[int, tuple[Any]] = {
+        CardanoAddressType.BASE: (
             certificate_pointer,
             script_payment,
             script_payment_hash,
             script_staking,
             script_staking_hash,
-        ],
-        CardanoAddressType.BASE_KEY_SCRIPT: [
+        ),
+        CardanoAddressType.BASE_KEY_SCRIPT: (
             address_n_staking,
             certificate_pointer,
             script_payment,
             script_payment_hash,
-        ],
-        CardanoAddressType.BASE_SCRIPT_KEY: [
+        ),
+        CardanoAddressType.BASE_SCRIPT_KEY: (
             address_n,
             certificate_pointer,
             script_staking,
             script_staking_hash,
-        ],
-        CardanoAddressType.BASE_SCRIPT_SCRIPT: [
+        ),
+        CardanoAddressType.BASE_SCRIPT_SCRIPT: (
             address_n,
             address_n_staking,
             certificate_pointer,
-        ],
-        CardanoAddressType.POINTER: [
+        ),
+        CardanoAddressType.POINTER: (
             address_n_staking,
             staking_key_hash,
             script_payment,
             script_payment_hash,
             script_staking,
             script_staking_hash,
-        ],
-        CardanoAddressType.POINTER_SCRIPT: [
+        ),
+        CardanoAddressType.POINTER_SCRIPT: (
             address_n,
             address_n_staking,
             staking_key_hash,
             script_staking,
             script_staking_hash,
-        ],
-        CardanoAddressType.ENTERPRISE: [
+        ),
+        CardanoAddressType.ENTERPRISE: (
             address_n_staking,
             staking_key_hash,
             certificate_pointer,
@@ -179,41 +179,41 @@ def _validate_address_parameters_structure(
             script_payment_hash,
             script_staking,
             script_staking_hash,
-        ],
-        CardanoAddressType.ENTERPRISE_SCRIPT: [
-            address_n,
-            address_n_staking,
-            staking_key_hash,
-            certificate_pointer,
-            script_staking,
-            script_staking_hash,
-        ],
-        CardanoAddressType.BYRON: [
-            address_n_staking,
-            staking_key_hash,
-            certificate_pointer,
-            script_payment,
-            script_payment_hash,
-            script_staking,
-            script_staking_hash,
-        ],
-        CardanoAddressType.REWARD: [
-            address_n_staking,
-            staking_key_hash,
-            certificate_pointer,
-            script_payment,
-            script_payment_hash,
-            script_staking,
-            script_staking_hash,
-        ],
-        CardanoAddressType.REWARD_SCRIPT: [
+        ),
+        CardanoAddressType.ENTERPRISE_SCRIPT: (
             address_n,
             address_n_staking,
             staking_key_hash,
             certificate_pointer,
+            script_staking,
+            script_staking_hash,
+        ),
+        CardanoAddressType.BYRON: (
+            address_n_staking,
+            staking_key_hash,
+            certificate_pointer,
             script_payment,
             script_payment_hash,
-        ],
+            script_staking,
+            script_staking_hash,
+        ),
+        CardanoAddressType.REWARD: (
+            address_n_staking,
+            staking_key_hash,
+            certificate_pointer,
+            script_payment,
+            script_payment_hash,
+            script_staking,
+            script_staking_hash,
+        ),
+        CardanoAddressType.REWARD_SCRIPT: (
+            address_n,
+            address_n_staking,
+            staking_key_hash,
+            certificate_pointer,
+            script_payment,
+            script_payment_hash,
+        ),
     }
 
     if parameters.address_type not in fields_to_be_empty or any(
@@ -345,10 +345,7 @@ def _get_bech32_hrp_for_address(
         # Byron address uses base58 encoding
         raise ValueError
 
-    if (
-        address_type == CardanoAddressType.REWARD
-        or address_type == CardanoAddressType.REWARD_SCRIPT
-    ):
+    if address_type in (CardanoAddressType.REWARD, CardanoAddressType.REWARD_SCRIPT):
         if network_ids.is_mainnet(network_id):
             return bech32.HRP_REWARD_ADDRESS
         else:
