@@ -156,6 +156,8 @@ message CardanoSignTx {
     // optional bytes metadata = 11;                            // replaced in Mary era with auxiliary data below
     optional uint64 validity_interval_start = 12;               // transaction validity start - added in allegra
     optional CardanoTxAuxiliaryDataType auxiliary_data = 13;    // transaction auxiliary data
+    // TODO GK maybe there should be a wrapper CardanoTxMintType so that it could be easily extended later if needed
+    repeated CardanoAssetGroupType mint = 14;                   // transaction mint tokens
 
     /**
      * Structure representing cardano transaction input
@@ -185,7 +187,8 @@ message CardanoSignTx {
 
     message CardanoTokenType {
         required bytes asset_name_bytes = 1;     // asset name as bytestring (may be either ascii string or hash)
-        required uint64 amount = 2;        // asset amount
+        optional uint64 amount = 2;              // asset amount
+        optional sint64 mint_amount = 3;         // mint amount (can also be negative in which case the tokens are burnt)
     }
 
     /**

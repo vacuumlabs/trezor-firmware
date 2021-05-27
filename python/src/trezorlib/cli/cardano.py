@@ -74,6 +74,7 @@ def sign_tx(client, file, protocol_magic, network_id, testnet):
         for withdrawal in transaction.get("withdrawals", ())
     ]
     auxiliary_data = cardano.parse_auxiliary_data(transaction.get("auxiliary_data"))
+    mint = cardano.parse_mint(transaction.get("mint", ()))
 
     signed_transaction = cardano.sign_tx(
         client,
@@ -87,6 +88,7 @@ def sign_tx(client, file, protocol_magic, network_id, testnet):
         protocol_magic,
         network_id,
         auxiliary_data,
+        mint,
     )
 
     return {

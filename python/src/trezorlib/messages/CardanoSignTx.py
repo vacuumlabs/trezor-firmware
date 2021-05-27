@@ -3,6 +3,7 @@
 # isort:skip_file
 from .. import protobuf as p
 
+from .CardanoAssetGroupType import CardanoAssetGroupType
 from .CardanoTxAuxiliaryDataType import CardanoTxAuxiliaryDataType
 from .CardanoTxCertificateType import CardanoTxCertificateType
 from .CardanoTxInputType import CardanoTxInputType
@@ -30,6 +31,7 @@ class CardanoSignTx(p.MessageType):
         outputs: Optional[List[CardanoTxOutputType]] = None,
         certificates: Optional[List[CardanoTxCertificateType]] = None,
         withdrawals: Optional[List[CardanoTxWithdrawalType]] = None,
+        mint: Optional[List[CardanoAssetGroupType]] = None,
         ttl: Optional[int] = None,
         validity_interval_start: Optional[int] = None,
         auxiliary_data: Optional[CardanoTxAuxiliaryDataType] = None,
@@ -38,6 +40,7 @@ class CardanoSignTx(p.MessageType):
         self.outputs = outputs if outputs is not None else []
         self.certificates = certificates if certificates is not None else []
         self.withdrawals = withdrawals if withdrawals is not None else []
+        self.mint = mint if mint is not None else []
         self.protocol_magic = protocol_magic
         self.fee = fee
         self.network_id = network_id
@@ -58,4 +61,5 @@ class CardanoSignTx(p.MessageType):
             10: ('withdrawals', CardanoTxWithdrawalType, p.FLAG_REPEATED),
             12: ('validity_interval_start', p.UVarintType, None),
             13: ('auxiliary_data', CardanoTxAuxiliaryDataType, None),
+            14: ('mint', CardanoAssetGroupType, p.FLAG_REPEATED),
         }

@@ -18,6 +18,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "mint": [],
         "input_flow": [["YES"], ["YES"], ["SWIPE", "YES"], ["SWIPE", "YES"]],
         "inputs": [
           {
@@ -48,6 +49,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "mint": [],
         "input_flow": [["YES"], ["YES"], ["SWIPE", "YES"], ["YES"], ["SWIPE", "YES"]],
         "inputs": [
           {
@@ -83,6 +85,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "mint": [],
         "input_flow": [["YES"], ["YES"], ["SWIPE", "YES"], ["YES"], ["SWIPE", "YES"]],
         "inputs": [
           {

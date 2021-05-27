@@ -29,6 +29,7 @@ from .certificates import cborize_certificate, validate_certificate
 from .helpers import (
     INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE,
     INVALID_STAKEPOOL_REGISTRATION_TX_INPUTS,
+    INVALID_TOKEN_BUNDLE_MINT,
     INVALID_TOKEN_BUNDLE_OUTPUT,
     INVALID_WITHDRAWAL,
     LOVELACE_MAX_SUPPLY,
@@ -52,6 +53,7 @@ from .helpers.paths import (
 from .helpers.utils import derive_public_key, to_account_path
 from .layout import (
     confirm_certificate,
+    confirm_mint,
     confirm_sending,
     confirm_stake_pool_metadata,
     confirm_stake_pool_owners,
@@ -137,6 +139,7 @@ async def _sign_ordinary_tx(
     _validate_certificates(msg.certificates, msg.protocol_magic, msg.network_id)
     _validate_withdrawals(msg.withdrawals)
     validate_auxiliary_data(msg.auxiliary_data)
+    _validate_token_bundle(msg.mint, is_mint=True)
 
     # display the transaction in UI
     await _show_standard_tx(ctx, keychain, msg)
@@ -165,6 +168,8 @@ async def _sign_stake_pool_registration_tx(
     _validate_outputs(keychain, msg.outputs, msg.protocol_magic, msg.network_id)
     _validate_certificates(msg.certificates, msg.protocol_magic, msg.network_id)
     validate_auxiliary_data(msg.auxiliary_data)
+    # TODO GK can mint tokens when signing stake pool registration?
+    _validate_token_bundle(msg.mint, is_mint=True)
 
     await _show_stake_pool_registration_tx(ctx, keychain, msg)
 
@@ -226,7 +231,7 @@ def _validate_outputs(
                 "Each output must have an address field or address_parameters!"
             )
 
-        _validate_token_bundle(output.token_bundle)
+        _validate_token_bundle(output.token_bundle, is_mint=False)
         _validate_max_tx_output_size(keychain, output, protocol_magic, network_id)
 
     if total_amount > LOVELACE_MAX_SUPPLY:
@@ -264,30 +269,43 @@ def _validate_max_tx_output_size(
         )
 
 
-def _validate_token_bundle(token_bundle: list[CardanoAssetGroupType]) -> None:
+def _validate_token_bundle(
+    token_bundle: list[CardanoAssetGroupType], is_mint: bool
+) -> None:
+    INVALID_TOKEN_BUNDLE = (
+        INVALID_TOKEN_BUNDLE_MINT if is_mint else INVALID_TOKEN_BUNDLE_OUTPUT
+    )
+
     seen_policy_ids = set()
     for token_group in token_bundle:
         policy_id = bytes(token_group.policy_id)
 
         if len(policy_id) != MINTING_POLICY_ID_LENGTH:
-            raise INVALID_TOKEN_BUNDLE_OUTPUT
+            raise INVALID_TOKEN_BUNDLE
 
         if policy_id in seen_policy_ids:
-            raise INVALID_TOKEN_BUNDLE_OUTPUT
+            raise INVALID_TOKEN_BUNDLE
         else:
             seen_policy_ids.add(policy_id)
 
         if not token_group.tokens:
-            raise INVALID_TOKEN_BUNDLE_OUTPUT
+            raise INVALID_TOKEN_BUNDLE
 
         seen_asset_name_bytes = set()
         for token in token_group.tokens:
             asset_name_bytes = bytes(token.asset_name_bytes)
             if len(asset_name_bytes) > MAX_ASSET_NAME_LENGTH:
-                raise INVALID_TOKEN_BUNDLE_OUTPUT
+                raise INVALID_TOKEN_BUNDLE
+
+            if is_mint:
+                if token.mint_amount is None or token.amount is not None:
+                    raise INVALID_TOKEN_BUNDLE
+            else:
+                if token.amount is None or token.mint_amount is not None:
+                    raise INVALID_TOKEN_BUNDLE
 
             if asset_name_bytes in seen_asset_name_bytes:
-                raise INVALID_TOKEN_BUNDLE_OUTPUT
+                raise INVALID_TOKEN_BUNDLE
             else:
                 seen_asset_name_bytes.add(asset_name_bytes)
 
@@ -374,6 +392,9 @@ def _cborize_tx_body(keychain: seed.Keychain, msg: CardanoSignTx) -> dict:
     if msg.validity_interval_start:
         tx_body[8] = msg.validity_interval_start
 
+    if msg.mint:
+        tx_body[9] = _cborize_token_bundle(msg.mint, is_mint=True)
+
     return tx_body
 
 
@@ -411,11 +432,15 @@ def _cborize_output(
     if not output.token_bundle:
         return (address, amount)
     else:
-        return (address, (amount, _cborize_token_bundle(output.token_bundle)))
+        return (
+            address,
+            (amount, _cborize_token_bundle(output.token_bundle, is_mint=False)),
+        )
 
 
 def _cborize_token_bundle(
     token_bundle: list[CardanoAssetGroupType],
+    is_mint: bool,
 ) -> CborizedTokenBundle:
     result: CborizedTokenBundle = {}
 
@@ -424,8 +449,11 @@ def _cborize_token_bundle(
         cborized_token_group = result[cborized_policy_id] = {}
 
         for token in token_group.tokens:
+            amount = token.mint_amount if is_mint else token.amount
+            assert amount is not None  # _validate_token_bundle
+
             cborized_asset_name = bytes(token.asset_name_bytes)
-            cborized_token_group[cborized_asset_name] = token.amount
+            cborized_token_group[cborized_asset_name] = amount
 
     return result
 
@@ -585,6 +613,9 @@ async def _show_standard_tx(
 
     if not is_network_id_verifiable:
         await show_warning_tx_network_unverifiable(ctx)
+
+    if msg.mint:
+        await confirm_mint(ctx, msg.mint)
 
     total_amount = await _show_outputs(ctx, keychain, msg)
 

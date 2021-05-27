@@ -68,6 +68,7 @@
         ],
         "withdrawals": [],
         "auxiliary_data": null,
+        "mint": [],
         "input_flow": [["SWIPE", "SWIPE", "YES"], ["SWIPE", "YES"], ["SWIPE", "YES"], ["YES"], ["YES"]],
         "inputs": [
           {
@@ -152,6 +153,7 @@
         ],
         "withdrawals": [],
         "auxiliary_data": null,
+        "mint": [],
         "input_flow": [["SWIPE", "SWIPE", "YES"], ["SWIPE", "YES"], ["SWIPE", "YES"], ["YES"], ["YES"]],
         "inputs": [
           {
@@ -237,6 +239,7 @@
         ],
         "withdrawals": [],
         "auxiliary_data": null,
+        "mint": [],
         "input_flow": [["SWIPE", "SWIPE", "YES"], ["YES"], ["SWIPE", "YES"], ["SWIPE", "YES"], ["YES"], ["YES"]],
         "inputs": [
           {
@@ -288,6 +291,7 @@
         ],
         "withdrawals": [],
         "auxiliary_data": null,
+        "mint": [],
         "input_flow": [["SWIPE", "SWIPE", "YES"], ["YES"], ["YES"], ["YES"], ["YES"]],
         "inputs": [
           {
@@ -339,6 +343,7 @@
         ],
         "withdrawals": [],
         "auxiliary_data": null,
+        "mint": [],
         "input_flow": [["SWIPE", "SWIPE", "YES"], ["YES"], ["YES"], ["YES"], ["YES"]],
         "inputs": [
           {
@@ -426,6 +431,7 @@
           "type": 0,
           "blob": "a200a11864a118c843aa00ff01a119012c590100aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         },
+        "mint": [],
         "input_flow": [["SWIPE", "SWIPE", "YES"], ["SWIPE", "YES"], ["SWIPE", "YES"], ["YES"], ["YES"], ["YES"]],
         "inputs": [
           {

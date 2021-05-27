@@ -37,7 +37,6 @@ REQUIRED_FIELDS_POOL_PARAMETERS = (
 )
 REQUIRED_FIELDS_WITHDRAWAL = ("path", "amount")
 REQUIRED_FIELDS_TOKEN_GROUP = ("policy_id", "tokens")
-REQUIRED_FIELDS_TOKEN = ("asset_name_bytes", "amount")
 REQUIRED_FIELDS_CATALYST_REGISTRATION = (
     "voting_public_key",
     "staking_path",
@@ -142,7 +141,7 @@ def parse_output(output) -> messages.CardanoTxOutputType:
         address_parameters = _parse_address_parameters(output)
 
     if "token_bundle" in output:
-        token_bundle = _parse_token_bundle(output["token_bundle"])
+        token_bundle = _parse_token_bundle(output["token_bundle"], is_mint=False)
 
     return messages.CardanoTxOutputType(
         address=address,
@@ -152,7 +151,9 @@ def parse_output(output) -> messages.CardanoTxOutputType:
     )
 
 
-def _parse_token_bundle(token_bundle) -> List[messages.CardanoAssetGroupType]:
+def _parse_token_bundle(
+    token_bundle, is_mint: bool
+) -> List[messages.CardanoAssetGroupType]:
     result = []
     for token_group in token_bundle:
         if not all(k in token_group for k in REQUIRED_FIELDS_TOKEN_GROUP):
@@ -161,23 +162,35 @@ def _parse_token_bundle(token_bundle) -> List[messages.CardanoAssetGroupType]:
         result.append(
             messages.CardanoAssetGroupType(
                 policy_id=bytes.fromhex(token_group["policy_id"]),
-                tokens=_parse_tokens(token_group["tokens"]),
+                tokens=_parse_tokens(token_group["tokens"], is_mint),
             )
         )
 
     return result
 
 
-def _parse_tokens(tokens) -> List[messages.CardanoTokenType]:
+def _parse_tokens(tokens, is_mint: bool) -> List[messages.CardanoTokenType]:
     result = []
     for token in tokens:
-        if not all(k in token for k in REQUIRED_FIELDS_TOKEN):
+        if "asset_name_bytes" not in token:
             raise ValueError(INVALID_OUTPUT_TOKEN_BUNDLE_ENTRY)
+
+        mint_amount = None
+        amount = None
+        if is_mint:
+            if "mint_amount" not in token:
+                raise ValueError(INVALID_OUTPUT_TOKEN_BUNDLE_ENTRY)
+            mint_amount = int(token["mint_amount"])
+        else:
+            if "amount" not in token:
+                raise ValueError(INVALID_OUTPUT_TOKEN_BUNDLE_ENTRY)
+            amount = int(token["amount"])
 
         result.append(
             messages.CardanoTokenType(
                 asset_name_bytes=bytes.fromhex(token["asset_name_bytes"]),
-                amount=int(token["amount"]),
+                amount=amount,
+                mint_amount=mint_amount,
             )
         )
 
@@ -404,6 +417,10 @@ def parse_auxiliary_data(auxiliary_data) -> messages.CardanoTxAuxiliaryDataType:
     )
 
 
+def parse_mint(mint) -> List[messages.CardanoAssetGroupType]:
+    return _parse_token_bundle(mint, is_mint=True)
+
+
 # ====== Client functions ====== #
 
 
@@ -443,6 +460,7 @@ def sign_tx(
     protocol_magic: int = PROTOCOL_MAGICS["mainnet"],
     network_id: int = NETWORK_IDS["mainnet"],
     auxiliary_data: messages.CardanoTxAuxiliaryDataType = None,
+    mint: List[messages.CardanoAssetGroupType] = (),
 ) -> messages.CardanoSignedTx:
     response = client.call(
         messages.CardanoSignTx(
@@ -456,6 +474,7 @@ def sign_tx(
             protocol_magic=protocol_magic,
             network_id=network_id,
             auxiliary_data=auxiliary_data,
+            mint=mint,
         )
     )
 

@@ -176,6 +176,7 @@ async def confirm_sending_token_bundle(
             )
             page2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
             page2.normal("Amount sent:")
+            assert token.amount is not None  # _validate_token_bundle
             page2.bold(format_amount(token.amount, 0))
             await require_confirm(ctx, Paginated([page1, page2]))
 
@@ -510,6 +511,36 @@ async def show_auxiliary_data_hash(
     page1.bold(hexlify(auxiliary_data_hash).decode())
 
     await require_confirm(ctx, page1)
+
+
+async def confirm_mint(ctx: wire.Context, mint: list[CardanoAssetGroupType]) -> None:
+    title_page = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+    title_page.normal("The transaction contains")
+    title_page.normal("minting or burning of")
+    title_page.normal("tokens.")
+    title_page.br_half()
+    title_page.normal("Continue?")
+    await require_confirm(ctx, title_page)
+
+    for token_group in mint:
+        for token in token_group.tokens:
+            page1 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+            page1.normal("Asset fingerprint:")
+            page1.bold(
+                format_asset_fingerprint(
+                    policy_id=token_group.policy_id,
+                    asset_name_bytes=token.asset_name_bytes,
+                )
+            )
+
+            assert token.mint_amount is not None  # _validate_token_bundle
+            is_minting = token.mint_amount >= 0
+
+            page2 = Text("Confirm transaction", ui.ICON_SEND, ui.GREEN)
+            page2.normal("Amount %s:" % ("minted" if is_minting else "burnt"))
+            page2.bold(format_amount(token.mint_amount, 0))
+
+            await require_confirm(ctx, Paginated([page1, page2]))
 
 
 async def show_address(

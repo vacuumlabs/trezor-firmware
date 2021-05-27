@@ -17,14 +17,17 @@ class CardanoTokenType(p.MessageType):
         self,
         *,
         asset_name_bytes: bytes,
-        amount: int,
+        amount: Optional[int] = None,
+        mint_amount: Optional[int] = None,
     ) -> None:
         self.asset_name_bytes = asset_name_bytes
         self.amount = amount
+        self.mint_amount = mint_amount
 
     @classmethod
     def get_fields(cls) -> Dict:
         return {
             1: ('asset_name_bytes', p.BytesType, p.FLAG_REQUIRED),
-            2: ('amount', p.UVarintType, p.FLAG_REQUIRED),
+            2: ('amount', p.UVarintType, None),
+            3: ('mint_amount', p.SVarintType, None),
         }
