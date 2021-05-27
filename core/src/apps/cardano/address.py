@@ -1,3 +1,4 @@
+from trezor import wire
 from trezor.crypto import base58
 from trezor.messages import CardanoAddressType
 
@@ -6,7 +7,6 @@ from .helpers import (
     ADDRESS_KEY_HASH_SIZE,
     INVALID_ADDRESS,
     INVALID_ADDRESS_PARAMETERS,
-    INVALID_SCRIPT,
     NETWORK_MISMATCH,
     SCRIPT_HASH_SIZE,
     bech32,
@@ -27,6 +27,7 @@ if False:
         CardanoAddressParametersType,
         EnumTypeCardanoAddressType,
     )
+    from trezor.messages.CardanoScript import CardanoScript
     from . import seed
 
 ADDRESS_TYPES_SHELLEY = (
@@ -131,7 +132,7 @@ def _validate_address_parameters_structure(
     script_staking = parameters.script_staking
     script_staking_hash = parameters.script_staking_hash
 
-    fields_to_be_empty: dict[int, tuple[Any]] = {
+    fields_to_be_empty: dict[EnumTypeCardanoAddressType, tuple[Any, ...]] = {
         CardanoAddressType.BASE: (
             certificate_pointer,
             script_payment,
@@ -241,14 +242,14 @@ def _validate_base_address_staking_info(
 
 def _validate_script_or_script_hash(
     script: CardanoScript | None, script_hash: bytes | None
-):
+) -> None:
     if script and script_hash:
         raise INVALID_ADDRESS_PARAMETERS
 
     if script:
         try:
             validate_script(script)
-        except INVALID_SCRIPT:
+        except wire.ProcessError:
             raise INVALID_ADDRESS_PARAMETERS
     elif script_hash:
         if len(script_hash) != SCRIPT_HASH_SIZE:

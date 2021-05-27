@@ -11,7 +11,7 @@ from .seed import Keychain, is_multisig_path
 if False:
     from typing import Any
 
-    from trezor.messages.CardanoScript import CardanoScript
+    from trezor.messages.CardanoScript import CardanoScript, EnumTypeCardanoScriptType
 
     from apps.common.cbor import CborSequence
 
@@ -79,7 +79,7 @@ def _validate_script_structure(script: CardanoScript) -> None:
     invalid_before = script.invalid_before
     invalid_hereafter = script.invalid_hereafter
 
-    fields_to_be_empty: dict[int, tuple[Any]] = {
+    fields_to_be_empty: dict[EnumTypeCardanoScriptType, tuple[Any, ...]] = {
         CardanoScriptType.PUB_KEY: (
             scripts,
             required_signatures_count,
