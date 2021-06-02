@@ -89,11 +89,10 @@ def is_printable_ascii_bytestring(bytestr: bytes) -> bool:
 
 async def show_script(
     ctx: wire.Context,
-    title: str,
     script: CardanoScript,
     indices: list[int] = [],
 ) -> None:
-    page1 = Text("%s script" % title, ui.ICON_SEND, ui.GREEN)
+    page1 = Text("Verify script", ui.ICON_SEND, ui.GREEN)
 
     indices_str = ".".join([str(i) for i in indices])
     page1.bold(
@@ -133,7 +132,17 @@ async def show_script(
     await require_confirm(ctx, page1)
 
     for i, sub_script in enumerate(script.scripts):
-        await show_script(ctx, title, sub_script, indices + [(i + 1)])
+        await show_script(ctx, sub_script, indices + [(i + 1)])
+
+
+async def show_human_readable_script_hash(
+    ctx: wire.Context, human_readable_script_hash: str
+) -> None:
+    page = Text("Verify script", ui.ICON_SEND, ui.GREEN)
+    page.normal("Script hash:")
+    page.bold("%s" % human_readable_script_hash)
+
+    await require_confirm(ctx, page)
 
 
 async def confirm_sending(

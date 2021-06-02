@@ -164,6 +164,8 @@ trezor.messages.CardanoGetAddress
 import trezor.messages.CardanoGetAddress
 trezor.messages.CardanoGetPublicKey
 import trezor.messages.CardanoGetPublicKey
+trezor.messages.CardanoGetScriptHash
+import trezor.messages.CardanoGetScriptHash
 trezor.messages.CardanoPoolMetadataType
 import trezor.messages.CardanoPoolMetadataType
 trezor.messages.CardanoPoolOwnerType
@@ -178,6 +180,8 @@ trezor.messages.CardanoPublicKey
 import trezor.messages.CardanoPublicKey
 trezor.messages.CardanoScript
 import trezor.messages.CardanoScript
+trezor.messages.CardanoScriptHash
+import trezor.messages.CardanoScriptHash
 trezor.messages.CardanoScriptType
 import trezor.messages.CardanoScriptType
 trezor.messages.CardanoSignTx
@@ -888,6 +892,8 @@ apps.cardano.get_address
 import apps.cardano.get_address
 apps.cardano.get_public_key
 import apps.cardano.get_public_key
+apps.cardano.get_script_hash
+import apps.cardano.get_script_hash
 apps.cardano.helpers
 import apps.cardano.helpers
 apps.cardano.helpers.bech32

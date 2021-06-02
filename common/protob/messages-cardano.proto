@@ -73,6 +73,25 @@ message CardanoScript {
 }
 
 /**
+ * Request: Ask device for Cardano script hash
+ * @start
+ * @next CardanoScriptHash
+ * @next Failure
+ */
+message CardanoGetScriptHash {
+    required CardanoScript script = 1;
+    optional bool show_display = 2 [default=false];     // optionally prompt for confirmation on trezor display
+}
+
+/**
+ * Request: Ask device for Cardano script hash
+ * @end
+ */
+message CardanoScriptHash {
+    required bytes script_hash = 1;
+}
+
+/**
  * Structure to represent address parameters so they can be
  * reused in CardanoGetAddress and CardanoTxOutputType.
  * NetworkId isn't a part of the parameters, because in a transaction

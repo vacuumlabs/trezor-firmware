@@ -30,12 +30,14 @@ from .CardanoBlockchainPointerType import CardanoBlockchainPointerType
 from .CardanoCatalystRegistrationParametersType import CardanoCatalystRegistrationParametersType
 from .CardanoGetAddress import CardanoGetAddress
 from .CardanoGetPublicKey import CardanoGetPublicKey
+from .CardanoGetScriptHash import CardanoGetScriptHash
 from .CardanoPoolMetadataType import CardanoPoolMetadataType
 from .CardanoPoolOwnerType import CardanoPoolOwnerType
 from .CardanoPoolParametersType import CardanoPoolParametersType
 from .CardanoPoolRelayParametersType import CardanoPoolRelayParametersType
 from .CardanoPublicKey import CardanoPublicKey
 from .CardanoScript import CardanoScript
+from .CardanoScriptHash import CardanoScriptHash
 from .CardanoSignTx import CardanoSignTx
 from .CardanoSignedTx import CardanoSignedTx
 from .CardanoSignedTxChunk import CardanoSignedTxChunk

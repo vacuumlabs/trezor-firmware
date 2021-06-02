@@ -443,6 +443,15 @@ def get_public_key(client, address_n: List[int]) -> messages.CardanoPublicKey:
     return client.call(messages.CardanoGetPublicKey(address_n=address_n))
 
 
+@expect(messages.CardanoScriptHash)
+def get_script_hash(
+    client, script: messages.CardanoScript, show_display: bool
+) -> messages.CardanoScriptHash:
+    return client.call(
+        messages.CardanoGetScriptHash(script=script, show_display=show_display)
+    )
+
+
 @expect(messages.CardanoSignedTx)
 def sign_tx(
     client,

@@ -195,3 +195,15 @@ def get_public_key(client, address):
     """Get Cardano public key."""
     address_n = tools.parse_path(address)
     return cardano.get_public_key(client, address_n)
+
+
+@cli.command()
+@click.argument("file", type=click.File("r"))
+@click.option("-f", "--file", "_ignore", is_flag=True, hidden=True, expose_value=False)
+@click.option("-d", "--show-display", is_flag=True)
+@with_client
+def get_script_hash(client, file, show_display):
+    script_json = json.load(file)
+    script = cardano.parse_script(script_json)
+
+    return cardano.get_script_hash(client, script, show_display)
