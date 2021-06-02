@@ -4,7 +4,6 @@
 import protobuf as p
 
 from .CardanoBlockchainPointerType import CardanoBlockchainPointerType
-from .CardanoScript import CardanoScript
 
 if __debug__:
     try:
@@ -25,9 +24,7 @@ class CardanoAddressParametersType(p.MessageType):
         address_n_staking: Optional[List[int]] = None,
         staking_key_hash: Optional[bytes] = None,
         certificate_pointer: Optional[CardanoBlockchainPointerType] = None,
-        script_payment: Optional[CardanoScript] = None,
         script_payment_hash: Optional[bytes] = None,
-        script_staking: Optional[CardanoScript] = None,
         script_staking_hash: Optional[bytes] = None,
     ) -> None:
         self.address_n = address_n if address_n is not None else []
@@ -35,9 +32,7 @@ class CardanoAddressParametersType(p.MessageType):
         self.address_type = address_type
         self.staking_key_hash = staking_key_hash
         self.certificate_pointer = certificate_pointer
-        self.script_payment = script_payment
         self.script_payment_hash = script_payment_hash
-        self.script_staking = script_staking
         self.script_staking_hash = script_staking_hash
 
     @classmethod
@@ -48,8 +43,6 @@ class CardanoAddressParametersType(p.MessageType):
             3: ('address_n_staking', p.UVarintType, p.FLAG_REPEATED),
             4: ('staking_key_hash', p.BytesType, None),
             5: ('certificate_pointer', CardanoBlockchainPointerType, None),
-            6: ('script_payment', CardanoScript, None),
-            7: ('script_payment_hash', p.BytesType, None),
-            8: ('script_staking', CardanoScript, None),
-            9: ('script_staking_hash', p.BytesType, None),
+            6: ('script_payment_hash', p.BytesType, None),
+            7: ('script_staking_hash', p.BytesType, None),
         }

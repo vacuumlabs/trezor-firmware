@@ -72,13 +72,12 @@ async def _display_address(
         network_name = protocol_magics.to_ui_string(protocol_magic)
 
     while True:
+        # TODO GK show script hashes?
         if await show_address(
             ctx,
             address,
             address_parameters.address_type,
             address_parameters.address_n,
-            address_parameters.script_payment,
-            address_parameters.script_staking,
             network=network_name,
         ):
             break

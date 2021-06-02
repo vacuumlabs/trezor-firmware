@@ -340,30 +340,15 @@ class TestCardanoAddress(unittest.TestCase):
                 address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
                 staking_key_hash=unhexlify("122a946b9ad3d2ddf029d3a828f0468aece76895f15c9efbd69b4277")
             ),
-            "BASE_SCRIPT_KEY":CardanoAddressParametersType(
-                address_type=CardanoAddressType.BASE_SCRIPT_KEY,
-                address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
-                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
-            ),
             "BASE_SCRIPT_KEY_SCRIPT_HASH":CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_SCRIPT_KEY,
                 address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
                 script_payment_hash=unhexlify("0d5acbf6a1dfb0c8724e60df314987315ccbf78bb6c0f9b6f3d568fe"),
             ),
-            "BASE_KEY_SCRIPT":CardanoAddressParametersType(
-                address_type=CardanoAddressType.BASE_KEY_SCRIPT,
-                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
-                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
-            ),
             "BASE_KEY_SCRIPT_HASH":CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_KEY_SCRIPT,
                 address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
                 script_staking_hash=unhexlify("8d7bebc7a58f1c7b5fb7c9391071ecd3b51b032695522f8c555343a9"),
-            ),
-            "BASE_SCRIPT_SCRIPT": CardanoAddressParametersType(
-                address_type=CardanoAddressType.BASE_SCRIPT_SCRIPT,
-                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
-                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
             ),
             "BASE_SCRIPT_SCRIPT_HASHES": CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_SCRIPT_SCRIPT,
@@ -380,11 +365,6 @@ class TestCardanoAddress(unittest.TestCase):
                 address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
                 certificate_pointer=CardanoBlockchainPointerType(block_index=24157, tx_index=177, certificate_index=42),
             ),
-            "POINTER_SCRIPT": CardanoAddressParametersType(
-                address_type=CardanoAddressType.POINTER_SCRIPT,
-                certificate_pointer=CardanoBlockchainPointerType(block_index=24157, tx_index=177, certificate_index=42),
-                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
-            ),
             "POINTER_SCRIPT_HASH": CardanoAddressParametersType(
                 address_type=CardanoAddressType.POINTER_SCRIPT,
                 certificate_pointer=CardanoBlockchainPointerType(block_index=24157, tx_index=177, certificate_index=42),
@@ -394,10 +374,6 @@ class TestCardanoAddress(unittest.TestCase):
                 address_type=CardanoAddressType.ENTERPRISE,
                 address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             ),
-            "ENTERPRISE_SCRIPT": CardanoAddressParametersType(
-                address_type=CardanoAddressType.ENTERPRISE_SCRIPT,
-                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("aa6e9c7b6e8ec4f710110c18d1a246232c5418f3c802217077a49efc")),
-            ),
             "ENTERPRISE_SCRIPT_HASH": CardanoAddressParametersType(
                 address_type=CardanoAddressType.ENTERPRISE_SCRIPT,
                 script_payment_hash=unhexlify("0d5acbf6a1dfb0c8724e60df314987315ccbf78bb6c0f9b6f3d568fe"),
@@ -406,16 +382,11 @@ class TestCardanoAddress(unittest.TestCase):
                 address_type=CardanoAddressType.REWARD,
                 address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
             ),
-            "REWARD_SCRIPT": CardanoAddressParametersType(
-                address_type=CardanoAddressType.REWARD_SCRIPT,
-                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
-            ),
             "REWARD_SCRIPT_HASH": CardanoAddressParametersType(
                 address_type=CardanoAddressType.REWARD_SCRIPT,
                 script_staking_hash=unhexlify("8d7bebc7a58f1c7b5fb7c9391071ecd3b51b032695522f8c555343a9"),
             ),
         }
-
         test_vectors = [
             # base address
             (network_ids.MAINNET, CardanoAddressType.BASE, address_parameters["BASE"], "addr1q8v42wjda8r6mpfj40d36znlgfdcqp7jtj03ah8skh6u8wnrqua2vw243tmjfjt0h5wsru6appuz8c0pfd75ur7myyeqsx9990"),
@@ -427,40 +398,34 @@ class TestCardanoAddress(unittest.TestCase):
             (network_ids.MAINNET, CardanoAddressType.BASE, address_parameters["BASE_FOREIGN_STAKING_KEY_HASH_ACCOUNT_0"], "addr1qxq0nckg3ekgzuqg7w5p9mvgnd9ym28qh5grlph8xd2z92sj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsl3s9zt"),
             (network_ids.TESTNET, CardanoAddressType.BASE, address_parameters["BASE_FOREIGN_STAKING_KEY_HASH_ACCOUNT_4"], "addr_test1qrv42wjda8r6mpfj40d36znlgfdcqp7jtj03ah8skh6u8wsj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsvvdk2q"),
             # base_script_key address
-            (network_ids.MAINNET, CardanoAddressType.BASE_SCRIPT_KEY, address_parameters["BASE_SCRIPT_KEY"], "addr1zyx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3lsj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsf42dkl"),
-            (network_ids.TESTNET, CardanoAddressType.BASE_SCRIPT_KEY, address_parameters["BASE_SCRIPT_KEY"], "addr_test1zqx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3lsj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms2rhd6q"),
             (network_ids.MAINNET, CardanoAddressType.BASE_SCRIPT_KEY, address_parameters["BASE_SCRIPT_KEY_SCRIPT_HASH"], "addr1zyx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3lsj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfmsf42dkl"),
+            (network_ids.TESTNET, CardanoAddressType.BASE_SCRIPT_KEY, address_parameters["BASE_SCRIPT_KEY_SCRIPT_HASH"], "addr_test1zqx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3lsj922xhxkn6twlq2wn4q50q352annk3903tj00h45mgfms2rhd6q"),
             # base_key_script address
-            (network_ids.MAINNET, CardanoAddressType.BASE_KEY_SCRIPT, address_parameters["BASE_KEY_SCRIPT"], "addr1yxq0nckg3ekgzuqg7w5p9mvgnd9ym28qh5grlph8xd2z925d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5s8vnrtt"),
-            (network_ids.TESTNET, CardanoAddressType.BASE_KEY_SCRIPT, address_parameters["BASE_KEY_SCRIPT"], "addr_test1yzq0nckg3ekgzuqg7w5p9mvgnd9ym28qh5grlph8xd2z925d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5sy6wr85"),
             (network_ids.MAINNET, CardanoAddressType.BASE_KEY_SCRIPT, address_parameters["BASE_KEY_SCRIPT_HASH"], "addr1yxq0nckg3ekgzuqg7w5p9mvgnd9ym28qh5grlph8xd2z925d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5s8vnrtt"),
+            (network_ids.TESTNET, CardanoAddressType.BASE_KEY_SCRIPT, address_parameters["BASE_KEY_SCRIPT_HASH"], "addr_test1yzq0nckg3ekgzuqg7w5p9mvgnd9ym28qh5grlph8xd2z925d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5sy6wr85"),
             # base_script_script address
-            (network_ids.MAINNET, CardanoAddressType.BASE_SCRIPT_SCRIPT, address_parameters["BASE_SCRIPT_SCRIPT"], "addr1xyx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5s3gftll"),
-            (network_ids.TESTNET, CardanoAddressType.BASE_SCRIPT_SCRIPT, address_parameters["BASE_SCRIPT_SCRIPT"], "addr_test1xqx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5sj75tnq"),
             (network_ids.MAINNET, CardanoAddressType.BASE_SCRIPT_SCRIPT, address_parameters["BASE_SCRIPT_SCRIPT_HASHES"], "addr1xyx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5s3gftll"),
+            (network_ids.TESTNET, CardanoAddressType.BASE_SCRIPT_SCRIPT, address_parameters["BASE_SCRIPT_SCRIPT_HASHES"], "addr_test1xqx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5d004u0fv0r3a4ld7f8yg8rmxnk5dsxf542ghcc42ngw5sj75tnq"),
             # pointer address
             (network_ids.MAINNET, CardanoAddressType.POINTER, address_parameters["POINTER1"], "addr1gxq0nckg3ekgzuqg7w5p9mvgnd9ym28qh5grlph8xd2z92spqgpsl97q83"),
             (network_ids.TESTNET, CardanoAddressType.POINTER, address_parameters["POINTER2"], "addr_test1gzq0nckg3ekgzuqg7w5p9mvgnd9ym28qh5grlph8xd2z925ph3wczvf2ag2x9t"),
             # pointer_script address
-            (network_ids.MAINNET, CardanoAddressType.POINTER_SCRIPT, address_parameters["POINTER_SCRIPT"], "addr12yx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5ph3wczvf2zmd4yp"),
-            (network_ids.TESTNET, CardanoAddressType.POINTER_SCRIPT, address_parameters["POINTER_SCRIPT"], "addr_test12qx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5ph3wczvf2d4sugn"),
             (network_ids.MAINNET, CardanoAddressType.POINTER_SCRIPT, address_parameters["POINTER_SCRIPT_HASH"], "addr12yx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5ph3wczvf2zmd4yp"),
+            (network_ids.TESTNET, CardanoAddressType.POINTER_SCRIPT, address_parameters["POINTER_SCRIPT_HASH"], "addr_test12qx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3l5ph3wczvf2d4sugn"),
             # enterprise address
             (network_ids.MAINNET, CardanoAddressType.ENTERPRISE, address_parameters["ENTERPRISE"], "addr1vxq0nckg3ekgzuqg7w5p9mvgnd9ym28qh5grlph8xd2z92su77c6m"),
             (network_ids.TESTNET, CardanoAddressType.ENTERPRISE, address_parameters["ENTERPRISE"], "addr_test1vzq0nckg3ekgzuqg7w5p9mvgnd9ym28qh5grlph8xd2z92s8k2y47"),
             # enterprise_script address
-            (network_ids.MAINNET, CardanoAddressType.ENTERPRISE_SCRIPT, address_parameters["ENTERPRISE_SCRIPT"], "addr1wyx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3lsqee7sp"),
-            (network_ids.TESTNET, CardanoAddressType.ENTERPRISE_SCRIPT, address_parameters["ENTERPRISE_SCRIPT"], "addr_test1wqx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3lsm3dzly"),
             (network_ids.MAINNET, CardanoAddressType.ENTERPRISE_SCRIPT, address_parameters["ENTERPRISE_SCRIPT_HASH"], "addr1wyx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3lsqee7sp"),
+            (network_ids.TESTNET, CardanoAddressType.ENTERPRISE_SCRIPT, address_parameters["ENTERPRISE_SCRIPT_HASH"], "addr_test1wqx44jlk580mpjrjfesd7v2fsuc4ejlh3wmvp7dk702k3lsm3dzly"),
             # reward address
             (network_ids.MAINNET, CardanoAddressType.REWARD, address_parameters["REWARD"], "stake1uyfz49rtntfa9h0s98f6s28sg69weemgjhc4e8hm66d5yacalmqha"),
             (network_ids.TESTNET, CardanoAddressType.REWARD, address_parameters["REWARD"], "stake_test1uqfz49rtntfa9h0s98f6s28sg69weemgjhc4e8hm66d5yac643znq"),
             # reward_script address
-            (network_ids.MAINNET, CardanoAddressType.REWARD_SCRIPT, address_parameters["REWARD_SCRIPT"], "stake17xxhh6785k83c76lklynjyr3anfm2xcry624ytuv24f582gt5mad4"),
-            (network_ids.TESTNET, CardanoAddressType.REWARD_SCRIPT, address_parameters["REWARD_SCRIPT"], "stake_test17zxhh6785k83c76lklynjyr3anfm2xcry624ytuv24f582gv73lfg"),
             (network_ids.MAINNET, CardanoAddressType.REWARD_SCRIPT, address_parameters["REWARD_SCRIPT_HASH"], "stake17xxhh6785k83c76lklynjyr3anfm2xcry624ytuv24f582gt5mad4"),
             (network_ids.TESTNET, CardanoAddressType.REWARD_SCRIPT, address_parameters["REWARD_SCRIPT_HASH"], "stake_test17zxhh6785k83c76lklynjyr3anfm2xcry624ytuv24f582gv73lfg"),
         ]
+
 
         for network_id, address_type, address_parameters, expected_address in test_vectors:
             validate_address_parameters(address_parameters)
@@ -498,59 +463,35 @@ class TestCardanoAddress(unittest.TestCase):
                 address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
                 staking_key_hash=None,
             ),
-            # base_script_key address - script_payment and script_payment_hash are None
+            # base_script_key address - script_payment_hash is None
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_SCRIPT_KEY,
-                script_payment=None,
                 script_payment_hash=None,
                 staking_key_hash=unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8d"),
-            ),
-            # base_script_key address - both script_payment and script_payment_hash are set
-            CardanoAddressParametersType(
-                address_type=CardanoAddressType.BASE_SCRIPT_KEY,
-                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
-                script_payment_hash=unhexlify("0d5acbf6a1dfb0c8724e60df314987315ccbf78bb6c0f9b6f3d568fe"),
-                staking_key_hash=unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8d"),
-            ),
-            # base_script_key address - both address_n_staking and staking_key_hash are set
-            CardanoAddressParametersType(
-                address_type=CardanoAddressType.BASE_SCRIPT_KEY,
-                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
-                address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
-                staking_key_hash=unhexlify("1bc428e4720702ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff"),
             ),
             # base_script_key address - address_n_staking is not a staking path
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_SCRIPT_KEY,
-                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
+                script_payment_hash=unhexlify("0d5acbf6a1dfb0c8724e60df314987315ccbf78bb6c0f9b6f3d568fe"),
                 address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             ),
-            # base_key_script address - both script_staking and script_staking_hash are None
+            # base_key_script address - script_staking_hash is None
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_KEY_SCRIPT,
                 address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
-                script_staking=None,
                 script_staking_hash=None,
             ),
-            # base_key_script address - both script_staking and script_staking_hash are set
-            CardanoAddressParametersType(
-                address_type=CardanoAddressType.BASE_KEY_SCRIPT,
-                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
-                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("67c849545ded8f87a441d2ae1376e14ad882df87561a0b36bfceaa97")),
-                script_staking_hash=unhexlify("8d7bebc7a58f1c7b5fb7c9391071ecd3b51b032695522f8c555343a9"),
-            ),
-            # base_script_script address - script_payment and script_payment_hash are None
+            # base_script_script address - script_payment_hash is None
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_SCRIPT_SCRIPT,
-                script_payment=None,
                 script_payment_hash=None,
-                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
+                script_staking_hash=unhexlify("8d7bebc7a58f1c7b5fb7c9391071ecd3b51b032695522f8c555343a9"),
             ),
             # base_script_script address - script_staking and script_staking_hash are None
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_SCRIPT_SCRIPT,
-                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
-                script_staking=None,
+                script_payment_hash=unhexlify("0d5acbf6a1dfb0c8724e60df314987315ccbf78bb6c0f9b6f3d568fe"),
+                script_staking_hash=None,
             ),
             # pointer address - pointer is None
             CardanoAddressParametersType(
@@ -561,20 +502,18 @@ class TestCardanoAddress(unittest.TestCase):
             # pointer_script address - pointer is None
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.POINTER_SCRIPT,
-                script_payment=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9")),
+                script_payment_hash=unhexlify("0d5acbf6a1dfb0c8724e60df314987315ccbf78bb6c0f9b6f3d568fe"),
                 certificate_pointer=None,
             ),
-            # pointer_script address - script_payment and script_payment_script are None
+            # pointer_script address - script_payment_script is None
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.POINTER_SCRIPT,
-                script_payment=None,
                 script_payment_hash=None,
                 certificate_pointer=CardanoBlockchainPointerType(block_index=24157, tx_index=177, certificate_index=42),
             ),
-            # enterprise_script address - payment_script and script_payment_hash are None
+            # enterprise_script address - script_payment_hash is None
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.ENTERPRISE_SCRIPT,
-                script_payment=None,
                 script_payment_hash=None,
             ),
             # reward address - non staking path
@@ -582,10 +521,9 @@ class TestCardanoAddress(unittest.TestCase):
                 address_type=CardanoAddressType.REWARD,
                 address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0]
             ),
-            # reward_script address - script_staking and script_staking_hash are None
+            # reward_script address - script_staking_hash is None
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.REWARD_SCRIPT,
-                script_staking=None,
                 script_staking_hash=None,
             ),
 
@@ -598,7 +536,7 @@ class TestCardanoAddress(unittest.TestCase):
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.BASE_KEY_SCRIPT,
                 address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
-                script_staking=CardanoScript(type=CardanoScriptType.PUB_KEY, key_hash=unhexlify("3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"))
+                script_staking_hash=unhexlify("8d7bebc7a58f1c7b5fb7c9391071ecd3b51b032695522f8c555343a9"),
             ),
             CardanoAddressParametersType(
                 address_type=CardanoAddressType.POINTER,

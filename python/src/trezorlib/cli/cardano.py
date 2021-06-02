@@ -106,9 +106,9 @@ def sign_tx(client, file, protocol_magic, network_id, testnet):
 @click.option("-b", "--block_index", type=int, default=None)
 @click.option("-x", "--tx_index", type=int, default=None)
 @click.option("-c", "--certificate_index", type=int, default=None)
-@click.option("--script-payment-file", default=None)
+# TODO GK move to script verification
+# @click.option("--script-payment-file", default=None)
 @click.option("--script-payment-hash", type=str, default=None)
-@click.option("--script-staking-file", default=None)
 @click.option("--script-staking-hash", type=str, default=None)
 @click.option(
     "-p", "--protocol-magic", type=int, default=cardano.PROTOCOL_MAGICS["mainnet"]
@@ -157,19 +157,15 @@ def get_address(
         staking_key_hash_bytes = bytes.fromhex(staking_key_hash)
 
     # TODO GK try to use click argument/option for the file
-    script_payment = None
-    if script_payment_file:
-        script_payment_json = json.load(open(script_payment_file, "r"))
-        script_payment = cardano.parse_script(script_payment_json)
+    # TODO GK move to script verification
+    # script_payment = None
+    # if script_payment_file:
+    #     script_payment_json = json.load(open(script_payment_file, "r"))
+    #     script_payment = cardano.parse_script(script_payment_json)
 
     script_payment_hash_bytes = None
     if script_payment_hash:
         script_payment_hash_bytes = bytes.fromhex(script_payment_hash)
-
-    script_staking = None
-    if script_staking_file:
-        script_staking_json = json.load(open(script_staking_file, "r"))
-        script_staking = cardano.parse_script(script_staking_json)
 
     script_staking_hash_bytes = None
     if script_staking_hash:
@@ -183,9 +179,7 @@ def get_address(
         block_index,
         tx_index,
         certificate_index,
-        script_payment,
         script_payment_hash_bytes,
-        script_staking,
         script_staking_hash_bytes,
     )
 

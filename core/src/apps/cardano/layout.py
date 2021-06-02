@@ -543,13 +543,12 @@ async def confirm_mint(ctx: wire.Context, mint: list[CardanoAssetGroupType]) -> 
             await require_confirm(ctx, Paginated([page1, page2]))
 
 
+# TODO GK show script hashes?
 async def show_address(
     ctx: wire.Context,
     address: str,
     address_type: EnumTypeCardanoAddressType,
     path: list[int],
-    script_payment: CardanoScript | None,
-    script_staking: CardanoScript | None,
     network: str | None = None,
 ) -> bool:
     """
@@ -583,11 +582,6 @@ async def show_address(
         lines_per_page=lines_per_page,
         lines_used_on_first_page=lines_used_on_first_page,
     )
-
-    if script_payment:
-        await show_script(ctx, "payment", script_payment)
-    if script_staking:
-        await show_script(ctx, "staking", script_staking)
 
     return await confirm(
         ctx,

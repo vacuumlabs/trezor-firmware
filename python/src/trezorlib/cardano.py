@@ -71,9 +71,7 @@ def create_address_parameters(
     block_index: int = None,
     tx_index: int = None,
     certificate_index: int = None,
-    script_payment: messages.CardanoScript = None,
     script_payment_hash: bytes = None,
-    script_staking: messages.CardanoScript = None,
     script_staking_hash: bytes = None,
 ) -> messages.CardanoAddressParametersType:
     certificate_pointer = None
@@ -92,9 +90,7 @@ def create_address_parameters(
         address_n_staking=address_n_staking,
         staking_key_hash=staking_key_hash,
         certificate_pointer=certificate_pointer,
-        script_payment=script_payment,
         script_payment_hash=script_payment_hash,
-        script_staking=script_staking,
         script_staking_hash=script_staking_hash,
     )
 
