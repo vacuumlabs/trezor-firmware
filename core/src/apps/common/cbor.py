@@ -82,6 +82,11 @@ def _cbor_encode(value: Value) -> Iterator[bytes]:
         for k, v in sorted_map:
             yield k
             yield from _cbor_encode(v)
+    elif isinstance(value, OrderedMap):
+        yield _header(_CBOR_MAP, len(value))
+        for k, v in value:
+            yield encode(k)
+            yield from _cbor_encode(v)
     elif isinstance(value, Tagged):
         yield _header(_CBOR_TAG, value.tag)
         yield from _cbor_encode(value.value)
@@ -224,6 +229,26 @@ class IndefiniteLengthArray:
             return self.array == other
         else:
             return False
+
+
+class OrderedMap:
+    """
+    Items of an OrderedMap are included in CBOR as they are added without sorting them in any way. We also allow
+    duplicates since CBOR is also somewhat lenient in not allowing them. It is thus up to the client to make sure no
+    duplicates are inserted if it's desired.
+    """
+
+    def __init__(self) -> None:
+        self._internal_list: list[tuple] = []
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        self._internal_list.append((key, value))
+
+    def __iter__(self) -> Iterator:
+        yield from self._internal_list
+
+    def __len__(self) -> int:
+        return len(self._internal_list)
 
 
 def encode(value: Value) -> bytes:
