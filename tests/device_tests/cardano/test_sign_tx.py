@@ -82,7 +82,8 @@ def test_cardano_sign_tx_failed(client, parameters, result):
     input_flow = parameters.get("input_flow", ())
 
     with client:
-        client.set_input_flow(_to_device_actions(client, input_flow))
+        if input_flow:
+            client.set_input_flow(_to_device_actions(client, input_flow))
 
         with pytest.raises(TrezorFailure, match=result["error_message"]):
             cardano.sign_tx(
