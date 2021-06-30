@@ -436,6 +436,10 @@ if utils.BITCOIN_ONLY:
     import apps.cardano.helpers
     apps.cardano.helpers.bech32
     import apps.cardano.helpers.bech32
+    apps.cardano.helpers.cbor_hash_builder
+    import apps.cardano.helpers.cbor_hash_builder
+    apps.cardano.helpers.lazy_cbor_collection
+    import apps.cardano.helpers.lazy_cbor_collection
     apps.cardano.helpers.network_ids
     import apps.cardano.helpers.network_ids
     apps.cardano.helpers.paths
@@ -444,6 +448,10 @@ if utils.BITCOIN_ONLY:
     import apps.cardano.helpers.protocol_magics
     apps.cardano.helpers.staking_use_cases
     import apps.cardano.helpers.staking_use_cases
+    apps.cardano.helpers.tx_builder
+    import apps.cardano.helpers.tx_builder
+    apps.cardano.helpers.tx_builder_state_machine
+    import apps.cardano.helpers.tx_builder_state_machine
     apps.cardano.helpers.utils
     import apps.cardano.helpers.utils
     apps.cardano.layout
