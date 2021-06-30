@@ -62,7 +62,9 @@ def _header(typ: int, l: int) -> bytes:
 
 
 def _cbor_encode(value: Value) -> Iterator[bytes]:
-    if isinstance(value, int):
+    if hasattr(value, "cbor_serialize"):
+        yield from value.cbor_serialize()
+    elif isinstance(value, int):
         if value >= 0:
             yield _header(_CBOR_UNSIGNED_INT, value)
         else:
