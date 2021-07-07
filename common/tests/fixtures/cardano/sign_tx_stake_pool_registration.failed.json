@@ -47,7 +47,8 @@
             "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
             "amount": "1"
           }
-        ]
+        ],
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -99,7 +100,8 @@
             "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
             "amount": "1"
           }
-        ]
+        ],
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -148,7 +150,8 @@
             "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
             "amount": "1"
           }
-        ]
+        ],
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -197,7 +200,8 @@
             "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
             "amount": "1"
           }
-        ]
+        ],
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -250,7 +254,8 @@
             "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
             "amount": "1"
           }
-        ]
+        ],
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
         "error_message": "Stakepool registration transaction cannot contain other certificates nor withdrawals"
@@ -304,7 +309,8 @@
             "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
             "amount": "1"
           }
-        ]
+        ],
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
         "error_message": "Stakepool registration transaction cannot contain other certificates nor withdrawals"
@@ -353,10 +359,11 @@
             "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
             "amount": "1"
           }
-        ]
+        ],
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
-        "error_message": "Stakepool registration transaction can contain only external inputs"
+        "error_message": "Stakepool registration transaction can only contain staking witnesses"
       }
     },
     {
@@ -401,7 +408,8 @@
             "address": "addr_test1vr9s8py7y68e3x66sscs0wkhlg5ssfrfs65084jrlrqcfqqtmut0e",
             "amount": "1"
           }
-        ]
+        ],
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
         "error_message": "ProcessError: Invalid address"
@@ -449,7 +457,8 @@
             "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
             "amount": "1"
           }
-        ]
+        ],
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
         "error_message": "ProcessError: Invalid address"
@@ -531,7 +540,8 @@
             "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
             "amount": "1"
           }
-        ]
+        ],
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
       },
       "result": {
         "error_message": "Invalid pool owner staking path"
