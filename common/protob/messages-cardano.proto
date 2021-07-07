@@ -287,6 +287,7 @@ message CardanoPoolParametersType {
     repeated uint32 path = 2;                                 // BIP-32 path to derive (staking) key
     optional bytes pool = 3;                                  // pool hash
     optional CardanoPoolParametersType pool_parameters = 4;   // used for stake pool registration certificate
+    optional bytes script_hash = 5;                           // used for multisig
 }
 
 /**

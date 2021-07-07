@@ -1,0 +1,145 @@
+{
+  "setup": {
+    "mnemonic": "all all all all all all all all all all all all",
+    "passphrase": ""
+  },
+  "tests": [
+    {
+      "description": "transaction with stake registration certificate",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [
+          {
+            "type": 0,
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          }
+        ],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witnesses": ["TODO for input"]
+      },
+      "result": {
+        "tx_hash": "ed9fc2755091fa72b58e9dd06db05cce87c0c6f3962f587d5fc348fe478f0752",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "1f8d2bb505aafbdbdfc60d1dd4982f6062e110bd29234f4c92186640e8f6fa9a12d1b7907894fef963eaf763e9169a009a39c923a41b8477b8098c8588024a01",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "transaction with stake registration and stake delegation certificates",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [
+          {
+            "type": 0,
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          },
+          {
+            "type": 2,
+            "pool": "f61c42cbf7c8c53af3f520508212ad3e72f674f957fe23ff0acb4973",
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          }
+        ],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witnesses": ["TODO for input and delegation"]
+      },
+      "result": {
+        "tx_hash": "26fb07b23368898665829283985ffe6c4cb2ec13758e83f467b78e5061f9619b",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "19d0599720dd9ff5b6ed49010ccfc4d47715074418b67bd779654eaf4bcc50775f7ad9747a571766e7be16ea986bb3e948cad01f208b2ecb9e41a9d471ac5e09",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "transaction with stake deregistration",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [
+          {
+            "type": 1,
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          }
+        ],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witnesses": ["TODO for input and deregistration"]
+      },
+      "result": {
+        "tx_hash": "c4e70484c964eca910219047542632ac9a9ac81f11f5d5afd8bb1b0ef4366d69",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "87dbec4afd2c3670d1406b9ab1b33898a23422a80fb7b45d6d59e3c90ef002c7bc5930ea0b26afe98ed566daf861c8ee88f972f74c3025f77094c47aa91b0c01",
+            "chain_code": null
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -290,15 +290,27 @@ def parse_certificate(certificate) -> CertificateWithPoolOwnersAndRelays:
 
     certificate_type = certificate["type"]
 
+    # TODO refactor - stake delegation and stake reg/dereg have too much common/duplicated logic
     if certificate_type == messages.CardanoCertificateType.STAKE_DELEGATION:
+        if "path" not in certificate and "script_hash" not in certificate:
+            raise CERTIFICATE_MISSING_FIELDS_ERROR
+
         if "pool" not in certificate:
             raise CERTIFICATE_MISSING_FIELDS_ERROR
+
+        path = tools.parse_path(certificate["path"]) if "path" in certificate else None
+        script_hash = (
+            bytes.fromhex(certificate["script_hash"])
+            if "script_hash" in certificate
+            else None
+        )
 
         return (
             messages.CardanoTxCertificate(
                 type=certificate_type,
-                path=tools.parse_path(certificate["path"]),
+                path=path,
                 pool=bytes.fromhex(certificate["pool"]),
+                script_hash=script_hash,
             ),
             None,
         )
@@ -306,12 +318,19 @@ def parse_certificate(certificate) -> CertificateWithPoolOwnersAndRelays:
         messages.CardanoCertificateType.STAKE_REGISTRATION,
         messages.CardanoCertificateType.STAKE_DEREGISTRATION,
     ):
-        if "path" not in certificate:
+        if "path" not in certificate and "script_hash" not in certificate:
             raise CERTIFICATE_MISSING_FIELDS_ERROR
+
+        path = tools.parse_path(certificate["path"]) if "path" in certificate else None
+        script_hash = (
+            bytes.fromhex(certificate["script_hash"])
+            if "script_hash" in certificate
+            else None
+        )
+
         return (
             messages.CardanoTxCertificate(
-                type=certificate_type,
-                path=tools.parse_path(certificate["path"]),
+                type=certificate_type, path=path, script_hash=script_hash
             ),
             None,
         )
@@ -481,7 +500,7 @@ def _get_witness_paths(
         if certificate.type in (
             messages.CardanoCertificateType.STAKE_DEREGISTRATION,
             messages.CardanoCertificateType.STAKE_DELEGATION,
-        ):
+        ) and certificate.path:
             paths.add(tuple(certificate.path))
         elif (
             certificate.type == messages.CardanoCertificateType.STAKE_POOL_REGISTRATION

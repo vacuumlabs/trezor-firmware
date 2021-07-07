@@ -31,6 +31,7 @@ pytestmark = [
 @parametrize_using_common_fixtures(
     "cardano/sign_tx_stake_pool_registration.json",
     "cardano/sign_tx.json",
+    "cardano/sign_tx.multisig.json",
     "cardano/sign_tx.slip39.json",
 )
 def test_cardano_sign_tx(client, parameters, result):

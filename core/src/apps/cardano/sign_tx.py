@@ -725,9 +725,10 @@ async def _show_certificate(
     signing_mode: CardanoTxSigningMode,
 ) -> None:
     if signing_mode == CardanoTxSigningMode.ORDINARY_TRANSACTION:
-        await _fail_or_warn_if_invalid_path(
-            ctx, SCHEMA_STAKING, certificate.path, CERTIFICATE_PATH_NAME
-        )
+        if certificate.path:
+            await _fail_or_warn_if_invalid_path(
+                ctx, SCHEMA_STAKING, certificate.path, CERTIFICATE_PATH_NAME
+            )
         await confirm_certificate(ctx, certificate)
     elif signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         await _show_stake_pool_registration_certificate(ctx, certificate)

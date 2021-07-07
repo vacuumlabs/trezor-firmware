@@ -7,7 +7,12 @@ from .address import (
     get_public_key_hash,
     validate_reward_address,
 )
-from .helpers import ADDRESS_KEY_HASH_SIZE, INVALID_CERTIFICATE, LOVELACE_MAX_SUPPLY
+from .helpers import (
+    ADDRESS_KEY_HASH_SIZE,
+    INVALID_CERTIFICATE,
+    LOVELACE_MAX_SUPPLY,
+    SCRIPT_HASH_SIZE,
+)
 from .helpers.paths import SCHEMA_STAKING_ANY_ACCOUNT
 
 if False:
@@ -36,13 +41,9 @@ MAX_PORT_NUMBER = 65535
 def validate_certificate(
     certificate: CardanoTxCertificate, protocol_magic: int, network_id: int
 ) -> None:
-    if certificate.type in (
-        CardanoCertificateType.STAKE_DELEGATION,
-        CardanoCertificateType.STAKE_REGISTRATION,
-        CardanoCertificateType.STAKE_DEREGISTRATION,
-    ):
-        if not SCHEMA_STAKING_ANY_ACCOUNT.match(certificate.path):
-            raise INVALID_CERTIFICATE
+    _validate_certificate_stake_credential(
+        certificate.type, certificate.path, certificate.script_hash
+    )
 
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
         if not certificate.pool or len(certificate.pool) != POOL_HASH_SIZE:
@@ -56,6 +57,30 @@ def validate_certificate(
         )
 
 
+def _validate_certificate_stake_credential(
+    certificate_type: CardanoCertificateType, path: list[int], script_hash: bytes | None
+) -> None:
+    if certificate_type not in (
+        CardanoCertificateType.STAKE_DELEGATION,
+        CardanoCertificateType.STAKE_REGISTRATION,
+        CardanoCertificateType.STAKE_DEREGISTRATION,
+    ):
+        # other scripts don't contain a stake credential so no validation is needed
+        return
+
+    if path and script_hash:
+        raise INVALID_CERTIFICATE
+
+    if path:
+        if not SCHEMA_STAKING_ANY_ACCOUNT.match(path):
+            raise INVALID_CERTIFICATE
+    elif script_hash:
+        if len(script_hash) != SCRIPT_HASH_SIZE:
+            raise INVALID_CERTIFICATE
+    else:
+        raise INVALID_CERTIFICATE
+
+
 def cborize_certificate(
     keychain: seed.Keychain, certificate: CardanoTxCertificate
 ) -> CborSequence:
@@ -65,18 +90,34 @@ def cborize_certificate(
     ):
         return (
             certificate.type,
-            (0, get_public_key_hash(keychain, certificate.path)),
+            cborize_certificate_stake_credential(
+                keychain, certificate.path, certificate.script_hash
+            ),
         )
     elif certificate.type == CardanoCertificateType.STAKE_DELEGATION:
         return (
             certificate.type,
-            (0, get_public_key_hash(keychain, certificate.path)),
+            cborize_certificate_stake_credential(
+                keychain, certificate.path, certificate.script_hash
+            ),
             certificate.pool,
         )
     elif certificate.type == CardanoCertificateType.STAKE_POOL_REGISTRATION:
         assert False, "Use cborize_initial_pool_registration_certificate_fields instead"
     else:
         raise INVALID_CERTIFICATE
+
+
+def cborize_certificate_stake_credential(
+    keychain: seed.Keychain, path: list[int], script_hash: bytes | None
+) -> tuple[int, bytes]:
+    if path:
+        return 0, get_public_key_hash(keychain, path)
+
+    if script_hash:
+        return 1, script_hash
+
+    raise INVALID_CERTIFICATE
 
 
 def cborize_initial_pool_registration_certificate_fields(

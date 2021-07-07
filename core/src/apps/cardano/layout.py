@@ -331,13 +331,21 @@ async def confirm_certificate(
     # in this call
     assert certificate.type != CardanoCertificateType.STAKE_POOL_REGISTRATION
 
-    props = [
+    props: list[PropertyType] = [
         ("Confirm:", CERTIFICATE_TYPE_NAMES[certificate.type]),
-        (
-            "for account %s:" % format_account_number(certificate.path),
-            address_n_to_str(to_account_path(certificate.path)),
-        ),
     ]
+
+    if certificate.path:
+        props.append(
+            (
+                "for account %s:" % format_account_number(certificate.path),
+                address_n_to_str(to_account_path(certificate.path)),
+            ),
+        )
+    else:
+        assert certificate.script_hash is not None  # validate_certificate
+        props.append(("for script:", certificate.script_hash))
+
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
         assert certificate.pool is not None  # validate_certificate
         props.append(("to pool:", format_stake_pool_id(certificate.pool)))

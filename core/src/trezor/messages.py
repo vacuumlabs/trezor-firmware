@@ -1407,6 +1407,7 @@ if TYPE_CHECKING:
         path: list[int]
         pool: bytes | None
         pool_parameters: CardanoPoolParametersType | None
+        script_hash: bytes | None
 
         def __init__(
             self,
@@ -1415,6 +1416,7 @@ if TYPE_CHECKING:
             path: list[int] | None = None,
             pool: bytes | None = None,
             pool_parameters: CardanoPoolParametersType | None = None,
+            script_hash: bytes | None = None,
         ) -> None:
             pass
 

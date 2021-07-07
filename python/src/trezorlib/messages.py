@@ -2295,6 +2295,7 @@ class CardanoTxCertificate(protobuf.MessageType):
         2: protobuf.Field("path", "uint32", repeated=True, required=False),
         3: protobuf.Field("pool", "bytes", repeated=False, required=False),
         4: protobuf.Field("pool_parameters", CardanoPoolParametersType, repeated=False, required=False),
+        5: protobuf.Field("script_hash", "bytes", repeated=False, required=False),
     }
 
     def __init__(
@@ -2304,11 +2305,13 @@ class CardanoTxCertificate(protobuf.MessageType):
         path: Optional[List[int]] = None,
         pool: Optional[bytes] = None,
         pool_parameters: Optional[CardanoPoolParametersType] = None,
+        script_hash: Optional[bytes] = None,
     ) -> None:
         self.path = path if path is not None else []
         self.type = type
         self.pool = pool
         self.pool_parameters = pool_parameters
+        self.script_hash = script_hash
 
 
 class CardanoTxWithdrawal(protobuf.MessageType):
