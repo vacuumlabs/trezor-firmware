@@ -41,7 +41,6 @@ REQUIRED_FIELDS_POOL_PARAMETERS = (
     "reward_account",
     "owners",
 )
-REQUIRED_FIELDS_WITHDRAWAL = ("path", "amount")
 REQUIRED_FIELDS_TOKEN_GROUP = ("policy_id", "tokens")
 REQUIRED_FIELDS_CATALYST_REGISTRATION = (
     "voting_public_key",
@@ -430,13 +429,27 @@ def _parse_pool_relay(pool_relay) -> messages.CardanoPoolRelayParameters:
 
 
 def parse_withdrawal(withdrawal) -> messages.CardanoTxWithdrawal:
-    if not all(k in withdrawal for k in REQUIRED_FIELDS_WITHDRAWAL):
-        raise ValueError("Withdrawal is missing some fields")
+    WITHDRAWAL_MISSING_FIELDS_ERROR = ValueError(
+        "The withdrawal is missing some fields"
+    )
 
-    path = withdrawal["path"]
+    if "amount" not in withdrawal:
+        raise WITHDRAWAL_MISSING_FIELDS_ERROR
+
+    if "path" not in withdrawal and "script_hash" not in withdrawal:
+        raise WITHDRAWAL_MISSING_FIELDS_ERROR
+
+    path = tools.parse_path(withdrawal["path"]) if "path" in withdrawal else None
+    script_hash = (
+        bytes.fromhex(withdrawal["script_hash"])
+        if "script_hash" in withdrawal
+        else None
+    )
+
     return messages.CardanoTxWithdrawal(
-        path=tools.parse_path(path),
+        path=path,
         amount=int(withdrawal["amount"]),
+        script_hash=script_hash,
     )
 
 
@@ -497,10 +510,14 @@ def _get_witness_paths(
         if path:
             paths.add(tuple(path))
     for certificate, pool_owners_and_relays in certificates:
-        if certificate.type in (
-            messages.CardanoCertificateType.STAKE_DEREGISTRATION,
-            messages.CardanoCertificateType.STAKE_DELEGATION,
-        ) and certificate.path:
+        if (
+            certificate.type
+            in (
+                messages.CardanoCertificateType.STAKE_DEREGISTRATION,
+                messages.CardanoCertificateType.STAKE_DELEGATION,
+            )
+            and certificate.path
+        ):
             paths.add(tuple(certificate.path))
         elif (
             certificate.type == messages.CardanoCertificateType.STAKE_POOL_REGISTRATION
@@ -511,7 +528,8 @@ def _get_witness_paths(
                 if pool_owner.staking_key_path:
                     paths.add(tuple(pool_owner.staking_key_path))
     for withdrawal in withdrawals:
-        paths.add(tuple(withdrawal.path))
+        if withdrawal.path:
+            paths.add(tuple(withdrawal.path))
 
     return sorted([list(path) for path in paths])
 

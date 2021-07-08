@@ -297,6 +297,7 @@ message CardanoPoolParametersType {
 message CardanoTxWithdrawal {
     repeated uint32 path = 1;
     required uint64 amount = 2;
+    optional bytes script_hash = 3;     // used for multisig
 }
 
 /**

@@ -5,7 +5,7 @@
   },
   "tests": [
     {
-      "description": "transaction with stake registration certificate",
+      "description": "multisig transaction with stake registration certificate",
       "parameters": {
         "protocol_magic": 764824073,
         "network_id": 1,
@@ -49,7 +49,7 @@
       }
     },
     {
-      "description": "transaction with stake registration and stake delegation certificates",
+      "description": "multisig transaction with stake registration and stake delegation certificates",
       "parameters": {
         "protocol_magic": 764824073,
         "network_id": 1,
@@ -98,7 +98,7 @@
       }
     },
     {
-      "description": "transaction with stake deregistration",
+      "description": "multisig transaction with stake deregistration",
       "parameters": {
         "protocol_magic": 764824073,
         "network_id": 1,
@@ -136,6 +136,55 @@
             "type": 1,
             "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
             "signature": "87dbec4afd2c3670d1406b9ab1b33898a23422a80fb7b45d6d59e3c90ef002c7bc5930ea0b26afe98ed566daf861c8ee88f972f74c3025f77094c47aa91b0c01",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "multisig transaction with stake deregistration and withdrawal",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [
+          {
+            "type": 1,
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          }
+        ],
+        "withdrawals": [
+          {
+            "amount": "1000",
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          }
+        ],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witnesses": ["TODO for input, deregistration and withdrawal"]
+      },
+      "result": {
+        "tx_hash": "591f858831cf5da83213f45b955dcd5e77377383dd94935289908239b285b882",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "75734255ed4cf83b7c5ba9d94bc67412f9a4438490854657b9d6835f370adceb60dfca6bdb11e25079a57a7e7d56683216010555873df64dfebb3490eed6a60f",
             "chain_code": null
           }
         ]

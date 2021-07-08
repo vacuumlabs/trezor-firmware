@@ -2319,6 +2319,7 @@ class CardanoTxWithdrawal(protobuf.MessageType):
     FIELDS = {
         1: protobuf.Field("path", "uint32", repeated=True, required=False),
         2: protobuf.Field("amount", "uint64", repeated=False, required=True),
+        3: protobuf.Field("script_hash", "bytes", repeated=False, required=False),
     }
 
     def __init__(
@@ -2326,9 +2327,11 @@ class CardanoTxWithdrawal(protobuf.MessageType):
         *,
         amount: int,
         path: Optional[List[int]] = None,
+        script_hash: Optional[bytes] = None,
     ) -> None:
         self.path = path if path is not None else []
         self.amount = amount
+        self.script_hash = script_hash
 
 
 class CardanoCatalystRegistrationParametersType(protobuf.MessageType):

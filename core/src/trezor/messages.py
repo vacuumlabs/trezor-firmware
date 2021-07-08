@@ -1427,12 +1427,14 @@ if TYPE_CHECKING:
     class CardanoTxWithdrawal(protobuf.MessageType):
         path: list[int]
         amount: int
+        script_hash: bytes | None
 
         def __init__(
             self,
             *,
             amount: int,
             path: list[int] | None = None,
+            script_hash: bytes | None = None,
         ) -> None:
             pass
 

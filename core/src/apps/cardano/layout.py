@@ -489,16 +489,21 @@ async def confirm_stake_pool_registration_final(
 async def confirm_withdrawal(
     ctx: wire.Context, withdrawal: CardanoTxWithdrawal
 ) -> None:
+    stake_credential_prop = (
+        (
+            "Confirm withdrawal\nfor account %s:"
+            % format_account_number(withdrawal.path),
+            address_n_to_str(to_account_path(withdrawal.path)),
+        )
+        if withdrawal.path
+        else ("Confirm withdrawal for script:", withdrawal.script_hash)
+    )
     await confirm_properties(
         ctx,
         "confirm_withdrawal",
         title="Confirm transaction",
         props=[
-            (
-                "Confirm withdrawal\nfor account %s:"
-                % format_account_number(withdrawal.path),
-                address_n_to_str(to_account_path(withdrawal.path)),
-            ),
+            stake_credential_prop,
             ("Amount:", format_coin_amount(withdrawal.amount)),
         ],
         br_code=ButtonRequestType.Other,

@@ -60,6 +60,7 @@ from .helpers import (
     INVALID_TOKEN_BUNDLE_OUTPUT,
     INVALID_WITHDRAWAL,
     LOVELACE_MAX_SUPPLY,
+    SCRIPT_HASH_SIZE,
     network_ids,
     protocol_magics,
     staking_use_cases,
@@ -447,7 +448,7 @@ async def _process_withdrawals(
 
     # until the CIP with canonical CBOR is finalized storing the seen_withdrawals is the only way we can check for
     # duplicate withdrawals
-    seen_withdrawals: set[tuple[int, ...]] = set()
+    seen_withdrawals: set[tuple[int, ...] | bytes] = set()
     for _ in range(withdrawals_count):
         withdrawal: CardanoTxWithdrawal = await ctx.call(
             CardanoTxItemAck(), CardanoTxWithdrawal
@@ -735,19 +736,37 @@ async def _show_certificate(
 
 
 def _validate_withdrawal(
-    withdrawal: CardanoTxWithdrawal, seen_withdrawals: set[tuple[int, ...]]
+    withdrawal: CardanoTxWithdrawal, seen_withdrawals: set[tuple[int, ...] | bytes]
 ) -> None:
-    if not SCHEMA_STAKING_ANY_ACCOUNT.match(withdrawal.path):
-        raise INVALID_WITHDRAWAL
+    _validate_withdrawal_staking_credential(withdrawal.path, withdrawal.script_hash)
 
     if not 0 <= withdrawal.amount < LOVELACE_MAX_SUPPLY:
         raise INVALID_WITHDRAWAL
 
-    path_tuple = tuple(withdrawal.path)
-    if path_tuple in seen_withdrawals:
+    credential = tuple(withdrawal.path) if withdrawal.path else withdrawal.script_hash
+    assert credential  # _validate_withdrawal_staking_credential
+
+    if credential in seen_withdrawals:
         raise wire.ProcessError("Duplicate withdrawals")
     else:
-        seen_withdrawals.add(path_tuple)
+        seen_withdrawals.add(credential)
+
+
+# TODO create validate_staking_credential function and reuse in certificate?
+def _validate_withdrawal_staking_credential(
+    path: list[int], script_hash: bytes | None
+) -> None:
+    if path and script_hash:
+        raise INVALID_WITHDRAWAL
+
+    if path:
+        if not SCHEMA_STAKING_ANY_ACCOUNT.match(path):
+            raise INVALID_WITHDRAWAL
+    elif script_hash:
+        if len(script_hash) != SCRIPT_HASH_SIZE:
+            raise INVALID_WITHDRAWAL
+    else:
+        INVALID_WITHDRAWAL
 
 
 def _get_output_address(
