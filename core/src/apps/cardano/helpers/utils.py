@@ -1,11 +1,16 @@
 from trezor.crypto import hashlib
 
-from apps.cardano.helpers.paths import ACCOUNT_PATH_INDEX, unharden
+from apps.cardano.helpers.paths import (
+    ACCOUNT_PATH_INDEX,
+    SCHEMA_STAKING_ANY_ACCOUNT,
+    unharden,
+)
 from apps.common.seed import remove_ed25519_prefix
 
-from . import ADDRESS_KEY_HASH_SIZE, bech32
+from . import ADDRESS_KEY_HASH_SIZE, SCRIPT_HASH_SIZE, bech32
 
 if False:
+    from trezor import wire
     from .. import seed
 
 
@@ -75,3 +80,20 @@ def derive_public_key(
     node = keychain.derive(path)
     public_key = remove_ed25519_prefix(node.public_key())
     return public_key if not extended else public_key + node.chain_code()
+
+
+# TODO move to a better place?
+def validate_stake_credential(
+    path: list[int], script_hash: bytes | None, error: wire.ProcessError
+) -> None:
+    if path and script_hash:
+        raise error
+
+    if path:
+        if not SCHEMA_STAKING_ANY_ACCOUNT.match(path):
+            raise error
+    elif script_hash:
+        if len(script_hash) != SCRIPT_HASH_SIZE:
+            raise error
+    else:
+        error

@@ -1295,7 +1295,8 @@
         ]
       }
     },
-    {"description": "transaction with everything set except pool registration certificate",
+    {
+      "description": "transaction with everything set except pool registration certificate",
       "parameters": {
         "protocol_magic": 764824073,
         "network_id": 1,
@@ -1419,7 +1420,8 @@
             "nonce": 22634813
           }
         },
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "mint": []
       },
       "result": {
         "tx_hash": "75a98c63e05095201f8309bb49d181e1ad67b380f9ab23f91fab32758eb65ae5",

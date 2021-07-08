@@ -60,7 +60,6 @@ from .helpers import (
     INVALID_TOKEN_BUNDLE_OUTPUT,
     INVALID_WITHDRAWAL,
     LOVELACE_MAX_SUPPLY,
-    SCRIPT_HASH_SIZE,
     network_ids,
     protocol_magics,
     staking_use_cases,
@@ -80,7 +79,7 @@ from .helpers.paths import (
     WITNESS_PATH_NAME,
 )
 from .helpers.tx_builder import TxBuilder
-from .helpers.utils import derive_public_key, to_account_path
+from .helpers.utils import derive_public_key, to_account_path, validate_stake_credential
 from .layout import (
     confirm_certificate,
     confirm_sending,
@@ -738,7 +737,9 @@ async def _show_certificate(
 def _validate_withdrawal(
     withdrawal: CardanoTxWithdrawal, seen_withdrawals: set[tuple[int, ...] | bytes]
 ) -> None:
-    _validate_withdrawal_staking_credential(withdrawal.path, withdrawal.script_hash)
+    validate_stake_credential(
+        withdrawal.path, withdrawal.script_hash, INVALID_WITHDRAWAL
+    )
 
     if not 0 <= withdrawal.amount < LOVELACE_MAX_SUPPLY:
         raise INVALID_WITHDRAWAL
@@ -750,23 +751,6 @@ def _validate_withdrawal(
         raise wire.ProcessError("Duplicate withdrawals")
     else:
         seen_withdrawals.add(credential)
-
-
-# TODO create validate_staking_credential function and reuse in certificate?
-def _validate_withdrawal_staking_credential(
-    path: list[int], script_hash: bytes | None
-) -> None:
-    if path and script_hash:
-        raise INVALID_WITHDRAWAL
-
-    if path:
-        if not SCHEMA_STAKING_ANY_ACCOUNT.match(path):
-            raise INVALID_WITHDRAWAL
-    elif script_hash:
-        if len(script_hash) != SCRIPT_HASH_SIZE:
-            raise INVALID_WITHDRAWAL
-    else:
-        INVALID_WITHDRAWAL
 
 
 def _get_output_address(

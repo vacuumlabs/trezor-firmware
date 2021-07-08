@@ -7,13 +7,9 @@ from .address import (
     get_public_key_hash,
     validate_reward_address,
 )
-from .helpers import (
-    ADDRESS_KEY_HASH_SIZE,
-    INVALID_CERTIFICATE,
-    LOVELACE_MAX_SUPPLY,
-    SCRIPT_HASH_SIZE,
-)
+from .helpers import ADDRESS_KEY_HASH_SIZE, INVALID_CERTIFICATE, LOVELACE_MAX_SUPPLY
 from .helpers.paths import SCHEMA_STAKING_ANY_ACCOUNT
+from .helpers.utils import validate_stake_credential
 
 if False:
     from trezor.messages import (
@@ -41,9 +37,14 @@ MAX_PORT_NUMBER = 65535
 def validate_certificate(
     certificate: CardanoTxCertificate, protocol_magic: int, network_id: int
 ) -> None:
-    _validate_certificate_stake_credential(
-        certificate.type, certificate.path, certificate.script_hash
-    )
+    if certificate.type not in (
+        CardanoCertificateType.STAKE_DELEGATION,
+        CardanoCertificateType.STAKE_REGISTRATION,
+        CardanoCertificateType.STAKE_DEREGISTRATION,
+    ):
+        validate_stake_credential(
+            certificate.path, certificate.script_hash, INVALID_CERTIFICATE
+        )
 
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
         if not certificate.pool or len(certificate.pool) != POOL_HASH_SIZE:
@@ -55,30 +56,6 @@ def validate_certificate(
         _validate_pool_parameters(
             certificate.pool_parameters, protocol_magic, network_id
         )
-
-
-def _validate_certificate_stake_credential(
-    certificate_type: CardanoCertificateType, path: list[int], script_hash: bytes | None
-) -> None:
-    if certificate_type not in (
-        CardanoCertificateType.STAKE_DELEGATION,
-        CardanoCertificateType.STAKE_REGISTRATION,
-        CardanoCertificateType.STAKE_DEREGISTRATION,
-    ):
-        # other scripts don't contain a stake credential so no validation is needed
-        return
-
-    if path and script_hash:
-        raise INVALID_CERTIFICATE
-
-    if path:
-        if not SCHEMA_STAKING_ANY_ACCOUNT.match(path):
-            raise INVALID_CERTIFICATE
-    elif script_hash:
-        if len(script_hash) != SCRIPT_HASH_SIZE:
-            raise INVALID_CERTIFICATE
-    else:
-        raise INVALID_CERTIFICATE
 
 
 def cborize_certificate(
