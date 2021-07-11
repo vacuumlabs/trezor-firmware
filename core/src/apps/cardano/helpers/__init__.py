@@ -15,6 +15,7 @@ INVALID_STAKEPOOL_REGISTRATION_TX_WITNESSES = wire.ProcessError(
 )
 INVALID_SCRIPT = wire.ProcessError("Invalid script")
 INVALID_TOKEN_BUNDLE_MINT = wire.ProcessError("Invalid mint token bundle")
+INVALID_WITNESS_REQUEST = wire.ProcessError("Invalid witness request")
 
 LOVELACE_MAX_SUPPLY = 45_000_000_000 * 1_000_000
 ADDRESS_KEY_HASH_SIZE = 28

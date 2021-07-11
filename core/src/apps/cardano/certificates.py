@@ -1,4 +1,8 @@
-from trezor.enums import CardanoCertificateType, CardanoPoolRelayType
+from trezor.enums import (
+    CardanoCertificateType,
+    CardanoPoolRelayType,
+    CardanoTxSigningMode,
+)
 
 from apps.common import cbor
 
@@ -35,7 +39,10 @@ MAX_PORT_NUMBER = 65535
 
 
 def validate_certificate(
-    certificate: CardanoTxCertificate, protocol_magic: int, network_id: int
+    certificate: CardanoTxCertificate,
+    signing_mode: CardanoTxSigningMode,
+    protocol_magic: int,
+    network_id: int,
 ) -> None:
     if certificate.type not in (
         CardanoCertificateType.STAKE_DELEGATION,
@@ -43,7 +50,7 @@ def validate_certificate(
         CardanoCertificateType.STAKE_DEREGISTRATION,
     ):
         validate_stake_credential(
-            certificate.path, certificate.script_hash, INVALID_CERTIFICATE
+            certificate.path, certificate.script_hash, signing_mode, INVALID_CERTIFICATE
         )
 
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:

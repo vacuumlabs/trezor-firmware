@@ -1,4 +1,5 @@
 from trezor.crypto import hashlib
+from trezor.enums import CardanoTxSigningMode
 
 from apps.cardano.helpers.paths import (
     ACCOUNT_PATH_INDEX,
@@ -84,15 +85,22 @@ def derive_public_key(
 
 # TODO move to a better place?
 def validate_stake_credential(
-    path: list[int], script_hash: bytes | None, error: wire.ProcessError
+    path: list[int],
+    script_hash: bytes | None,
+    signing_mode: CardanoTxSigningMode,
+    error: wire.ProcessError,
 ) -> None:
     if path and script_hash:
         raise error
 
     if path:
+        if signing_mode != CardanoTxSigningMode.ORDINARY_TRANSACTION:
+            raise error
         if not SCHEMA_STAKING_ANY_ACCOUNT.match(path):
             raise error
     elif script_hash:
+        if signing_mode != CardanoTxSigningMode.MULTISIG_TRANSACTION:
+            raise error
         if len(script_hash) != SCRIPT_HASH_SIZE:
             raise error
     else:

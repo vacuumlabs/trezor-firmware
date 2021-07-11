@@ -365,6 +365,7 @@ if TYPE_CHECKING:
     class CardanoTxSigningMode(IntEnum):
         ORDINARY_TRANSACTION = 0
         POOL_REGISTRATION_AS_OWNER = 1
+        MULTISIG_TRANSACTION = 2
 
     class CardanoTxWitnessType(IntEnum):
         BYRON_WITNESS = 0

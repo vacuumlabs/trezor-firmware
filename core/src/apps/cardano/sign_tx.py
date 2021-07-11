@@ -63,6 +63,7 @@ from .helpers import (
     network_ids,
     protocol_magics,
     staking_use_cases,
+    INVALID_WITNESS_REQUEST,
 )
 from .helpers.paths import (
     ACCOUNT_PATH_INDEX,
@@ -100,7 +101,7 @@ from .layout import (
     show_warning_tx_pointer_address,
     show_warning_tx_staking_key_hash,
 )
-from .seed import is_byron_path
+from .seed import is_byron_path, is_shelley_path, is_multisig_path
 
 if False:
     from typing import Union
@@ -202,6 +203,7 @@ async def _process_transaction(
         keychain,
         builder,
         msg.withdrawals_count,
+        msg.signing_mode,
         msg.protocol_magic,
         msg.network_id,
     )
@@ -368,7 +370,7 @@ async def _process_certificates(
         certificate: CardanoTxCertificate = await ctx.call(
             CardanoTxItemAck(), CardanoTxCertificate
         )
-        validate_certificate(certificate, protocol_magic, network_id)
+        validate_certificate(certificate, signing_mode, protocol_magic, network_id)
         await _show_certificate(ctx, certificate, signing_mode)
 
         if certificate.type == CardanoCertificateType.STAKE_POOL_REGISTRATION:
@@ -437,6 +439,7 @@ async def _process_withdrawals(
     keychain: seed.Keychain,
     builder: TxBuilder,
     withdrawals_count: int,
+    signing_mode: CardanoTxSigningMode,
     protocol_magic: int,
     network_id: int,
 ) -> None:
@@ -452,7 +455,7 @@ async def _process_withdrawals(
         withdrawal: CardanoTxWithdrawal = await ctx.call(
             CardanoTxItemAck(), CardanoTxWithdrawal
         )
-        _validate_withdrawal(withdrawal, seen_withdrawals)
+        _validate_withdrawal(withdrawal, seen_withdrawals, signing_mode)
         await confirm_withdrawal(ctx, withdrawal)
         reward_address = derive_address_bytes(
             keychain,
@@ -735,10 +738,12 @@ async def _show_certificate(
 
 
 def _validate_withdrawal(
-    withdrawal: CardanoTxWithdrawal, seen_withdrawals: set[tuple[int, ...] | bytes]
+    withdrawal: CardanoTxWithdrawal,
+    seen_withdrawals: set[tuple[int, ...] | bytes],
+    signing_mode: CardanoTxSigningMode,
 ) -> None:
     validate_stake_credential(
-        withdrawal.path, withdrawal.script_hash, INVALID_WITHDRAWAL
+        withdrawal.path, withdrawal.script_hash, signing_mode, INVALID_WITHDRAWAL
     )
 
     if not 0 <= withdrawal.amount < LOVELACE_MAX_SUPPLY:
@@ -811,10 +816,20 @@ def _validate_witness(
     signing_mode: CardanoTxSigningMode,
     witness: CardanoTxWitnessRequest,
 ) -> None:
-    # witness path validation happens in _show_witness
+    # further witness path validation happens in _show_witness
 
-    if signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
+    # TODO what to do about additional witnesse? How to distinguish them from witnesses from tranasaction?
+    #       This is needed so that we can forbid additional witnesses during ORDINARY TRANSACTION.
+    if signing_mode == CardanoTxSigningMode.ORDINARY_TRANSACTION:
+        if not (is_byron_path(witness.path) or is_shelley_path(witness.path)):
+            raise INVALID_WITNESS_REQUEST
+    elif signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
+        if not is_multisig_path(witness.path):
+            raise INVALID_WITNESS_REQUEST
+    elif signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         _ensure_no_payment_witness(witness)
+    else:
+        raise INVALID_WITNESS_REQUEST
 
 
 def _ensure_no_payment_witness(witness: CardanoTxWitnessRequest) -> None:
@@ -837,13 +852,21 @@ def _ensure_no_payment_witness(witness: CardanoTxWitnessRequest) -> None:
 async def _show_witness(
     ctx: wire.Context,
     witness_path: list[int],
+    signing_mode: CardanoTxSigningMode,
 ) -> None:
-    await _fail_or_warn_if_invalid_path(
-        ctx,
-        SCHEMA_ADDRESS,
-        witness_path,
-        WITNESS_PATH_NAME,
-    )
+    if signing_mode in (
+        CardanoTxSigningMode.ORDINARY_TRANSACTION,
+        CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER,
+    ):
+        await _fail_or_warn_if_invalid_path(
+            ctx,
+            SCHEMA_ADDRESS,
+            witness_path,
+            WITNESS_PATH_NAME,
+        )
+    elif signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
+        # TODO add some custom screen
+        await show_warning_path(ctx, witness_path, WITNESS_PATH_NAME)
 
 
 async def _show_change_output_staking_warnings(
