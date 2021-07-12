@@ -110,7 +110,10 @@ def create_address_parameters(
     if address_type not in ADDRESS_TYPES:
         raise ValueError("Unknown address type")
 
-    if address_type == messages.CardanoAddressType.POINTER:
+    if address_type in (
+        messages.CardanoAddressType.POINTER,
+        messages.CardanoAddressType.POINTER_SCRIPT,
+    ):
         certificate_pointer = _create_certificate_pointer(
             block_index, tx_index, certificate_index
         )
