@@ -49,7 +49,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -103,7 +104,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -154,7 +156,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -205,7 +208,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -260,7 +264,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Stakepool registration transaction cannot contain other certificates nor withdrawals"
@@ -316,7 +321,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Stakepool registration transaction cannot contain other certificates nor withdrawals"
@@ -367,7 +373,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Stakepool registration transaction can only contain staking witnesses"
@@ -417,7 +424,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "ProcessError: Invalid address"
@@ -467,7 +475,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "ProcessError: Invalid address"
@@ -551,7 +560,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "POOL_REGISTRATION_AS_OWNER"
+        "signing_mode": "POOL_REGISTRATION_AS_OWNER",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid pool owner staking path"

@@ -24,6 +24,7 @@ from .tools import expect
 SIGNING_MODE_IDS = {
     "ORDINARY_TRANSACTION": messages.CardanoTxSigningMode.ORDINARY_TRANSACTION,
     "POOL_REGISTRATION_AS_OWNER": messages.CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER,
+    "MULTISIG_TRANSACTION": messages.CardanoTxSigningMode.MULTISIG_TRANSACTION,
 }
 
 PROTOCOL_MAGICS = {"mainnet": 764824073, "testnet": 42}
@@ -500,11 +501,21 @@ def parse_mint(mint) -> List[AssetGroupWithTokens]:
     return _parse_token_bundle(mint, is_mint=True)
 
 
-def _get_witness_paths(
+def parse_script_witness_requests(
+    script_witness_request,
+) -> messages.CardanoTxScriptWitnessRequest:
+    if "path" not in script_witness_request:
+        raise ValueError("Invalid script witness request")
+
+    path = tools.parse_path(script_witness_request["path"])
+    return messages.CardanoTxScriptWitnessRequest(path=path)
+
+
+def _get_witness_requests(
     inputs: List[InputWithPath],
     certificates: List[CertificateWithPoolOwnersAndRelays],
     withdrawals: List[messages.CardanoTxWithdrawal],
-) -> List[Path]:
+) -> List[messages.CardanoTxWitnessRequest]:
     paths = set()
     for _, path in inputs:
         if path:
@@ -531,7 +542,8 @@ def _get_witness_paths(
         if withdrawal.path:
             paths.add(tuple(withdrawal.path))
 
-    return sorted([list(path) for path in paths])
+    sorted_paths = sorted([list(path) for path in paths])
+    return [messages.CardanoTxWitnessRequest(path=path) for path in sorted_paths]
 
 
 def _get_input_items(inputs: List[InputWithPath]) -> Iterator[messages.CardanoTxInput]:
@@ -614,10 +626,11 @@ def sign_tx(
     network_id: int = NETWORK_IDS["mainnet"],
     auxiliary_data: messages.CardanoTxAuxiliaryData = None,
     mint: List[AssetGroupWithTokens] = (),
+    script_witness_requests: List[messages.CardanoTxScriptWitnessRequest] = (),
 ) -> SignTxResponse:
     UNEXPECTED_RESPONSE_ERROR = exceptions.TrezorException("Unexpected response")
 
-    witness_paths = _get_witness_paths(inputs, certificates, withdrawals)
+    witness_requests = _get_witness_requests(inputs, certificates, withdrawals)
 
     response = client.call(
         messages.CardanoSignTxInit(
@@ -633,7 +646,8 @@ def sign_tx(
             network_id=network_id,
             has_auxiliary_data=auxiliary_data is not None,
             has_token_minting=bool(mint),
-            witnesses_count=len(witness_paths),
+            witnesses_count=len(witness_requests),
+            script_witness_requests_count=len(script_witness_requests),
         )
     )
     if not isinstance(response, messages.CardanoTxItemAck):
@@ -676,8 +690,8 @@ def sign_tx(
                 raise UNEXPECTED_RESPONSE_ERROR
 
     sign_tx_response["witnesses"] = []
-    for path in witness_paths:
-        response = client.call(messages.CardanoTxWitnessRequest(path=path))
+    for witness_request in chain(witness_requests, script_witness_requests):
+        response = client.call(witness_request)
         if not isinstance(response, messages.CardanoTxWitnessResponse):
             raise UNEXPECTED_RESPONSE_ERROR
         sign_tx_response["witnesses"].append(

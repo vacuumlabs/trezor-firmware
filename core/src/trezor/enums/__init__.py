@@ -166,6 +166,7 @@ if TYPE_CHECKING:
         CardanoGetScriptHash = 330
         CardanoScriptHash = 331
         CardanoTxMint = 332
+        CardanoTxScriptWitnessRequest = 333
         RippleGetAddress = 400
         RippleAddress = 401
         RippleSignTx = 402

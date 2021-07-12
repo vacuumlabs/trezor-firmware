@@ -1222,6 +1222,7 @@ if TYPE_CHECKING:
         validity_interval_start: int | None
         witnesses_count: int
         has_token_minting: bool
+        script_witness_requests_count: int
 
         def __init__(
             self,
@@ -1237,6 +1238,7 @@ if TYPE_CHECKING:
             has_auxiliary_data: bool,
             witnesses_count: int,
             has_token_minting: bool,
+            script_witness_paths_count: int,
             ttl: int | None = None,
             validity_interval_start: int | None = None,
         ) -> None:
@@ -1548,6 +1550,20 @@ if TYPE_CHECKING:
 
         @classmethod
         def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoTxWitnessResponse"]:
+            return isinstance(msg, cls)
+
+    class CardanoTxScriptWitnessRequest(protobuf.MessageType):
+        path: list[int]
+
+        def __init__(
+            self,
+            *,
+            path: list[int] | None = None,
+        ) -> None:
+            pass
+
+        @classmethod
+        def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoTxScriptWitnessRequest"]:
             return isinstance(msg, cls)
 
     class CardanoTxHostAck(protobuf.MessageType):

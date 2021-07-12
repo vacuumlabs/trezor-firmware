@@ -28,7 +28,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid address"
@@ -58,7 +59,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid address"
@@ -88,7 +90,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid address"
@@ -118,7 +121,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid address"
@@ -148,7 +152,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid address"
@@ -178,7 +183,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Fee is out of range"
@@ -213,7 +219,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Total transaction amount is out of range!"
@@ -243,7 +250,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Output address network mismatch"
@@ -273,7 +281,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Output address network mismatch"
@@ -303,7 +312,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid address"
@@ -333,7 +343,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid address"
@@ -363,7 +374,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid network id/protocol magic combination!"
@@ -393,7 +405,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid network id/protocol magic combination!"
@@ -423,7 +436,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid address"
@@ -456,7 +470,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Outputs can not contain both address and address_parameters fields!"
@@ -491,7 +506,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -527,7 +543,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -563,7 +580,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid certificate"
@@ -598,7 +616,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid withdrawal"
@@ -633,7 +652,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid withdrawal"
@@ -669,7 +689,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid withdrawal"
@@ -708,7 +729,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Duplicate withdrawals"
@@ -740,7 +762,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid auxiliary data"
@@ -780,7 +803,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid auxiliary data"
@@ -822,7 +846,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid auxiliary data"
@@ -858,7 +883,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid change output path"
@@ -894,7 +920,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid change output staking path"
@@ -929,7 +956,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid certificate path"
@@ -974,7 +1002,8 @@
           }
         ],
         "mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid token bundle in output"
@@ -1023,11 +1052,81 @@
             ]
           }
         ],
-"mint": [],
-        "signing_mode": "ORDINARY_TRANSACTION"
+        "mint": [],
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": []
       },
       "result": {
         "error_message": "Invalid token bundle in output"
+      }
+    },
+    {
+      "description": "Script witness requests in ORDINARY_TRANSACTION",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "Ae2tdPwUPEZCanmBz5g2GEwFqKTKpNJcGYPKfDxoNeKZ8bRHr8366kseiK2",
+            "amount": "3003112"
+          }
+        ],
+        "mint": [],
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "script_witness_requests": [
+          {
+            "path": "m/1854'/1815'/0'/0/0"
+          }
+        ]
+      },
+      "result": {
+        "error_message": "Invalid tx signing request"
+      }
+    },
+    {
+      "description": "Script witness request does not contain a multisig path",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "Ae2tdPwUPEZCanmBz5g2GEwFqKTKpNJcGYPKfDxoNeKZ8bRHr8366kseiK2",
+            "amount": "3003112"
+          }
+        ],
+        "mint": [],
+        "signing_mode": "MULTISIG_TRANSACTION",
+        "script_witness_requests": [
+          {
+            "path": "m/1852'/1815'/0'/0/0"
+          }
+        ]
+      },
+      "result": {
+        "error_message": "Invalid script witness request"
       }
     }
   ]

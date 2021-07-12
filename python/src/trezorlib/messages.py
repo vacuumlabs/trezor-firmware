@@ -187,6 +187,7 @@ class MessageType(IntEnum):
     CardanoGetScriptHash = 330
     CardanoScriptHash = 331
     CardanoTxMint = 332
+    CardanoTxScriptWitnessRequest = 333
     RippleGetAddress = 400
     RippleAddress = 401
     RippleSignTx = 402
@@ -2071,6 +2072,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         11: protobuf.Field("validity_interval_start", "uint64", repeated=False, required=False),
         12: protobuf.Field("witnesses_count", "uint32", repeated=False, required=True),
         13: protobuf.Field("has_token_minting", "bool", repeated=False, required=True),
+        14: protobuf.Field("script_witness_requests_count", "uint32", repeated=False, required=True),
     }
 
     def __init__(
@@ -2087,6 +2089,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         has_auxiliary_data: bool,
         witnesses_count: int,
         has_token_minting: bool,
+        script_witness_requests_count: int,
         ttl: Optional[int] = None,
         validity_interval_start: Optional[int] = None,
     ) -> None:
@@ -2101,6 +2104,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         self.has_auxiliary_data = has_auxiliary_data
         self.witnesses_count = witnesses_count
         self.has_token_minting = has_token_minting
+        self.script_witness_requests_count = script_witness_requests_count
         self.ttl = ttl
         self.validity_interval_start = validity_interval_start
 
@@ -2448,6 +2452,20 @@ class CardanoTxWitnessResponse(protobuf.MessageType):
         self.pub_key = pub_key
         self.signature = signature
         self.chain_code = chain_code
+
+
+class CardanoTxScriptWitnessRequest(protobuf.MessageType):
+    MESSAGE_WIRE_TYPE = 333
+    FIELDS = {
+        1: protobuf.Field("path", "uint32", repeated=True, required=False),
+    }
+
+    def __init__(
+        self,
+        *,
+        path: Optional[List[int]] = None,
+    ) -> None:
+        self.path = path if path is not None else []
 
 
 class CardanoTxHostAck(protobuf.MessageType):

@@ -22,6 +22,7 @@ from trezor.messages import (
     CardanoTxItemAck,
     CardanoTxMint,
     CardanoTxOutput,
+    CardanoTxScriptWitnessRequest,
     CardanoTxWithdrawal,
     CardanoTxWitnessRequest,
     CardanoTxWitnessResponse,
@@ -54,16 +55,18 @@ from .certificates import (
     validate_pool_relay,
 )
 from .helpers import (
+    INVALID_SCRIPT_WITNESS_REQUEST,
     INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE,
     INVALID_STAKEPOOL_REGISTRATION_TX_WITNESSES,
     INVALID_TOKEN_BUNDLE_MINT,
     INVALID_TOKEN_BUNDLE_OUTPUT,
+    INVALID_TX_SIGNING_REQUEST,
     INVALID_WITHDRAWAL,
+    INVALID_WITNESS_REQUEST,
     LOVELACE_MAX_SUPPLY,
     network_ids,
     protocol_magics,
     staking_use_cases,
-    INVALID_WITNESS_REQUEST,
 )
 from .helpers.paths import (
     ACCOUNT_PATH_INDEX,
@@ -101,7 +104,7 @@ from .layout import (
     show_warning_tx_pointer_address,
     show_warning_tx_staking_key_hash,
 )
-from .seed import is_byron_path, is_shelley_path, is_multisig_path
+from .seed import is_byron_path, is_multisig_path, is_shelley_path
 
 if False:
     from typing import Union
@@ -139,9 +142,15 @@ async def sign_tx(
     try:
         tx_hash = builder.get_tx_hash()
 
-        response_after_witnesses = await _process_witnesses(
-            ctx, keychain, tx_hash, msg.witnesses_count, msg.signing_mode
+        response_after_witnesses = await _process_witness_requests(
+            ctx,
+            keychain,
+            tx_hash,
+            msg.witnesses_count,
+            msg.script_witness_requests_count,
+            msg.signing_mode,
         )
+
         await ctx.call(response_after_witnesses, CardanoTxHostAck)
 
         await ctx.call(CardanoTxBodyHash(tx_hash=tx_hash), CardanoTxHostAck)
@@ -165,8 +174,15 @@ async def _validate_tx_signing_request(
     if msg.signing_mode == CardanoTxSigningMode.ORDINARY_TRANSACTION:
         if not is_network_id_verifiable:
             await show_warning_tx_network_unverifiable(ctx)
+        if msg.script_witness_requests_count != 0:
+            raise INVALID_TX_SIGNING_REQUEST
     elif msg.signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         _validate_stake_pool_registration_tx_structure(msg)
+        if msg.script_witness_requests_count != 0:
+            raise INVALID_TX_SIGNING_REQUEST
+    elif msg.signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
+        if msg.witnesses_count != 0:
+            raise INVALID_TX_SIGNING_REQUEST
 
     return is_network_id_verifiable
 
@@ -562,25 +578,43 @@ async def _process_minting_token(
     builder.finish_tokens_mint()
 
 
-async def _process_witnesses(
+async def _process_witness_requests(
     ctx: wire.Context,
     keychain: seed.Keychain,
     tx_hash: bytes,
-    witnesses_count: int,
+    witness_requests_count: int,
+    script_witness_requests_count: int,
     signing_mode: CardanoTxSigningMode,
 ) -> CardanoTxResponseType:
     response: CardanoTxResponseType = CardanoTxItemAck()
-    for _ in range(witnesses_count):
-        witness_request = await ctx.call(response, CardanoTxWitnessRequest)
-        _validate_witness(signing_mode, witness_request)
-        await _show_witness(ctx, witness_request.path)
 
-        response = (
-            _get_byron_witness(keychain, witness_request.path, tx_hash)
-            if is_byron_path(witness_request.path)
-            else _get_shelley_witness(keychain, witness_request.path, tx_hash)
-        )
+    for _ in range(witness_requests_count):
+        witness_request = await ctx.call(response, CardanoTxWitnessRequest)
+        _validate_witness_request(witness_request, signing_mode)
+        await _show_witness(ctx, witness_request.path, signing_mode)
+
+        response = _get_witness(keychain, witness_request.path, tx_hash)
+
+    for _ in range(script_witness_requests_count):
+        script_witness_request = await ctx.call(response, CardanoTxScriptWitnessRequest)
+        _validate_script_witness_request(script_witness_request, signing_mode)
+        await _show_script_witness_request(ctx, script_witness_request, signing_mode)
+
+        response = _get_witness(keychain, script_witness_request.path, tx_hash)
+
     return response
+
+
+def _get_witness(
+    keychain: seed.Keychain,
+    path: list[int],
+    tx_hash: bytes,
+) -> CardanoTxWitnessResponse:
+    return (
+        _get_byron_witness(keychain, path, tx_hash)
+        if is_byron_path(path)
+        else _get_shelley_witness(keychain, path, tx_hash)
+    )
 
 
 def _get_byron_witness(
@@ -812,24 +846,37 @@ async def _show_pool_owner(
     await confirm_stake_pool_owner(ctx, keychain, owner, protocol_magic, network_id)
 
 
-def _validate_witness(
+def _validate_witness_request(
+    witness_request: CardanoTxWitnessRequest,
     signing_mode: CardanoTxSigningMode,
-    witness: CardanoTxWitnessRequest,
 ) -> None:
     # further witness path validation happens in _show_witness
 
-    # TODO what to do about additional witnesse? How to distinguish them from witnesses from tranasaction?
-    #       This is needed so that we can forbid additional witnesses during ORDINARY TRANSACTION.
+    assert (
+        signing_mode != CardanoTxSigningMode.MULTISIG_TRANSACTION
+    )  # _validate_tx_signing_request
+
     if signing_mode == CardanoTxSigningMode.ORDINARY_TRANSACTION:
-        if not (is_byron_path(witness.path) or is_shelley_path(witness.path)):
-            raise INVALID_WITNESS_REQUEST
-    elif signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
-        if not is_multisig_path(witness.path):
+        if not (
+            is_byron_path(witness_request.path) or is_shelley_path(witness_request.path)
+        ):
             raise INVALID_WITNESS_REQUEST
     elif signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
-        _ensure_no_payment_witness(witness)
+        _ensure_no_payment_witness(witness_request)
     else:
         raise INVALID_WITNESS_REQUEST
+
+
+def _validate_script_witness_request(
+    script_witness_request: CardanoTxScriptWitnessRequest,
+    signing_mode: CardanoTxSigningMode,
+) -> None:
+    assert (
+        signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION
+    )  # _validate_tx_signing_request
+
+    if not is_multisig_path(script_witness_request.path):
+        raise INVALID_SCRIPT_WITNESS_REQUEST
 
 
 def _ensure_no_payment_witness(witness: CardanoTxWitnessRequest) -> None:
@@ -854,19 +901,29 @@ async def _show_witness(
     witness_path: list[int],
     signing_mode: CardanoTxSigningMode,
 ) -> None:
-    if signing_mode in (
+    assert signing_mode in (
         CardanoTxSigningMode.ORDINARY_TRANSACTION,
         CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER,
-    ):
-        await _fail_or_warn_if_invalid_path(
-            ctx,
-            SCHEMA_ADDRESS,
-            witness_path,
-            WITNESS_PATH_NAME,
-        )
-    elif signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
-        # TODO add some custom screen
-        await show_warning_path(ctx, witness_path, WITNESS_PATH_NAME)
+    )  # _validate_witness_request
+
+    await _fail_or_warn_if_invalid_path(
+        ctx,
+        SCHEMA_ADDRESS,
+        witness_path,
+        WITNESS_PATH_NAME,
+    )
+
+
+async def _show_script_witness_request(
+    ctx: wire.Context,
+    script_witness_request: CardanoTxScriptWitnessRequest,
+    signing_mode: CardanoTxSigningMode,
+) -> None:
+    assert (
+        signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION
+    )  # _validate_script_witness_request
+    # TODO add some custom screen
+    await show_warning_path(ctx, script_witness_request.path, WITNESS_PATH_NAME)
 
 
 async def _show_change_output_staking_warnings(

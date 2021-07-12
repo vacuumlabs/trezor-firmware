@@ -82,6 +82,10 @@ def sign_tx(client, file, signing_mode, protocol_magic, network_id, testnet):
     ]
     auxiliary_data = cardano.parse_auxiliary_data(transaction.get("auxiliary_data"))
     mint = cardano.parse_mint(transaction.get("mint", ()))
+    script_witness_requests = [
+        cardano.parse_script_witness_requests(p)
+        for p in transaction["script_witness_requests"]
+    ]
 
     sign_tx_response = cardano.sign_tx(
         client,
@@ -97,6 +101,7 @@ def sign_tx(client, file, signing_mode, protocol_magic, network_id, testnet):
         network_id,
         auxiliary_data,
         mint,
+        script_witness_requests,
     )
 
     sign_tx_response["tx_hash"] = sign_tx_response["tx_hash"].hex()
