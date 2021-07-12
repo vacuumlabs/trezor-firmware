@@ -1238,7 +1238,7 @@ if TYPE_CHECKING:
             has_auxiliary_data: bool,
             witnesses_count: int,
             has_token_minting: bool,
-            script_witness_paths_count: int,
+            script_witness_requests_count: int,
             ttl: int | None = None,
             validity_interval_start: int | None = None,
         ) -> None:

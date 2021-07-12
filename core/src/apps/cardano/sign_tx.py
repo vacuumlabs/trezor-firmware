@@ -176,10 +176,10 @@ async def _validate_tx_signing_request(
             await show_warning_tx_network_unverifiable(ctx)
         if msg.script_witness_requests_count != 0:
             raise INVALID_TX_SIGNING_REQUEST
+        if msg.has_token_minting:
+            raise INVALID_TX_SIGNING_REQUEST
     elif msg.signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         _validate_stake_pool_registration_tx_structure(msg)
-        if msg.script_witness_requests_count != 0:
-            raise INVALID_TX_SIGNING_REQUEST
     elif msg.signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
         if msg.witnesses_count != 0:
             raise INVALID_TX_SIGNING_REQUEST
@@ -283,7 +283,7 @@ async def _process_outputs(
     for _ in range(outputs_count):
         output: CardanoTxOutput = await ctx.call(CardanoTxItemAck(), CardanoTxOutput)
         _validate_output(output, protocol_magic, network_id)
-        if signing_mode == CardanoTxSigningMode.ORDINARY_TRANSACTION:
+        if signing_mode != CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
             await _show_output(
                 ctx,
                 keychain,
@@ -662,6 +662,8 @@ def _validate_stake_pool_registration_tx_structure(msg: CardanoSignTxInit) -> No
         msg.certificates_count != 1
         or msg.signing_mode != CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER
         or msg.withdrawals_count != 0
+        or msg.script_witness_requests_count != 0
+        or msg.has_token_minting
     ):
         raise INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE
 
@@ -784,7 +786,7 @@ def _validate_withdrawal(
         raise INVALID_WITHDRAWAL
 
     credential = tuple(withdrawal.path) if withdrawal.path else withdrawal.script_hash
-    assert credential  # _validate_withdrawal_staking_credential
+    assert credential  # validate_stake_credential
 
     if credential in seen_withdrawals:
         raise wire.ProcessError("Duplicate withdrawals")

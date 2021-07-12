@@ -58,6 +58,8 @@ def validate_certificate(
             raise INVALID_CERTIFICATE
 
     if certificate.type == CardanoCertificateType.STAKE_POOL_REGISTRATION:
+        if signing_mode != CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
+            raise INVALID_CERTIFICATE
         if certificate.pool_parameters is None:
             raise INVALID_CERTIFICATE
         _validate_pool_parameters(
