@@ -1925,7 +1925,7 @@ class CardanoScript(protobuf.MessageType):
 class CardanoGetScriptHash(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 330
     FIELDS = {
-        1: protobuf.Field("script", "CardanoScript", repeated=False, required=True),
+        1: protobuf.Field("script", CardanoScript, repeated=False, required=True),
         2: protobuf.Field("show_display", "bool", repeated=False, required=False),
     }
 

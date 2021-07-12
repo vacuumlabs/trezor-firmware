@@ -28,33 +28,41 @@ required_fields = [f for f in message.fields if f.required]
 repeated_fields = [f for f in message.fields if f.repeated]
 optional_fields = [f for f in message.fields if f.optional]
 
-def member_type(field):
+def type_name_for_recursive_types(type, message_name):
+    is_recursive = type == message_name
+    if is_recursive:
+        return '"' + type + '"'
+    else:
+        return type
+
+
+def member_type(field, message_name):
     if field.required:
-        return field.python_type
+        return type_name_for_recursive_types(field.python_type, message_name)
     if field.optional and field.default_value is not None:
-        return field.python_type
+        return type_name_for_recursive_types(field.python_type, message_name)
     if field.repeated:
-        return f"list[{field.python_type}]"
-    return f"{field.python_type} | None"
+        return f"list[{type_name_for_recursive_types(field.python_type, message_name)}]"
+    return f"{type_name_for_recursive_types(field.python_type, message_name)} | None"
 
 %>\
     class ${message.name}(protobuf.MessageType):
 % if message.fields:
 % for field in message.fields:
-        ${field.name}: ${member_type(field)}
+        ${field.name}: ${member_type(field, message.name)}
 % endfor
 
         def __init__(
             self,
             *,
 % for field in required_fields:
-            ${field.name}: ${field.python_type},
+            ${field.name}: ${type_name_for_recursive_types(field.python_type, message.name)},
 % endfor
 % for field in repeated_fields:
-            ${field.name}: list[${field.python_type}] | None = None,
+            ${field.name}: list[${type_name_for_recursive_types(field.python_type, message.name)}] | None = None,
 % endfor
 % for field in optional_fields:
-            ${field.name}: ${field.python_type} | None = None,
+            ${field.name}: ${type_name_for_recursive_types(field.python_type, message.name)} | None = None,
 % endfor
         ) -> None:
             pass
