@@ -386,6 +386,8 @@ if utils.BITCOIN_ONLY:
     import trezor.enums.CardanoCertificateType
     trezor.enums.CardanoPoolRelayType
     import trezor.enums.CardanoPoolRelayType
+    trezor.enums.CardanoScriptType
+    import trezor.enums.CardanoScriptType
     trezor.enums.LiskTransactionType
     import trezor.enums.LiskTransactionType
     trezor.enums.NEMImportanceTransferMode
