@@ -1,7 +1,7 @@
 from trezor.crypto import hashlib
-from trezor.enums import CardanoAddressType, CardanoScriptType
+from trezor.enums import CardanoAddressType, CardanoNativeScriptType
 
-from apps.cardano.helpers import ADDRESS_KEY_HASH_SIZE, INVALID_SCRIPT
+from apps.cardano.helpers import ADDRESS_KEY_HASH_SIZE, INVALID_NATIVE_SCRIPT
 from apps.common import cbor
 
 from .helpers.paths import SCHEMA_ADDRESS, SCHEMA_STAKING_ANY_ACCOUNT
@@ -11,7 +11,7 @@ from .seed import Keychain, is_multisig_path
 if False:
     from typing import Any
 
-    from trezor.messages import CardanoScript
+    from trezor.messages import CardanoNativeScript
 
     from apps.common.cbor import CborSequence
 
@@ -25,55 +25,55 @@ SCRIPT_ADDRESS_TYPES = (
 )
 
 
-def validate_script(script: CardanoScript | None) -> None:
+def validate_native_script(script: CardanoNativeScript | None) -> None:
     if not script:
-        raise INVALID_SCRIPT
+        raise INVALID_NATIVE_SCRIPT
 
-    _validate_script_structure(script)
+    _validate_native_script_structure(script)
 
-    if script.type == CardanoScriptType.PUB_KEY:
+    if script.type == CardanoNativeScriptType.PUB_KEY:
         if script.key_hash and script.key_path:
-            raise INVALID_SCRIPT
+            raise INVALID_NATIVE_SCRIPT
         if script.key_hash:
             if len(script.key_hash) != ADDRESS_KEY_HASH_SIZE:
-                raise INVALID_SCRIPT
+                raise INVALID_NATIVE_SCRIPT
         elif script.key_path:
             if not SCHEMA_ADDRESS.match(
                 script.key_path
             ) and not SCHEMA_STAKING_ANY_ACCOUNT.match(script.key_path):
-                raise INVALID_SCRIPT
+                raise INVALID_NATIVE_SCRIPT
             if not is_multisig_path(script.key_path):
-                raise INVALID_SCRIPT
+                raise INVALID_NATIVE_SCRIPT
         else:
-            raise INVALID_SCRIPT
-    elif script.type == CardanoScriptType.ALL:
+            raise INVALID_NATIVE_SCRIPT
+    elif script.type == CardanoNativeScriptType.ALL:
         if not script.scripts:
-            raise INVALID_SCRIPT
+            raise INVALID_NATIVE_SCRIPT
         for sub_script in script.scripts:
-            validate_script(sub_script)
-    elif script.type == CardanoScriptType.ANY:
+            validate_native_script(sub_script)
+    elif script.type == CardanoNativeScriptType.ANY:
         if not script.scripts:
-            raise INVALID_SCRIPT
+            raise INVALID_NATIVE_SCRIPT
         for sub_script in script.scripts:
-            validate_script(sub_script)
-    elif script.type == CardanoScriptType.N_OF_K:
+            validate_native_script(sub_script)
+    elif script.type == CardanoNativeScriptType.N_OF_K:
         if not script.required_signatures_count:
-            raise INVALID_SCRIPT
+            raise INVALID_NATIVE_SCRIPT
         if not script.scripts:
-            raise INVALID_SCRIPT
+            raise INVALID_NATIVE_SCRIPT
         if script.required_signatures_count > len(script.scripts):
-            raise INVALID_SCRIPT
+            raise INVALID_NATIVE_SCRIPT
         for sub_script in script.scripts:
-            validate_script(sub_script)
-    elif script.type == CardanoScriptType.INVALID_BEFORE:
+            validate_native_script(sub_script)
+    elif script.type == CardanoNativeScriptType.INVALID_BEFORE:
         if script.invalid_before is None:
-            raise INVALID_SCRIPT
-    elif script.type == CardanoScriptType.INVALID_HEREAFTER:
+            raise INVALID_NATIVE_SCRIPT
+    elif script.type == CardanoNativeScriptType.INVALID_HEREAFTER:
         if script.invalid_hereafter is None:
-            raise INVALID_SCRIPT
+            raise INVALID_NATIVE_SCRIPT
 
 
-def _validate_script_structure(script: CardanoScript) -> None:
+def _validate_native_script_structure(script: CardanoNativeScript) -> None:
     key_hash = script.key_hash
     key_path = script.key_path
     scripts = script.scripts
@@ -81,40 +81,40 @@ def _validate_script_structure(script: CardanoScript) -> None:
     invalid_before = script.invalid_before
     invalid_hereafter = script.invalid_hereafter
 
-    fields_to_be_empty: dict[CardanoScriptType, tuple[Any, ...]] = {
-        CardanoScriptType.PUB_KEY: (
+    fields_to_be_empty: dict[CardanoNativeScriptType, tuple[Any, ...]] = {
+        CardanoNativeScriptType.PUB_KEY: (
             scripts,
             required_signatures_count,
             invalid_before,
             invalid_hereafter,
         ),
-        CardanoScriptType.ALL: (
+        CardanoNativeScriptType.ALL: (
             key_hash,
             key_path,
             required_signatures_count,
             invalid_before,
             invalid_hereafter,
         ),
-        CardanoScriptType.ANY: (
+        CardanoNativeScriptType.ANY: (
             key_hash,
             key_path,
             required_signatures_count,
             invalid_before,
             invalid_hereafter,
         ),
-        CardanoScriptType.N_OF_K: (
+        CardanoNativeScriptType.N_OF_K: (
             key_hash,
             key_path,
             invalid_before,
             invalid_hereafter,
         ),
-        CardanoScriptType.INVALID_BEFORE: (
+        CardanoNativeScriptType.INVALID_BEFORE: (
             key_hash,
             key_path,
             required_signatures_count,
             invalid_hereafter,
         ),
-        CardanoScriptType.INVALID_HEREAFTER: (
+        CardanoNativeScriptType.INVALID_HEREAFTER: (
             key_hash,
             key_path,
             required_signatures_count,
@@ -123,48 +123,53 @@ def _validate_script_structure(script: CardanoScript) -> None:
     }
 
     if script.type not in fields_to_be_empty or any(fields_to_be_empty[script.type]):
-        raise INVALID_SCRIPT
+        raise INVALID_NATIVE_SCRIPT
 
 
-def get_script_hash(keychain: Keychain, script: CardanoScript) -> bytes:
-    script_cbor = cbor.encode(cborize_script(keychain, script))
+def get_native_script_hash(keychain: Keychain, script: CardanoNativeScript) -> bytes:
+    script_cbor = cbor.encode(cborize_native_script(keychain, script))
     prefixed_script_cbor = b"\00" + script_cbor
     return hashlib.blake2b(data=prefixed_script_cbor, outlen=28).digest()
 
 
-def cborize_script(keychain: Keychain, script: CardanoScript) -> CborSequence:
+def cborize_native_script(
+    keychain: Keychain, script: CardanoNativeScript
+) -> CborSequence:
     script_content: CborSequence
-    if script.type == CardanoScriptType.PUB_KEY:
+    if script.type == CardanoNativeScriptType.PUB_KEY:
         if script.key_hash:
             script_content = (script.key_hash,)
         elif script.key_path:
             script_content = (get_public_key_hash(keychain, script.key_path),)
         else:
-            raise INVALID_SCRIPT
-    elif script.type == CardanoScriptType.ALL:
+            raise INVALID_NATIVE_SCRIPT
+    elif script.type == CardanoNativeScriptType.ALL:
         script_content = (
             tuple(
-                cborize_script(keychain, sub_script) for sub_script in script.scripts
+                cborize_native_script(keychain, sub_script)
+                for sub_script in script.scripts
             ),
         )
-    elif script.type == CardanoScriptType.ANY:
+    elif script.type == CardanoNativeScriptType.ANY:
         script_content = (
             tuple(
-                cborize_script(keychain, sub_script) for sub_script in script.scripts
+                cborize_native_script(keychain, sub_script)
+                for sub_script in script.scripts
             ),
         )
-    elif script.type == CardanoScriptType.N_OF_K:
+    elif script.type == CardanoNativeScriptType.N_OF_K:
         script_content = (
             script.required_signatures_count,
             tuple(
-                cborize_script(keychain, sub_script) for sub_script in script.scripts
+                cborize_native_script(keychain, sub_script)
+                for sub_script in script.scripts
             ),
         )
-    elif script.type == CardanoScriptType.INVALID_BEFORE:
+    elif script.type == CardanoNativeScriptType.INVALID_BEFORE:
         script_content = (script.invalid_before,)
-    elif script.type == CardanoScriptType.INVALID_HEREAFTER:
+    elif script.type == CardanoNativeScriptType.INVALID_HEREAFTER:
         script_content = (script.invalid_hereafter,)
     else:
-        raise INVALID_SCRIPT
+        raise INVALID_NATIVE_SCRIPT
 
     return (script.type,) + script_content

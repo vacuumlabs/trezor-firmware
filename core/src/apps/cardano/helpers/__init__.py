@@ -14,7 +14,7 @@ INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE = wire.ProcessError(
 INVALID_STAKEPOOL_REGISTRATION_TX_WITNESSES = wire.ProcessError(
     "Stakepool registration transaction can only contain staking witnesses"
 )
-INVALID_SCRIPT = wire.ProcessError("Invalid script")
+INVALID_NATIVE_SCRIPT = wire.ProcessError("Invalid script")
 INVALID_TOKEN_BUNDLE_MINT = wire.ProcessError("Invalid mint token bundle")
 INVALID_WITNESS_REQUEST = wire.ProcessError("Invalid witness request")
 INVALID_SCRIPT_WITNESS_REQUEST = wire.ProcessError("Invalid script witness request")

@@ -14,17 +14,15 @@
 # You should have received a copy of the License along with this library.
 # If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
 
-import pytest
-
-from trezorlib.cardano import get_script_hash, parse_script
+from trezorlib.cardano import get_native_script_hash, parse_native_script
 
 from ...common import parametrize_using_common_fixtures
 
 
 @parametrize_using_common_fixtures(
-    "cardano/get_script_hash.json",
+    "cardano/get_native_script_hash.json",
 )
-def test_cardano_get_script_hash(client, parameters, result):
-    script = parse_script(parameters)
-    script_hash = get_script_hash(client, script).script_hash
-    assert script_hash.hex() == result["expected_hash"]
+def test_cardano_get_native_script_hash(client, parameters, result):
+    native_script = parse_native_script(parameters)
+    native_script_hash = get_native_script_hash(client, native_script).script_hash
+    assert native_script_hash.hex() == result["expected_hash"]

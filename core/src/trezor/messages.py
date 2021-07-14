@@ -27,8 +27,8 @@ if TYPE_CHECKING:
     from trezor.enums import Capability  # noqa: F401
     from trezor.enums import CardanoAddressType  # noqa: F401
     from trezor.enums import CardanoCertificateType  # noqa: F401
+    from trezor.enums import CardanoNativeScriptType  # noqa: F401
     from trezor.enums import CardanoPoolRelayType  # noqa: F401
-    from trezor.enums import CardanoScriptType  # noqa: F401
     from trezor.enums import CardanoTxAuxiliaryDataSupplementType  # noqa: F401
     from trezor.enums import CardanoTxSigningMode  # noqa: F401
     from trezor.enums import CardanoTxWitnessType  # noqa: F401
@@ -1060,9 +1060,9 @@ if TYPE_CHECKING:
         def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoBlockchainPointerType"]:
             return isinstance(msg, cls)
 
-    class CardanoScript(protobuf.MessageType):
-        type: CardanoScriptType
-        scripts: list["CardanoScript"]
+    class CardanoNativeScript(protobuf.MessageType):
+        type: CardanoNativeScriptType
+        scripts: list["CardanoNativeScript"]
         key_hash: bytes | None
         key_path: list[int]
         required_signatures_count: int | None
@@ -1072,8 +1072,8 @@ if TYPE_CHECKING:
         def __init__(
             self,
             *,
-            type: CardanoScriptType,
-            scripts: list["CardanoScript"] | None = None,
+            type: CardanoNativeScriptType,
+            scripts: list["CardanoNativeScript"] | None = None,
             key_path: list[int] | None = None,
             key_hash: bytes | None = None,
             required_signatures_count: int | None = None,
@@ -1083,26 +1083,26 @@ if TYPE_CHECKING:
             pass
 
         @classmethod
-        def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoScript"]:
+        def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoNativeScript"]:
             return isinstance(msg, cls)
 
-    class CardanoGetScriptHash(protobuf.MessageType):
-        script: CardanoScript
+    class CardanoGetNativeScriptHash(protobuf.MessageType):
+        script: CardanoNativeScript
         show_display: bool
 
         def __init__(
             self,
             *,
-            script: CardanoScript,
+            script: CardanoNativeScript,
             show_display: bool | None = None,
         ) -> None:
             pass
 
         @classmethod
-        def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoGetScriptHash"]:
+        def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoGetNativeScriptHash"]:
             return isinstance(msg, cls)
 
-    class CardanoScriptHash(protobuf.MessageType):
+    class CardanoNativeScriptHash(protobuf.MessageType):
         script_hash: bytes
 
         def __init__(
@@ -1113,7 +1113,7 @@ if TYPE_CHECKING:
             pass
 
         @classmethod
-        def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoScriptHash"]:
+        def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoNativeScriptHash"]:
             return isinstance(msg, cls)
 
     class CardanoAddressParametersType(protobuf.MessageType):

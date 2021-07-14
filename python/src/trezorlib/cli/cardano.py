@@ -224,8 +224,8 @@ def get_public_key(client, address):
 @click.option("-f", "--file", "_ignore", is_flag=True, hidden=True, expose_value=False)
 @click.option("-d", "--show-display", is_flag=True)
 @with_client
-def get_script_hash(client, file, show_display):
-    script_json = json.load(file)
-    script = cardano.parse_script(script_json)
+def get_native_script_hash(client, file, show_display):
+    native_script_json = json.load(file)
+    native_script = cardano.parse_native_script(native_script_json)
 
-    return cardano.get_script_hash(client, script, show_display)
+    return cardano.get_native_script_hash(client, native_script, show_display)

@@ -3,7 +3,7 @@ from trezor.enums import (
     ButtonRequestType,
     CardanoAddressType,
     CardanoCertificateType,
-    CardanoScriptType,
+    CardanoNativeScriptType,
 )
 from trezor.messages import CardanoAddressParametersType
 from trezor.strings import format_amount
@@ -36,7 +36,7 @@ if False:
         CardanoPoolParametersType,
         CardanoPoolOwner,
         CardanoPoolMetadataType,
-        CardanoScript,
+        CardanoNativeScript,
         CardanoToken,
     )
 
@@ -59,12 +59,12 @@ ADDRESS_TYPE_NAMES = {
 }
 
 SCRIPT_TYPE_NAMES = {
-    CardanoScriptType.PUB_KEY: "Key",
-    CardanoScriptType.ALL: "All",
-    CardanoScriptType.ANY: "Any",
-    CardanoScriptType.N_OF_K: "N of K",
-    CardanoScriptType.INVALID_BEFORE: "Invalid before",
-    CardanoScriptType.INVALID_HEREAFTER: "Invalid hereafter",
+    CardanoNativeScriptType.PUB_KEY: "Key",
+    CardanoNativeScriptType.ALL: "All",
+    CardanoNativeScriptType.ANY: "Any",
+    CardanoNativeScriptType.N_OF_K: "N of K",
+    CardanoNativeScriptType.INVALID_BEFORE: "Invalid before",
+    CardanoNativeScriptType.INVALID_HEREAFTER: "Invalid hereafter",
 }
 
 CERTIFICATE_TYPE_NAMES = {
@@ -83,10 +83,9 @@ def is_printable_ascii_bytestring(bytestr: bytes) -> bool:
     return all((32 < b < 127) for b in bytestr)
 
 
-# TODO switch to new layout system
-async def show_script(
+async def show_native_script(
     ctx: wire.Context,
-    script: CardanoScript,
+    script: CardanoNativeScript,
     indices: list[int] = [],
 ) -> None:
     indices_str = ".".join([str(i) for i in indices])
@@ -99,28 +98,28 @@ async def show_script(
     ]
 
     if script.type in (
-        CardanoScriptType.ALL,
-        CardanoScriptType.ANY,
-        CardanoScriptType.N_OF_K,
+        CardanoNativeScriptType.ALL,
+        CardanoNativeScriptType.ANY,
+        CardanoNativeScriptType.N_OF_K,
     ):
         assert script.scripts  # validate_script
         props.append(("Confirm %i nested scripts" % len(script.scripts), None))
 
-    if script.type == CardanoScriptType.PUB_KEY:
+    if script.type == CardanoNativeScriptType.PUB_KEY:
         assert script.key_hash is not None or script.key_path  # validate_script
         if script.key_hash:
             props.append(("Key:", script.key_hash))
         elif script.key_path:
             props.append(("Key path: %s" % address_n_to_str(script.key_path), None))
-    elif script.type == CardanoScriptType.N_OF_K:
+    elif script.type == CardanoNativeScriptType.N_OF_K:
         assert script.required_signatures_count is not None  # validate_script
         props.append(
             ("Required signatures: %s" % script.required_signatures_count, None)
         )
-    elif script.type == CardanoScriptType.INVALID_BEFORE:
+    elif script.type == CardanoNativeScriptType.INVALID_BEFORE:
         assert script.invalid_before is not None  # validate_script
         props.append(("Invalid before: %s" % script.invalid_before, None))
-    elif script.type == CardanoScriptType.INVALID_HEREAFTER:
+    elif script.type == CardanoNativeScriptType.INVALID_HEREAFTER:
         assert script.invalid_hereafter is not None  # validate_script
         props.append(("Invalid hereafter: %s" % script.invalid_hereafter, None))
 
@@ -133,7 +132,7 @@ async def show_script(
     )
 
     for i, sub_script in enumerate(script.scripts):
-        await show_script(ctx, sub_script, indices + [(i + 1)])
+        await show_native_script(ctx, sub_script, indices + [(i + 1)])
 
 
 # TODO verify this works

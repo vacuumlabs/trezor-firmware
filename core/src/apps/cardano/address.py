@@ -1,4 +1,3 @@
-from trezor import wire
 from trezor.crypto import base58
 from trezor.enums import CardanoAddressType
 
@@ -14,7 +13,6 @@ from .helpers import (
 )
 from .helpers.paths import SCHEMA_STAKING_ANY_ACCOUNT
 from .helpers.utils import get_public_key_hash, variable_length_encode
-from .script import validate_script
 from .seed import is_byron_path, is_shelley_path
 
 if False:
@@ -23,7 +21,6 @@ if False:
     from trezor.messages import (
         CardanoAddressParametersType,
         CardanoBlockchainPointerType,
-        CardanoScript,
     )
     from . import seed
 
@@ -229,24 +226,6 @@ def _validate_base_address_staking_info(
             raise INVALID_ADDRESS_PARAMETERS
     elif staking_path:
         if not SCHEMA_STAKING_ANY_ACCOUNT.match(staking_path):
-            raise INVALID_ADDRESS_PARAMETERS
-    else:
-        raise INVALID_ADDRESS_PARAMETERS
-
-
-def _validate_script_or_script_hash(
-    script: CardanoScript | None, script_hash: bytes | None
-) -> None:
-    if script and script_hash:
-        raise INVALID_ADDRESS_PARAMETERS
-
-    if script:
-        try:
-            validate_script(script)
-        except wire.ProcessError:
-            raise INVALID_ADDRESS_PARAMETERS
-    elif script_hash:
-        if len(script_hash) != SCRIPT_HASH_SIZE:
             raise INVALID_ADDRESS_PARAMETERS
     else:
         raise INVALID_ADDRESS_PARAMETERS

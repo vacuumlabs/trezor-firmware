@@ -259,20 +259,27 @@ def _parse_address_parameters(
     )
 
 
-def parse_script(script):
-    if "type" not in script:
+def parse_native_script(native_script):
+    if "type" not in native_script:
         raise ValueError("Script is missing some fields")
 
-    type = script["type"]
-    scripts = [parse_script(sub_script) for sub_script in script.get("scripts", ())]
+    type = native_script["type"]
+    scripts = [
+        parse_native_script(sub_script)
+        for sub_script in native_script.get("scripts", ())
+    ]
 
-    key_hash = bytes.fromhex(script.get("key_hash")) if "key_hash" in script else None
-    key_path = tools.parse_path(script.get("key_path"))
-    required_signatures_count = script.get("required_signatures_count")
-    invalid_before = script.get("invalid_before")
-    invalid_hereafter = script.get("invalid_hereafter")
+    key_hash = (
+        bytes.fromhex(native_script.get("key_hash"))
+        if "key_hash" in native_script
+        else None
+    )
+    key_path = tools.parse_path(native_script.get("key_path"))
+    required_signatures_count = native_script.get("required_signatures_count")
+    invalid_before = native_script.get("invalid_before")
+    invalid_hereafter = native_script.get("invalid_hereafter")
 
-    return messages.CardanoScript(
+    return messages.CardanoNativeScript(
         type=type,
         scripts=scripts,
         key_hash=key_hash,
@@ -606,14 +613,16 @@ def get_public_key(client, address_n: List[int]) -> messages.CardanoPublicKey:
     return client.call(messages.CardanoGetPublicKey(address_n=address_n))
 
 
-@expect(messages.CardanoScriptHash)
-def get_script_hash(
+@expect(messages.CardanoNativeScriptHash)
+def get_native_script_hash(
     client,
-    script: messages.CardanoScript,
+    native_script: messages.CardanoNativeScript,
     show_display: bool = False,
-) -> messages.CardanoScriptHash:
+) -> messages.CardanoNativeScriptHash:
     return client.call(
-        messages.CardanoGetScriptHash(script=script, show_display=show_display)
+        messages.CardanoGetNativeScriptHash(
+            script=native_script, show_display=show_display
+        )
     )
 
 

@@ -25,7 +25,7 @@ enum CardanoAddressType {
     REWARD_SCRIPT = 15;
 }
 
-enum CardanoScriptType {
+enum CardanoNativeScriptType {
     PUB_KEY = 0;
     ALL = 1;
     ANY = 2;
@@ -77,9 +77,9 @@ message CardanoBlockchainPointerType {
 /*
  * @embed
  */
-message CardanoScript {
-    required CardanoScriptType type = 1;
-    repeated CardanoScript scripts = 2;
+message CardanoNativeScript {
+    required CardanoNativeScriptType type = 1;
+    repeated CardanoNativeScript scripts = 2;
 
     optional bytes key_hash = 3;
     repeated uint32 key_path = 4;
@@ -89,21 +89,21 @@ message CardanoScript {
 }
 
 /**
- * Request: Ask device for Cardano script hash
+ * Request: Ask device for Cardano native script hash
  * @start
- * @next CardanoScriptHash
+ * @next CardanoNativeScriptHash
  * @next Failure
  */
-message CardanoGetScriptHash {
-    required CardanoScript script = 1;
+message CardanoGetNativeScriptHash {
+    required CardanoNativeScript script = 1;
     optional bool show_display = 2 [default=false];     // optionally prompt for confirmation on trezor display
 }
 
 /**
- * Request: Ask device for Cardano script hash
+ * Request: Ask device for Cardano native script hash
  * @end
  */
-message CardanoScriptHash {
+message CardanoNativeScriptHash {
     required bytes script_hash = 1;
 }
 

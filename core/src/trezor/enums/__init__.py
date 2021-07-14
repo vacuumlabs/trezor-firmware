@@ -163,8 +163,8 @@ if TYPE_CHECKING:
         CardanoTxAuxiliaryData = 327
         CardanoPoolOwner = 328
         CardanoPoolRelayParameters = 329
-        CardanoGetScriptHash = 330
-        CardanoScriptHash = 331
+        CardanoGetNativeScriptHash = 330
+        CardanoNativeScriptHash = 331
         CardanoTxMint = 332
         CardanoTxScriptWitnessRequest = 333
         RippleGetAddress = 400
@@ -340,7 +340,7 @@ if TYPE_CHECKING:
         REWARD = 14
         REWARD_SCRIPT = 15
 
-    class CardanoScriptType(IntEnum):
+    class CardanoNativeScriptType(IntEnum):
         PUB_KEY = 0
         ALL = 1
         ANY = 2
