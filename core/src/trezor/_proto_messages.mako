@@ -28,7 +28,7 @@ required_fields = [f for f in message.fields if f.required]
 repeated_fields = [f for f in message.fields if f.repeated]
 optional_fields = [f for f in message.fields if f.optional]
 
-def type_name_for_recursive_types(type, message_name):
+def recursive_member_type(type, message_name):
     is_recursive = type == message_name
     if is_recursive:
         return '"' + type + '"'
@@ -38,12 +38,12 @@ def type_name_for_recursive_types(type, message_name):
 
 def member_type(field, message_name):
     if field.required:
-        return type_name_for_recursive_types(field.python_type, message_name)
+        return recursive_member_type(field.python_type, message_name)
     if field.optional and field.default_value is not None:
-        return type_name_for_recursive_types(field.python_type, message_name)
+        return recursive_member_type(field.python_type, message_name)
     if field.repeated:
-        return f"list[{type_name_for_recursive_types(field.python_type, message_name)}]"
-    return f"{type_name_for_recursive_types(field.python_type, message_name)} | None"
+        return f"list[{recursive_member_type(field.python_type, message_name)}]"
+    return f"{recursive_member_type(field.python_type, message_name)} | None"
 
 %>\
     class ${message.name}(protobuf.MessageType):
@@ -56,13 +56,13 @@ def member_type(field, message_name):
             self,
             *,
 % for field in required_fields:
-            ${field.name}: ${type_name_for_recursive_types(field.python_type, message.name)},
+            ${field.name}: ${recursive_member_type(field.python_type, message.name)},
 % endfor
 % for field in repeated_fields:
-            ${field.name}: list[${type_name_for_recursive_types(field.python_type, message.name)}] | None = None,
+            ${field.name}: list[${recursive_member_type(field.python_type, message.name)}] | None = None,
 % endfor
 % for field in optional_fields:
-            ${field.name}: ${type_name_for_recursive_types(field.python_type, message.name)} | None = None,
+            ${field.name}: ${recursive_member_type(field.python_type, message.name)} | None = None,
 % endfor
         ) -> None:
             pass

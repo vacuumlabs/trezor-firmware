@@ -22,7 +22,7 @@ required_fields = [f for f in message.fields if f.required]
 repeated_fields = [f for f in message.fields if f.repeated]
 optional_fields = [f for f in message.fields if f.optional]
 
-def type_name_for_recursive_types(type, message_name):
+def type_name_for_recursive_field(type, message_name):
     is_recursive = type == message_name
     if is_recursive:
         return '"' + type + '"'
@@ -32,32 +32,41 @@ def type_name_for_recursive_types(type, message_name):
 
 def type_name(field, message_name):
     if field.type_object is not None:
-        return type_name_for_recursive_types(field.type_name, message_name)
+        return field.type_name
     else:
         return '"' + field.type_name + '"'
+
+
+def contains_recursive_fields(message):
+    for field in message.fields:
+        if field.python_type == message.name:
+            return True
+    return False
 
 
 %>\
 class ${message.name}(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = ${message.wire_type}
 % if message.fields:
+% if not contains_recursive_fields(message):
     FIELDS = {
 % for field in message.fields:
         ${field.number}: protobuf.Field("${field.name}", ${type_name(field, message.name)}, repeated=${field.repeated}, required=${field.required}),
 % endfor
     }
+% endif
 
     def __init__(
         self,
         *,
 % for field in required_fields:
-        ${field.name}: ${type_name_for_recursive_types(field.python_type, message.name)},
+        ${field.name}: ${type_name_for_recursive_field(field.python_type, message.name)},
 % endfor
 % for field in repeated_fields:
-        ${field.name}: Optional[List[${type_name_for_recursive_types(field.python_type, message.name)}]] = None,
+        ${field.name}: Optional[List[${type_name_for_recursive_field(field.python_type, message.name)}]] = None,
 % endfor
 % for field in optional_fields:
-        ${field.name}: Optional[${type_name_for_recursive_types(field.python_type, message.name)}] = ${field.default_value_repr},
+        ${field.name}: Optional[${type_name_for_recursive_field(field.python_type, message.name)}] = ${field.default_value_repr},
 % endfor
     ) -> None:
 % for field in repeated_fields:
@@ -66,5 +75,14 @@ class ${message.name}(protobuf.MessageType):
 % for field in required_fields + optional_fields:
         self.${field.name} = ${field.name}
 % endfor
+% if contains_recursive_fields(message):
+
+
+${message.name}.FIELDS = {
+% for field in message.fields:
+    ${field.number}: protobuf.Field("${field.name}", ${type_name(field, message.name)}, repeated=${field.repeated}, required=${field.required}),
+% endfor
+}
+% endif
 % endif
 % endfor

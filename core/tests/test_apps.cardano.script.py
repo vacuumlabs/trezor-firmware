@@ -14,10 +14,10 @@ VALID_SCRIPTS = [
         CardanoScript(
             type=CardanoScriptType.PUB_KEY,
             key_hash=unhexlify(
-                "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
+                "c4b9265645fde9536c0795adbcc5291767a0c61fd62448341d7e0386"
             ),
         ),
-        b"855228f5ecececf9c85618007cc3c2e5bdf5e6d41ef8d6fa793fe0eb",
+        b"29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd",
     ],
     # PUB_KEY with path
     [
@@ -34,17 +34,17 @@ VALID_SCRIPTS = [
             scripts=[
                 CardanoScript(
                     type=CardanoScriptType.PUB_KEY,
-                    key_hash=unhexlify(
-                        "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
-                    ),
+                    key_path=[1854 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
                 ),
                 CardanoScript(
                     type=CardanoScriptType.PUB_KEY,
-                    key_path=[1854 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                    key_hash=unhexlify(
+                        "0241f2d196f52a92fbd2183d03b370c30b6960cfdeae364ffabac889"
+                    ),
                 ),
             ],
         ),
-        b"c991cd9b396abbed0cf63184ede0de8a96898c2a0ef84545b6ab9456",
+        b"af5c2ce476a6ede1c879f7b1909d6a0b96cb2081391712d4a355cef6",
     ],
     # ANY
     [
@@ -53,17 +53,17 @@ VALID_SCRIPTS = [
             scripts=[
                 CardanoScript(
                     type=CardanoScriptType.PUB_KEY,
-                    key_hash=unhexlify(
-                        "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
-                    ),
+                    key_path=[1854 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
                 ),
                 CardanoScript(
                     type=CardanoScriptType.PUB_KEY,
-                    key_path=[1854 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                    key_hash=unhexlify(
+                        "0241f2d196f52a92fbd2183d03b370c30b6960cfdeae364ffabac889"
+                    ),
                 ),
             ],
         ),
-        b"9019dcc82774961b56563fd709c34a72e33d3d18bce0cd5aebeac6ac",
+        b"d6428ec36719146b7b5fb3a2d5322ce702d32762b8c7eeeb797a20db",
     ],
     # N OF K
     [
@@ -73,23 +73,23 @@ VALID_SCRIPTS = [
             scripts=[
                 CardanoScript(
                     type=CardanoScriptType.PUB_KEY,
-                    key_hash=unhexlify(
-                        "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
-                    ),
-                ),
-                CardanoScript(
-                    type=CardanoScriptType.PUB_KEY,
-                    key_hash=unhexlify(
-                        "4a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
-                    ),
-                ),
-                CardanoScript(
-                    type=CardanoScriptType.PUB_KEY,
                     key_path=[1854 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                ),
+                CardanoScript(
+                    type=CardanoScriptType.PUB_KEY,
+                    key_hash=unhexlify(
+                        "0241f2d196f52a92fbd2183d03b370c30b6960cfdeae364ffabac889"
+                    ),
+                ),
+                CardanoScript(
+                    type=CardanoScriptType.PUB_KEY,
+                    key_hash=unhexlify(
+                        "cecb1d427c4ae436d28cc0f8ae9bb37501a5b77bcc64cd1693e9ae20"
+                    ),
                 ),
             ],
         ),
-        b"b4864a4f22176a2a23259235ae581f2768f3e15a6ed53c5dc23a6dc8",
+        b"2b2b17fd18e18acae4601d4818a1dee00a917ff72e772fa8482e36c9",
     ],
     # INVALID BEFORE
     [
@@ -99,7 +99,7 @@ VALID_SCRIPTS = [
                 CardanoScript(
                     type=CardanoScriptType.PUB_KEY,
                     key_hash=unhexlify(
-                        "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
+                        "c4b9265645fde9536c0795adbcc5291767a0c61fd62448341d7e0386"
                     ),
                 ),
                 CardanoScript(
@@ -107,7 +107,7 @@ VALID_SCRIPTS = [
                 ),
             ],
         ),
-        b"e4599760db07340d8853cb3325823ead19cbafb7454b8b8b9afe0078",
+        b"c6262ef9bb2b1291c058d93b46dabf458e2d135f803f60713f84b0b7",
     ],
     # INVALID HEREAFTER
     [
@@ -117,7 +117,7 @@ VALID_SCRIPTS = [
                 CardanoScript(
                     type=CardanoScriptType.PUB_KEY,
                     key_hash=unhexlify(
-                        "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
+                        "c4b9265645fde9536c0795adbcc5291767a0c61fd62448341d7e0386"
                     ),
                 ),
                 CardanoScript(
@@ -126,7 +126,7 @@ VALID_SCRIPTS = [
                 ),
             ],
         ),
-        b"cef4b6aa9b5ed7d10957b97e0eeebcf4cb3b3e99975d7239214d82f8",
+        b"b12ac304f89f4cd4d23f59a2b90d2b2697f7540b8f470d6aa05851b5",
     ],
     # NESTED SCRIPT
     [
@@ -136,7 +136,7 @@ VALID_SCRIPTS = [
                 CardanoScript(
                     type=CardanoScriptType.PUB_KEY,
                     key_hash=unhexlify(
-                        "3a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
+                        "c4b9265645fde9536c0795adbcc5291767a0c61fd62448341d7e0386"
                     ),
                 ),
                 CardanoScript(
@@ -144,12 +144,38 @@ VALID_SCRIPTS = [
                     key_path=[1854 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
                 ),
                 CardanoScript(
-                    type=CardanoScriptType.ALL,
+                    type=CardanoScriptType.ANY,
                     scripts=[
                         CardanoScript(
                             type=CardanoScriptType.PUB_KEY,
+                    key_path=[1854 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                        ),
+                        CardanoScript(
+                            type=CardanoScriptType.PUB_KEY,
                             key_hash=unhexlify(
-                                "4a55d9f68255dfbefa1efd711f82d005fae1be2e145d616c90cf0fa9"
+                                "0241f2d196f52a92fbd2183d03b370c30b6960cfdeae364ffabac889"
+                            ),
+                        ),
+                    ],
+                ),
+                CardanoScript(
+                    type=CardanoScriptType.N_OF_K,
+                    required_signatures_count=2,
+                    scripts=[
+                        CardanoScript(
+                            type=CardanoScriptType.PUB_KEY,
+                    key_path=[1854 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
+                        ),
+                        CardanoScript(
+                            type=CardanoScriptType.PUB_KEY,
+                            key_hash=unhexlify(
+                                "0241f2d196f52a92fbd2183d03b370c30b6960cfdeae364ffabac889"
+                            ),
+                        ),
+                        CardanoScript(
+                            type=CardanoScriptType.PUB_KEY,
+                            key_hash=unhexlify(
+                                "cecb1d427c4ae436d28cc0f8ae9bb37501a5b77bcc64cd1693e9ae20"
                             ),
                         ),
                     ],
@@ -163,7 +189,7 @@ VALID_SCRIPTS = [
                 ),
             ],
         ),
-        b"77ed6cc234569d17fbf0d9c730fa31acb90f81f0fb8ae777836db1d8",
+        b"4a6b4288459bf34668c0b281f922691460caf0c7c09caee3a726c27a",
     ],
 ]
 

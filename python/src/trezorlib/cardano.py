@@ -608,7 +608,9 @@ def get_public_key(client, address_n: List[int]) -> messages.CardanoPublicKey:
 
 @expect(messages.CardanoScriptHash)
 def get_script_hash(
-    client, script: messages.CardanoScript, show_display: bool
+    client,
+    script: messages.CardanoScript,
+    show_display: bool = False,
 ) -> messages.CardanoScriptHash:
     return client.call(
         messages.CardanoGetScriptHash(script=script, show_display=show_display)

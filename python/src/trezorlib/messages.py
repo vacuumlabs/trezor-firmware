@@ -1892,15 +1892,6 @@ class CardanoBlockchainPointerType(protobuf.MessageType):
 
 class CardanoScript(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = None
-    FIELDS = {
-        1: protobuf.Field("type", CardanoScriptType, repeated=False, required=True),
-        2: protobuf.Field("scripts", "CardanoScript", repeated=True, required=False),
-        3: protobuf.Field("key_hash", "bytes", repeated=False, required=False),
-        4: protobuf.Field("key_path", "uint32", repeated=True, required=False),
-        5: protobuf.Field("required_signatures_count", "uint32", repeated=False, required=False),
-        6: protobuf.Field("invalid_before", "uint64", repeated=False, required=False),
-        7: protobuf.Field("invalid_hereafter", "uint64", repeated=False, required=False),
-    }
 
     def __init__(
         self,
@@ -1920,6 +1911,17 @@ class CardanoScript(protobuf.MessageType):
         self.required_signatures_count = required_signatures_count
         self.invalid_before = invalid_before
         self.invalid_hereafter = invalid_hereafter
+
+
+CardanoScript.FIELDS = {
+    1: protobuf.Field("type", CardanoScriptType, repeated=False, required=True),
+    2: protobuf.Field("scripts", CardanoScript, repeated=True, required=False),
+    3: protobuf.Field("key_hash", "bytes", repeated=False, required=False),
+    4: protobuf.Field("key_path", "uint32", repeated=True, required=False),
+    5: protobuf.Field("required_signatures_count", "uint32", repeated=False, required=False),
+    6: protobuf.Field("invalid_before", "uint64", repeated=False, required=False),
+    7: protobuf.Field("invalid_hereafter", "uint64", repeated=False, required=False),
+}
 
 
 class CardanoGetScriptHash(protobuf.MessageType):

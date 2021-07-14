@@ -399,7 +399,8 @@ class Descriptor:
                 ),
                 None,
             )
-            if dependent_type and message.name != dependent_type:
+            is_recursive_type = message.name == dependent_type
+            if dependent_type and not is_recursive_type:
                 # return current message to unprocessed
                 messages_dict[message.name] = message
                 # pop the dependency
