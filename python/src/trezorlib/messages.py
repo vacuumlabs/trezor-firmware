@@ -333,6 +333,15 @@ class CardanoAddressType(IntEnum):
     REWARD_SCRIPT = 15
 
 
+class CardanoScriptType(IntEnum):
+    PUB_KEY = 0
+    ALL = 1
+    ANY = 2
+    N_OF_K = 3
+    INVALID_BEFORE = 4
+    INVALID_HEREAFTER = 5
+
+
 class CardanoCertificateType(IntEnum):
     STAKE_REGISTRATION = 0
     STAKE_DEREGISTRATION = 1
@@ -1839,6 +1848,40 @@ class CardanoBlockchainPointerType(protobuf.MessageType):
         self.block_index = block_index
         self.tx_index = tx_index
         self.certificate_index = certificate_index
+
+
+class CardanoScript(protobuf.MessageType):
+    MESSAGE_WIRE_TYPE = None
+
+    def __init__(
+        self,
+        *,
+        type: CardanoScriptType,
+        scripts: Optional[List["CardanoScript"]] = None,
+        key_path: Optional[List[int]] = None,
+        key_hash: Optional[bytes] = None,
+        required_signatures_count: Optional[int] = None,
+        invalid_before: Optional[int] = None,
+        invalid_hereafter: Optional[int] = None,
+    ) -> None:
+        self.scripts = scripts if scripts is not None else []
+        self.key_path = key_path if key_path is not None else []
+        self.type = type
+        self.key_hash = key_hash
+        self.required_signatures_count = required_signatures_count
+        self.invalid_before = invalid_before
+        self.invalid_hereafter = invalid_hereafter
+
+
+CardanoScript.FIELDS = {
+    1: protobuf.Field("type", CardanoScriptType, repeated=False, required=True),
+    2: protobuf.Field("scripts", CardanoScript, repeated=True, required=False),
+    3: protobuf.Field("key_hash", "bytes", repeated=False, required=False),
+    4: protobuf.Field("key_path", "uint32", repeated=True, required=False),
+    5: protobuf.Field("required_signatures_count", "uint32", repeated=False, required=False),
+    6: protobuf.Field("invalid_before", "uint64", repeated=False, required=False),
+    7: protobuf.Field("invalid_hereafter", "uint64", repeated=False, required=False),
+}
 
 
 class CardanoAddressParametersType(protobuf.MessageType):

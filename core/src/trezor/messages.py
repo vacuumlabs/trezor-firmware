@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from trezor.enums import CardanoAddressType  # noqa: F401
     from trezor.enums import CardanoCertificateType  # noqa: F401
     from trezor.enums import CardanoPoolRelayType  # noqa: F401
+    from trezor.enums import CardanoScriptType  # noqa: F401
     from trezor.enums import DebugSwipeDirection  # noqa: F401
     from trezor.enums import DecredStakingSpendType  # noqa: F401
     from trezor.enums import FailureType  # noqa: F401
@@ -1052,6 +1053,32 @@ if TYPE_CHECKING:
 
         @classmethod
         def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoBlockchainPointerType"]:
+            return isinstance(msg, cls)
+
+    class CardanoScript(protobuf.MessageType):
+        type: CardanoScriptType
+        scripts: list["CardanoScript"]
+        key_hash: bytes | None
+        key_path: list[int]
+        required_signatures_count: int | None
+        invalid_before: int | None
+        invalid_hereafter: int | None
+
+        def __init__(
+            self,
+            *,
+            type: CardanoScriptType,
+            scripts: list["CardanoScript"] | None = None,
+            key_path: list[int] | None = None,
+            key_hash: bytes | None = None,
+            required_signatures_count: int | None = None,
+            invalid_before: int | None = None,
+            invalid_hereafter: int | None = None,
+        ) -> None:
+            pass
+
+        @classmethod
+        def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoScript"]:
             return isinstance(msg, cls)
 
     class CardanoAddressParametersType(protobuf.MessageType):

@@ -319,6 +319,14 @@ if TYPE_CHECKING:
         REWARD = 14
         REWARD_SCRIPT = 15
 
+    class CardanoScriptType(IntEnum):
+        PUB_KEY = 0
+        ALL = 1
+        ANY = 2
+        N_OF_K = 3
+        INVALID_BEFORE = 4
+        INVALID_HEREAFTER = 5
+
     class CardanoCertificateType(IntEnum):
         STAKE_REGISTRATION = 0
         STAKE_DEREGISTRATION = 1
