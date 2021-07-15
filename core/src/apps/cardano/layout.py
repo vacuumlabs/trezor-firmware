@@ -4,6 +4,7 @@ from trezor.enums import (
     CardanoAddressType,
     CardanoCertificateType,
     CardanoNativeScriptType,
+    CardanoTxSigningMode,
 )
 from trezor.messages import CardanoAddressParametersType
 from trezor.strings import format_amount
@@ -38,6 +39,7 @@ if False:
         CardanoPoolMetadataType,
         CardanoNativeScript,
         CardanoToken,
+        CardanoTxScriptWitnessRequest,
     )
 
     from trezor.ui.layouts import PropertyType
@@ -146,6 +148,20 @@ async def show_human_readable_script_hash(
         props=[("Script hash:", human_readable_script_hash)],
         br_code=ButtonRequestType.Other,
     )
+
+
+async def show_transaction_signing_mode(
+    ctx: wire.Context, signing_mode: CardanoTxSigningMode
+) -> None:
+    if signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
+        await confirm_metadata(
+            ctx,
+            "confirm_signing_mode",
+            title="Confirm transaction",
+            content="Signing a multisig transaction.",
+            larger_vspace=True,
+            br_code=ButtonRequestType.Other,
+        )
 
 
 async def confirm_sending(
@@ -287,6 +303,29 @@ async def show_warning_tx_staking_key_hash(
         "confirm_different_stakingrights",
         title="Confirm transaction",
         props=props,
+        br_code=ButtonRequestType.Other,
+    )
+
+
+async def confirm_script_witness_request(
+    ctx: wire.Context,
+    script_witness_request: CardanoTxScriptWitnessRequest,
+    signing_mode: CardanoTxSigningMode,
+) -> None:
+    assert (
+        signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION
+    )  # _validate_script_witness_request
+
+    await confirm_properties(
+        ctx,
+        "confirm_total",
+        title="Confirm transaction",
+        props=[
+            (
+                "Sign transaction with path:",
+                address_n_to_str(script_witness_request.path),
+            )
+        ],
         br_code=ButtonRequestType.Other,
     )
 

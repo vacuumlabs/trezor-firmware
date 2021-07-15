@@ -86,6 +86,7 @@ from .helpers.tx_builder import TxBuilder
 from .helpers.utils import derive_public_key, to_account_path, validate_stake_credential
 from .layout import (
     confirm_certificate,
+    confirm_script_witness_request,
     confirm_sending,
     confirm_sending_token,
     confirm_stake_pool_metadata,
@@ -95,6 +96,7 @@ from .layout import (
     confirm_token_minting,
     confirm_transaction,
     confirm_withdrawal,
+    show_transaction_signing_mode,
     show_warning_path,
     show_warning_tx_contains_mint,
     show_warning_tx_different_staking_account,
@@ -121,6 +123,8 @@ async def sign_tx(
     ctx: wire.Context, msg: CardanoSignTxInit, keychain: seed.Keychain
 ) -> CardanoSignTxFinished:
     is_network_id_verifiable = await _validate_tx_signing_request(ctx, msg)
+
+    await show_transaction_signing_mode(ctx, msg.signing_mode)
 
     # inputs, outputs and fee are mandatory fields, count the number of optional fields present
     tx_body_map_item_count = 3 + sum(
@@ -241,7 +245,10 @@ async def _confirm_transaction(
     msg: CardanoSignTxInit,
     is_network_id_verifiable: bool,
 ) -> None:
-    if msg.signing_mode == CardanoTxSigningMode.ORDINARY_TRANSACTION:
+    if msg.signing_mode in (
+        CardanoTxSigningMode.ORDINARY_TRANSACTION,
+        CardanoTxSigningMode.MULTISIG_TRANSACTION,
+    ):
         await confirm_transaction(
             ctx,
             msg.fee,
@@ -598,7 +605,7 @@ async def _process_witness_requests(
     for _ in range(script_witness_requests_count):
         script_witness_request = await ctx.call(response, CardanoTxScriptWitnessRequest)
         _validate_script_witness_request(script_witness_request, signing_mode)
-        await _show_script_witness_request(ctx, script_witness_request, signing_mode)
+        await confirm_script_witness_request(ctx, script_witness_request, signing_mode)
 
         response = _get_witness(keychain, script_witness_request.path, tx_hash)
 
@@ -914,18 +921,6 @@ async def _show_witness(
         witness_path,
         WITNESS_PATH_NAME,
     )
-
-
-async def _show_script_witness_request(
-    ctx: wire.Context,
-    script_witness_request: CardanoTxScriptWitnessRequest,
-    signing_mode: CardanoTxSigningMode,
-) -> None:
-    assert (
-        signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION
-    )  # _validate_script_witness_request
-    # TODO add some custom screen
-    await show_warning_path(ctx, script_witness_request.path, WITNESS_PATH_NAME)
 
 
 async def _show_change_output_staking_warnings(
