@@ -94,6 +94,10 @@ AuxiliaryDataSupplement = Dict[str, Union[int, bytes]]
 SignTxResponse = Dict[str, Union[bytes, List[Witness], AuxiliaryDataSupplement]]
 
 
+def _parse_optional_bytes(value: Optional[str]) -> Optional[bytes]:
+    return bytes.fromhex(value) if value else None
+
+
 def create_address_parameters(
     address_type: messages.CardanoAddressType,
     address_n: List[int],
@@ -237,25 +241,28 @@ def _parse_tokens(tokens, is_mint: bool) -> List[messages.CardanoToken]:
     return result
 
 
-# TODO GK update with scripts
 def _parse_address_parameters(
     address_parameters,
 ) -> messages.CardanoAddressParametersType:
-    if "path" not in address_parameters:
+    if "addressType" not in address_parameters:
         raise ValueError(INCOMPLETE_OUTPUT_ERROR_MESSAGE)
 
-    staking_key_hash_bytes = None
-    if "stakingKeyHash" in address_parameters:
-        staking_key_hash_bytes = bytes.fromhex(address_parameters.get("stakingKeyHash"))
+    path = tools.parse_path(address_parameters.get("path"))
+    staking_path = tools.parse_path(address_parameters.get("stakingPath"))
+    staking_key_hash_bytes = _parse_optional_bytes(address_parameters.get("stakingKeyHash"))
+    script_payment_hash = _parse_optional_bytes(address_parameters.get("scriptPaymentHash"))
+    script_staking_hash = _parse_optional_bytes(address_parameters.get("scriptStakingHash"))
 
     return create_address_parameters(
         int(address_parameters["addressType"]),
-        tools.parse_path(address_parameters["path"]),
-        tools.parse_path(address_parameters.get("stakingPath")),
+        path,
+        staking_path,
         staking_key_hash_bytes,
         address_parameters.get("blockIndex"),
         address_parameters.get("txIndex"),
         address_parameters.get("certificateIndex"),
+        script_payment_hash,
+        script_staking_hash,
     )
 
 
@@ -269,11 +276,7 @@ def parse_native_script(native_script):
         for sub_script in native_script.get("scripts", ())
     ]
 
-    key_hash = (
-        bytes.fromhex(native_script.get("key_hash"))
-        if "key_hash" in native_script
-        else None
-    )
+    key_hash = _parse_optional_bytes(native_script.get("key_hash"))
     key_path = tools.parse_path(native_script.get("key_path"))
     required_signatures_count = native_script.get("required_signatures_count")
     invalid_before = native_script.get("invalid_before")
@@ -308,12 +311,8 @@ def parse_certificate(certificate) -> CertificateWithPoolOwnersAndRelays:
         if "pool" not in certificate:
             raise CERTIFICATE_MISSING_FIELDS_ERROR
 
-        path = tools.parse_path(certificate["path"]) if "path" in certificate else None
-        script_hash = (
-            bytes.fromhex(certificate["script_hash"])
-            if "script_hash" in certificate
-            else None
-        )
+        path = tools.parse_path(certificate.get("path"))
+        script_hash = _parse_optional_bytes(certificate.get("script_hash"))
 
         return (
             messages.CardanoTxCertificate(
@@ -331,12 +330,8 @@ def parse_certificate(certificate) -> CertificateWithPoolOwnersAndRelays:
         if "path" not in certificate and "script_hash" not in certificate:
             raise CERTIFICATE_MISSING_FIELDS_ERROR
 
-        path = tools.parse_path(certificate["path"]) if "path" in certificate else None
-        script_hash = (
-            bytes.fromhex(certificate["script_hash"])
-            if "script_hash" in certificate
-            else None
-        )
+        path = tools.parse_path(certificate.get("path"))
+        script_hash = _parse_optional_bytes(certificate.get("script_hash"))
 
         return (
             messages.CardanoTxCertificate(
@@ -450,12 +445,8 @@ def parse_withdrawal(withdrawal) -> messages.CardanoTxWithdrawal:
     if "path" not in withdrawal and "script_hash" not in withdrawal:
         raise WITHDRAWAL_MISSING_FIELDS_ERROR
 
-    path = tools.parse_path(withdrawal["path"]) if "path" in withdrawal else None
-    script_hash = (
-        bytes.fromhex(withdrawal["script_hash"])
-        if "script_hash" in withdrawal
-        else None
-    )
+    path = tools.parse_path(withdrawal.get("path"))
+    script_hash = _parse_optional_bytes(withdrawal.get("script_hash"))
 
     return messages.CardanoTxWithdrawal(
         path=path,

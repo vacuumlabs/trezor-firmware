@@ -379,7 +379,7 @@ class TestCardanoAddress(unittest.TestCase):
             ),
             "REWARD": CardanoAddressParametersType(
                 address_type=CardanoAddressType.REWARD,
-                address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
+                address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
             ),
             "REWARD_SCRIPT_HASH": CardanoAddressParametersType(
                 address_type=CardanoAddressType.REWARD_SCRIPT,

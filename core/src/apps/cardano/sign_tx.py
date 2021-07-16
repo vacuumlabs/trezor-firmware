@@ -66,7 +66,7 @@ from .helpers import (
     LOVELACE_MAX_SUPPLY,
     network_ids,
     protocol_magics,
-    staking_use_cases,
+    staking_use_cases, INVALID_OUTPUT,
 )
 from .helpers.paths import (
     ACCOUNT_PATH_INDEX,
@@ -289,7 +289,7 @@ async def _process_outputs(
     total_amount = 0
     for _ in range(outputs_count):
         output: CardanoTxOutput = await ctx.call(CardanoTxItemAck(), CardanoTxOutput)
-        _validate_output(output, protocol_magic, network_id)
+        _validate_output(output, signing_mode, protocol_magic, network_id)
         if signing_mode != CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
             await _show_output(
                 ctx,
@@ -676,21 +676,23 @@ def _validate_stake_pool_registration_tx_structure(msg: CardanoSignTxInit) -> No
 
 
 def _validate_output(
-    output: CardanoTxOutput, protocol_magic: int, network_id: int
+    output: CardanoTxOutput,
+    signing_mode: CardanoTxSigningMode,
+    protocol_magic: int,
+    network_id: int,
 ) -> None:
     if output.address_parameters and output.address is not None:
-        raise wire.ProcessError(
-            "Outputs can not contain both address and address_parameters fields!"
-        )
+        raise INVALID_OUTPUT
 
     if output.address_parameters:
+        if signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
+            raise INVALID_OUTPUT
+
         validate_address_parameters(output.address_parameters)
     elif output.address is not None:
         validate_output_address(output.address, protocol_magic, network_id)
     else:
-        raise wire.ProcessError(
-            "Each output must have an address field or address_parameters!"
-        )
+        raise INVALID_OUTPUT
 
 
 async def _show_output(
@@ -726,7 +728,10 @@ async def _show_output(
     if output.asset_groups_count > 0:
         await show_warning_tx_output_contains_tokens(ctx)
 
-    if signing_mode == CardanoTxSigningMode.ORDINARY_TRANSACTION:
+    if signing_mode in (
+        CardanoTxSigningMode.ORDINARY_TRANSACTION,
+        CardanoTxSigningMode.MULTISIG_TRANSACTION,
+    ):
         await confirm_sending(ctx, output.amount, address)
 
 
