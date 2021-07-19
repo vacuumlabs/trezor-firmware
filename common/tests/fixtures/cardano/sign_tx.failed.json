@@ -474,7 +474,7 @@
         "script_witness_requests": []
       },
       "result": {
-        "error_message": "Outputs can not contain both address and address_parameters fields!"
+        "error_message": "Invalid output"
       }
     },
     {

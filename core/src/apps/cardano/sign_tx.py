@@ -55,6 +55,7 @@ from .certificates import (
     validate_pool_relay,
 )
 from .helpers import (
+    INVALID_OUTPUT,
     INVALID_SCRIPT_WITNESS_REQUEST,
     INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE,
     INVALID_STAKEPOOL_REGISTRATION_TX_WITNESSES,
@@ -66,7 +67,7 @@ from .helpers import (
     LOVELACE_MAX_SUPPLY,
     network_ids,
     protocol_magics,
-    staking_use_cases, INVALID_OUTPUT,
+    staking_use_cases,
 )
 from .helpers.paths import (
     ACCOUNT_PATH_INDEX,
@@ -290,15 +291,14 @@ async def _process_outputs(
     for _ in range(outputs_count):
         output: CardanoTxOutput = await ctx.call(CardanoTxItemAck(), CardanoTxOutput)
         _validate_output(output, signing_mode, protocol_magic, network_id)
-        if signing_mode != CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
-            await _show_output(
-                ctx,
-                keychain,
-                output,
-                signing_mode,
-                protocol_magic,
-                network_id,
-            )
+        await _show_output(
+            ctx,
+            keychain,
+            output,
+            signing_mode,
+            protocol_magic,
+            network_id,
+        )
 
         output_address = _get_output_address(
             keychain, protocol_magic, network_id, output
@@ -703,6 +703,9 @@ async def _show_output(
     protocol_magic: int,
     network_id: int,
 ) -> None:
+    if signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
+        return
+
     if output.address_parameters:
         await _fail_or_warn_if_invalid_path(
             ctx,
@@ -728,11 +731,7 @@ async def _show_output(
     if output.asset_groups_count > 0:
         await show_warning_tx_output_contains_tokens(ctx)
 
-    if signing_mode in (
-        CardanoTxSigningMode.ORDINARY_TRANSACTION,
-        CardanoTxSigningMode.MULTISIG_TRANSACTION,
-    ):
-        await confirm_sending(ctx, output.amount, address)
+    await confirm_sending(ctx, output.amount, address)
 
 
 def _validate_asset_group(

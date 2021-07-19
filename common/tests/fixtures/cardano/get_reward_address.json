@@ -6,7 +6,7 @@
   "tests": [
     {
       "parameters": {
-        "path": "m/1852'/1815'/0'/2/0",
+        "staking_path": "m/1852'/1815'/0'/2/0",
         "address_type": "reward",
         "network_id": 1,
         "protocol_magic": 764824073
@@ -17,7 +17,7 @@
     },
     {
       "parameters": {
-        "path": "m/1852'/1815'/0'/2/0",
+        "staking_path": "m/1852'/1815'/0'/2/0",
         "address_type": "reward",
         "network_id": 0,
         "protocol_magic": 42

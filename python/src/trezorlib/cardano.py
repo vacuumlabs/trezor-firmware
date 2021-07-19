@@ -249,9 +249,15 @@ def _parse_address_parameters(
 
     path = tools.parse_path(address_parameters.get("path"))
     staking_path = tools.parse_path(address_parameters.get("stakingPath"))
-    staking_key_hash_bytes = _parse_optional_bytes(address_parameters.get("stakingKeyHash"))
-    script_payment_hash = _parse_optional_bytes(address_parameters.get("scriptPaymentHash"))
-    script_staking_hash = _parse_optional_bytes(address_parameters.get("scriptStakingHash"))
+    staking_key_hash_bytes = _parse_optional_bytes(
+        address_parameters.get("stakingKeyHash")
+    )
+    script_payment_hash = _parse_optional_bytes(
+        address_parameters.get("scriptPaymentHash")
+    )
+    script_staking_hash = _parse_optional_bytes(
+        address_parameters.get("scriptStakingHash")
+    )
 
     return create_address_parameters(
         int(address_parameters["addressType"]),
