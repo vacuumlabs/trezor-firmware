@@ -8,10 +8,14 @@ from apps.cardano.helpers.paths import (
 )
 from apps.common.seed import remove_ed25519_prefix
 
+from ...common.layout import address_n_to_str
 from . import ADDRESS_KEY_HASH_SIZE, SCRIPT_HASH_SIZE, bech32
+from .bech32 import HRP_SCRIPT_HASH
 
 if False:
     from trezor import wire
+    from trezor.messages import CardanoBlockchainPointerType
+    from trezor.ui.layouts import PropertyType
     from .. import seed
 
 
@@ -68,6 +72,64 @@ def format_asset_fingerprint(policy_id: bytes, asset_name_bytes: bytes) -> str:
     ).digest()
 
     return bech32.encode("asset", fingerprint)
+
+
+def get_set_credential(
+    path: list[int],
+    key_hash: bytes | None,
+    script_hash: bytes | None,
+    pointer: CardanoBlockchainPointerType | None,
+) -> list[int] | bytes | CardanoBlockchainPointerType | None:
+    if path:
+        return path
+    elif key_hash:
+        return key_hash
+    elif script_hash:
+        return script_hash
+    elif pointer:
+        return pointer
+    else:
+        return None
+
+
+def get_set_credential_title(
+    path: list[int],
+    key_hash: bytes | None,
+    script_hash: bytes | None,
+    pointer: CardanoBlockchainPointerType | None,
+) -> str:
+    if path:
+        return "path"
+    elif key_hash:
+        return "key hash"
+    elif script_hash:
+        return "script"
+    elif pointer:
+        return "pointer"
+    else:
+        return ""
+
+
+def format_credential(
+    path: list[int],
+    key_hash: bytes | None,
+    script_hash: bytes | None,
+    pointer: CardanoBlockchainPointerType | None,
+) -> list[PropertyType]:
+    if path:
+        return [(None, address_n_to_str(path))]
+    elif key_hash:
+        return [(None, key_hash)]
+    elif script_hash:
+        return [(None, bech32.encode(HRP_SCRIPT_HASH, script_hash))]
+    elif pointer:
+        return [
+            ("Block: %s" % pointer.block_index, None),
+            ("Transaction: %s" % pointer.tx_index, None),
+            ("Certificate: %s" % pointer.certificate_index, None),
+        ]
+
+    raise ValueError("Invalid credential")
 
 
 def get_public_key_hash(keychain: seed.Keychain, path: list[int]) -> bytes:

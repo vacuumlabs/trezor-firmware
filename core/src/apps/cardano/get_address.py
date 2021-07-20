@@ -1,20 +1,15 @@
 from trezor import log, wire
 from trezor.messages import CardanoAddress
-from trezor.ui.layouts import show_address
-
-from apps.common import paths
-from apps.common.layout import address_n_to_str
 
 from . import seed
 from .address import derive_human_readable_address, validate_address_parameters
-from .helpers import protocol_magics, staking_use_cases
-from .helpers.paths import SCHEMA_ADDRESS
-from .helpers.utils import to_account_path
-from .layout import (
-    ADDRESS_TYPE_NAMES,
-    show_warning_address_foreign_staking_key,
-    show_warning_address_pointer,
+from .helpers.address_credential_policy import (
+    ADDRESS_POLICY_SHOW_SPLIT,
+    get_address_policy,
+    get_payment_credential_policy,
+    get_stake_credential_policy,
 )
+from .layout import show_cardano_address, show_credential
 from .sign_tx import validate_network_info
 
 if False:
@@ -29,15 +24,6 @@ async def get_address(
     ctx: wire.Context, msg: CardanoGetAddress, keychain: seed.Keychain
 ) -> CardanoAddress:
     address_parameters = msg.address_parameters
-
-    if address_parameters.address_n:
-        await paths.validate_path(
-            ctx,
-            keychain,
-            address_parameters.address_n,
-            # path must match the ADDRESS schema
-            SCHEMA_ADDRESS.match(address_parameters.address_n),
-        )
 
     validate_network_info(msg.network_id, msg.protocol_magic)
     validate_address_parameters(address_parameters)
@@ -66,38 +52,27 @@ async def _display_address(
     address: str,
     protocol_magic: int,
 ) -> None:
-    await _show_staking_warnings(ctx, keychain, address_parameters)
-
-    network_name = None
-    if not protocol_magics.is_mainnet(protocol_magic):
-        network_name = protocol_magics.to_ui_string(protocol_magic)
-
-    address_n = address_n_to_str(address_parameters.address_n)
-    # TODO GK show script hashes?
-    await show_address(
-        ctx,
-        address=address,
-        title="%s address" % ADDRESS_TYPE_NAMES[address_parameters.address_type],
-        network=network_name,
-        address_extra=address_n,
-        title_qr=address_n,
-    )
-
-
-async def _show_staking_warnings(
-    ctx: wire.Context,
-    keychain: seed.Keychain,
-    address_parameters: CardanoAddressParametersType,
-) -> None:
-    staking_type = staking_use_cases.get(keychain, address_parameters)
-    if staking_type == staking_use_cases.MISMATCH:
-        await show_warning_address_foreign_staking_key(
+    address_policy = get_address_policy(keychain, address_parameters)
+    if address_policy == ADDRESS_POLICY_SHOW_SPLIT:
+        await show_credential(
             ctx,
-            to_account_path(address_parameters.address_n),
-            to_account_path(address_parameters.address_n_staking),
-            address_parameters.staking_key_hash,
+            address_parameters.address_n,
+            None,
+            address_parameters.script_payment_hash,
+            address_parameters.certificate_pointer,
+            address_parameters.address_type,
+            get_payment_credential_policy(address_parameters),
+            "payment",
         )
-    elif staking_type == staking_use_cases.POINTER_ADDRESS:
-        # ensured in _derive_shelley_address:
-        assert address_parameters.certificate_pointer is not None
-        await show_warning_address_pointer(ctx, address_parameters.certificate_pointer)
+        await show_credential(
+            ctx,
+            address_parameters.address_n_staking,
+            address_parameters.staking_key_hash,
+            address_parameters.script_staking_hash,
+            address_parameters.certificate_pointer,
+            address_parameters.address_type,
+            get_stake_credential_policy(keychain, address_parameters),
+            "stake",
+        )
+
+    await show_cardano_address(ctx, address_parameters, address, protocol_magic)

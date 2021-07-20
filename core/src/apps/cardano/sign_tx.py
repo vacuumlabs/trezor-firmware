@@ -67,7 +67,13 @@ from .helpers import (
     LOVELACE_MAX_SUPPLY,
     network_ids,
     protocol_magics,
-    staking_use_cases,
+)
+from .helpers.address_credential_policy import (
+    ADDRESS_POLICY_SHOW_SPLIT,
+    CREDENTIAL_POLICY_FAIL_OR_WARN_UNUSUAL,
+    get_address_policy,
+    get_output_payment_credential_policy,
+    get_output_stake_credential_policy,
 )
 from .helpers.paths import (
     ACCOUNT_PATH_INDEX,
@@ -84,7 +90,7 @@ from .helpers.paths import (
     WITNESS_PATH_NAME,
 )
 from .helpers.tx_builder import TxBuilder
-from .helpers.utils import derive_public_key, to_account_path, validate_stake_credential
+from .helpers.utils import derive_public_key, validate_stake_credential
 from .layout import (
     confirm_certificate,
     confirm_script_witness_request,
@@ -97,15 +103,13 @@ from .layout import (
     confirm_token_minting,
     confirm_transaction,
     confirm_withdrawal,
+    show_output_payment_credential,
+    show_output_stake_credential,
     show_transaction_signing_mode,
     show_warning_path,
     show_warning_tx_contains_mint,
-    show_warning_tx_different_staking_account,
     show_warning_tx_network_unverifiable,
-    show_warning_tx_no_staking_info,
     show_warning_tx_output_contains_tokens,
-    show_warning_tx_pointer_address,
-    show_warning_tx_staking_key_hash,
 )
 from .seed import is_byron_path, is_multisig_path, is_shelley_path
 
@@ -706,32 +710,57 @@ async def _show_output(
     if signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         return
 
-    if output.address_parameters:
-        await _fail_or_warn_if_invalid_path(
-            ctx,
-            SCHEMA_ADDRESS,
-            output.address_parameters.address_n,
-            CHANGE_OUTPUT_PATH_NAME,
-        )
+    if output.asset_groups_count > 0:
+        await show_warning_tx_output_contains_tokens(ctx)
 
-        await _show_change_output_staking_warnings(
-            ctx, keychain, output.address_parameters, output.amount
-        )
+    is_change_output = False
+    if address_parameters := output.address_parameters:
+        is_change_output = True
 
-        if _should_hide_output(output.address_parameters.address_n):
-            return
+        address_policy = get_address_policy(keychain, address_parameters)
+        if address_policy == ADDRESS_POLICY_SHOW_SPLIT:
+            payment_credential_policy = get_output_payment_credential_policy(
+                address_parameters, signing_mode
+            )
+            stake_credential_policy = get_output_stake_credential_policy(
+                keychain, address_parameters, signing_mode
+            )
+
+            _fail_if_strict_and_unusual_path(
+                payment_credential_policy, CHANGE_OUTPUT_PATH_NAME
+            )
+            _fail_if_strict_and_unusual_path(
+                stake_credential_policy, CHANGE_OUTPUT_STAKING_PATH_NAME
+            )
+
+            await show_output_payment_credential(
+                ctx,
+                address_parameters.address_n,
+                address_parameters.script_payment_hash,
+                address_parameters.address_type,
+                payment_credential_policy,
+            )
+            await show_output_stake_credential(
+                ctx,
+                address_parameters.address_n_staking,
+                address_parameters.staking_key_hash,
+                address_parameters.script_staking_hash,
+                address_parameters.certificate_pointer,
+                address_parameters.address_type,
+                stake_credential_policy,
+            )
+        else:
+            if _should_hide_output(address_parameters.address_n):
+                return
 
         address = derive_human_readable_address(
-            keychain, output.address_parameters, protocol_magic, network_id
+            keychain, address_parameters, protocol_magic, network_id
         )
     else:
         assert output.address is not None  # _validate_output
         address = output.address
 
-    if output.asset_groups_count > 0:
-        await show_warning_tx_output_contains_tokens(ctx)
-
-    await confirm_sending(ctx, output.amount, address)
+    await confirm_sending(ctx, output.amount, address, is_change_output)
 
 
 def _validate_asset_group(
@@ -769,6 +798,7 @@ def _validate_token(
         raise INVALID_TOKEN_BUNDLE
 
 
+# TODO show certificate script hash
 async def _show_certificate(
     ctx: wire.Context,
     certificate: CardanoTxCertificate,
@@ -927,53 +957,6 @@ async def _show_witness(
     )
 
 
-async def _show_change_output_staking_warnings(
-    ctx: wire.Context,
-    keychain: seed.Keychain,
-    address_parameters: CardanoAddressParametersType,
-    amount: int,
-) -> None:
-    address_type = address_parameters.address_type
-
-    if (
-        address_type == CardanoAddressType.BASE
-        and not address_parameters.staking_key_hash
-    ):
-        await _fail_or_warn_if_invalid_path(
-            ctx,
-            SCHEMA_STAKING,
-            address_parameters.address_n_staking,
-            CHANGE_OUTPUT_STAKING_PATH_NAME,
-        )
-
-    staking_use_case = staking_use_cases.get(keychain, address_parameters)
-    if staking_use_case == staking_use_cases.NO_STAKING:
-        await show_warning_tx_no_staking_info(ctx, address_type, amount)
-    elif staking_use_case == staking_use_cases.POINTER_ADDRESS:
-        # ensured in _derive_shelley_address:
-        assert address_parameters.certificate_pointer is not None
-        await show_warning_tx_pointer_address(
-            ctx,
-            address_parameters.certificate_pointer,
-            amount,
-        )
-    elif staking_use_case == staking_use_cases.MISMATCH:
-        if address_parameters.address_n_staking:
-            await show_warning_tx_different_staking_account(
-                ctx,
-                to_account_path(address_parameters.address_n_staking),
-                amount,
-            )
-        else:
-            # ensured in _validate_base_address_staking_info:
-            assert address_parameters.staking_key_hash
-            await show_warning_tx_staking_key_hash(
-                ctx,
-                address_parameters.staking_key_hash,
-                amount,
-            )
-
-
 def _should_hide_output(path: list[int]) -> bool:
     """Return whether the output address is from a safe path, so it could be hidden."""
     return (
@@ -1017,3 +1000,11 @@ async def _fail_or_warn_if_invalid_path(
             raise wire.DataError("Invalid %s" % path_name.lower())
         else:
             await show_warning_path(ctx, path, path_name)
+
+
+def _fail_if_strict_and_unusual_path(credential_policy: int, path_name: str) -> None:
+    if not safety_checks.is_strict():
+        return
+
+    if (credential_policy & CREDENTIAL_POLICY_FAIL_OR_WARN_UNUSUAL) != 0:
+        raise wire.DataError("Invalid %s" % path_name.lower())

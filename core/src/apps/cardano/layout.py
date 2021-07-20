@@ -13,6 +13,7 @@ from trezor.ui.layouts import (
     confirm_output,
     confirm_path_warning,
     confirm_properties,
+    show_address,
 )
 
 from apps.common.layout import address_n_to_str
@@ -20,11 +21,23 @@ from apps.common.layout import address_n_to_str
 from . import seed
 from .address import derive_human_readable_address
 from .helpers import protocol_magics
+from .helpers.address_credential_policy import (
+    CREDENTIAL_POLICY_FAIL_OR_WARN_UNUSUAL,
+    CREDENTIAL_POLICY_SHOW_CHANGE,
+    CREDENTIAL_POLICY_SHOW_OUTPUT,
+    CREDENTIAL_POLICY_WARN_MISMATCH,
+    CREDENTIAL_POLICY_WARN_NO_STAKING,
+    CREDENTIAL_POLICY_WARN_REWARD_ADDRESS,
+    CREDENTIAL_POLICY_WARN_SCRIPT,
+)
 from .helpers.utils import (
     format_account_number,
     format_asset_fingerprint,
+    format_credential,
     format_optional_int,
     format_stake_pool_id,
+    get_set_credential,
+    get_set_credential_title,
     to_account_path,
 )
 
@@ -45,19 +58,18 @@ if False:
     from trezor.ui.layouts import PropertyType
 
 
-# TODO GK perhaps the user doesn't care about the "script" part at all?
 ADDRESS_TYPE_NAMES = {
     CardanoAddressType.BYRON: "Legacy",
     CardanoAddressType.BASE: "Base",
-    CardanoAddressType.BASE_SCRIPT_KEY: "Base script",
-    CardanoAddressType.BASE_KEY_SCRIPT: "Base script",
-    CardanoAddressType.BASE_SCRIPT_SCRIPT: "Base script",
+    CardanoAddressType.BASE_SCRIPT_KEY: "Base",
+    CardanoAddressType.BASE_KEY_SCRIPT: "Base",
+    CardanoAddressType.BASE_SCRIPT_SCRIPT: "Base",
     CardanoAddressType.POINTER: "Pointer",
-    CardanoAddressType.POINTER_SCRIPT: "Pointer script",
+    CardanoAddressType.POINTER_SCRIPT: "Pointer",
     CardanoAddressType.ENTERPRISE: "Enterprise",
-    CardanoAddressType.ENTERPRISE_SCRIPT: "Enterprise script",
+    CardanoAddressType.ENTERPRISE_SCRIPT: "Enterprise",
     CardanoAddressType.REWARD: "Reward",
-    CardanoAddressType.REWARD_SCRIPT: "Reward script",
+    CardanoAddressType.REWARD_SCRIPT: "Reward",
 }
 
 SCRIPT_TYPE_NAMES = {
@@ -137,7 +149,7 @@ async def show_native_script(
         await show_native_script(ctx, sub_script, indices + [(i + 1)])
 
 
-# TODO verify this works
+# TODO pass in script_hash and use format_script_hash
 async def show_human_readable_script_hash(
     ctx: wire.Context, human_readable_script_hash: str
 ) -> None:
@@ -158,7 +170,7 @@ async def show_transaction_signing_mode(
             ctx,
             "confirm_signing_mode",
             title="Confirm transaction",
-            content="Signing a multisig transaction.",
+            content="Confirming a multisig transaction.",
             larger_vspace=True,
             br_code=ButtonRequestType.Other,
         )
@@ -168,13 +180,15 @@ async def confirm_sending(
     ctx: wire.Context,
     ada_amount: int,
     to: str,
+    is_change_output: bool,
 ) -> None:
+    subtitle = "Change amount:" if is_change_output else "Confirm sending:"
     await confirm_output(
         ctx,
         to,
         format_coin_amount(ada_amount),
         title="Confirm transaction",
-        subtitle="Confirm sending:",
+        subtitle=subtitle,
         font_amount=ui.BOLD,
         width_paginated=17,
         to_str="\nto\n",
@@ -206,13 +220,105 @@ async def confirm_sending_token(
     )
 
 
-async def show_warning_tx_output_contains_tokens(ctx: wire.Context) -> None:
-    await confirm_metadata(
+async def show_output_payment_credential(
+    ctx: wire.Context,
+    path: list[int],
+    script_hash: bytes | None,
+    address_type: CardanoAddressType,
+    credential_policy: int,
+) -> None:
+    await show_credential(
+        ctx, path, None, script_hash, None, address_type, credential_policy, "payment"
+    )
+
+
+async def show_output_stake_credential(
+    ctx: wire.Context,
+    path: list[int],
+    key_hash: bytes | None,
+    script_hash: bytes | None,
+    pointer: CardanoBlockchainPointerType | None,
+    address_type: CardanoAddressType,
+    credential_policy: int,
+) -> None:
+    await show_credential(
         ctx,
-        "confirm_tokens",
-        title="Confirm transaction",
-        content="The following\ntransaction output\ncontains tokens.",
-        larger_vspace=True,
+        path,
+        key_hash,
+        script_hash,
+        pointer,
+        address_type,
+        credential_policy,
+        "stake",
+    )
+
+
+async def show_credential(
+    ctx: wire.Context,
+    path: list[int],
+    key_hash: bytes | None,
+    script_hash: bytes | None,
+    pointer: CardanoBlockchainPointerType | None,
+    address_type: CardanoAddressType,
+    credential_policy: int,
+    credential_usage: str,
+) -> None:
+    props: list[PropertyType] = []
+
+    credential = get_set_credential(path, key_hash, script_hash, pointer)
+    if credential:
+        if (credential_policy & CREDENTIAL_POLICY_SHOW_CHANGE) != 0:
+            address_usage = "Change address"
+        elif (credential_policy & CREDENTIAL_POLICY_SHOW_OUTPUT) != 0:
+            address_usage = "Output address"
+        else:
+            address_usage = "Address"
+
+        credential_title = get_set_credential_title(
+            path, key_hash, script_hash, pointer
+        )
+        props.append(
+            (
+                "%s %s credential is a %s:"
+                % (address_usage, credential_usage, credential_title),
+                None,
+            )
+        )
+        props.extend(format_credential(path, key_hash, script_hash, pointer))
+
+    if (credential_policy & CREDENTIAL_POLICY_FAIL_OR_WARN_UNUSUAL) != 0:
+        props.append((None, "Path is unusual."))
+    if (credential_policy & CREDENTIAL_POLICY_WARN_MISMATCH) != 0:
+        props.append((None, "Credential doesn't match payment credential."))
+    if (credential_policy & CREDENTIAL_POLICY_WARN_REWARD_ADDRESS) != 0:
+        props.append(("Address is a reward address.", None))
+    if (credential_policy & CREDENTIAL_POLICY_WARN_NO_STAKING) != 0:
+        props.append(
+            (
+                "%s address - no staking rewards." % ADDRESS_TYPE_NAMES[address_type],
+                None,
+            )
+        )
+
+    if credential_policy >= CREDENTIAL_POLICY_WARN_SCRIPT:
+        icon = ui.ICON_WRONG
+        icon_color = ui.RED
+    else:
+        icon = ui.ICON_SEND
+        icon_color = ui.GREEN
+
+    if (credential_policy & CREDENTIAL_POLICY_SHOW_OUTPUT) != 0:
+        title = "Confirm transaction"
+    else:
+        title = "%s address" % ADDRESS_TYPE_NAMES[address_type]
+
+    await confirm_properties(
+        ctx,
+        "confirm_credential",
+        title=title,
+        props=props,
+        icon=icon,
+        icon_color=icon_color,
         br_code=ButtonRequestType.Other,
     )
 
@@ -221,88 +327,13 @@ async def show_warning_path(ctx: wire.Context, path: list[int], title: str) -> N
     await confirm_path_warning(ctx, address_n_to_str(path), path_type=title)
 
 
-async def show_warning_tx_no_staking_info(
-    ctx: wire.Context, address_type: CardanoAddressType, amount: int
-) -> None:
-    atype = ADDRESS_TYPE_NAMES[address_type].lower()
-    content = "Change %s address has no stake rights.\nChange amount:\n{}" % atype
+async def show_warning_tx_output_contains_tokens(ctx: wire.Context) -> None:
     await confirm_metadata(
         ctx,
-        "warning_staking",
+        "confirm_tokens",
         title="Confirm transaction",
-        content=content,
-        param=format_coin_amount(amount),
-        hide_continue=True,
-        br_code=ButtonRequestType.Other,
-    )
-
-
-async def show_warning_tx_pointer_address(
-    ctx: wire.Context,
-    pointer: CardanoBlockchainPointerType,
-    amount: int,
-) -> None:
-    await confirm_properties(
-        ctx,
-        "warning_pointer",
-        title="Confirm transaction",
-        props=[
-            ("Change address has a\npointer with staking\nrights.\n\n\n", None),
-            (
-                "Pointer:",
-                "%s, %s, %s"
-                % (
-                    pointer.block_index,
-                    pointer.tx_index,
-                    pointer.certificate_index,
-                ),
-            ),
-            ("Change amount:", format_coin_amount(amount)),
-        ],
-        br_code=ButtonRequestType.Other,
-    )
-
-
-async def show_warning_tx_different_staking_account(
-    ctx: wire.Context,
-    staking_account_path: list[int],
-    amount: int,
-) -> None:
-    await confirm_properties(
-        ctx,
-        "warning_differentstaking",
-        title="Confirm transaction",
-        props=[
-            (
-                "Change address staking rights do not match the current account.\n\n",
-                None,
-            ),
-            (
-                "Staking account %s:" % format_account_number(staking_account_path),
-                address_n_to_str(staking_account_path),
-            ),
-            ("Change amount:", format_coin_amount(amount)),
-        ],
-        br_code=ButtonRequestType.Other,
-    )
-
-
-async def show_warning_tx_staking_key_hash(
-    ctx: wire.Context,
-    staking_key_hash: bytes,
-    amount: int,
-) -> None:
-    props = [
-        ("Change address staking rights do not match the current account.\n\n", None),
-        ("Staking key hash:", staking_key_hash),
-        ("Change amount:", format_coin_amount(amount)),
-    ]
-
-    await confirm_properties(
-        ctx,
-        "confirm_different_stakingrights",
-        title="Confirm transaction",
-        props=props,
+        content="The following\ntransaction output\ncontains tokens.",
+        larger_vspace=True,
         br_code=ButtonRequestType.Other,
     )
 
@@ -623,43 +654,6 @@ async def confirm_token_minting(
     )
 
 
-async def show_warning_address_foreign_staking_key(
-    ctx: wire.Context,
-    account_path: list[int],
-    staking_account_path: list[int],
-    staking_key_hash: bytes | None,
-) -> None:
-    props: list[PropertyType] = [
-        (
-            "Stake rights associated with this address do not match your account %s:"
-            % format_account_number(account_path),
-            address_n_to_str(account_path),
-        )
-    ]
-
-    if staking_account_path:
-        props.append(
-            (
-                "Stake account %s:" % format_account_number(staking_account_path),
-                address_n_to_str(staking_account_path),
-            )
-        )
-    else:
-        assert staking_key_hash is not None  # _validate_base_address_staking_info
-        props.append(("Staking key:", staking_key_hash))
-    props.append(("Continue?", None))
-
-    await confirm_properties(
-        ctx,
-        "warning_foreign_stakingkey",
-        title="Warning",
-        props=props,
-        icon=ui.ICON_WRONG,
-        icon_color=ui.RED,
-        br_code=ButtonRequestType.Other,
-    )
-
-
 async def show_warning_tx_network_unverifiable(ctx: wire.Context) -> None:
     await confirm_metadata(
         ctx,
@@ -671,20 +665,39 @@ async def show_warning_tx_network_unverifiable(ctx: wire.Context) -> None:
     )
 
 
-async def show_warning_address_pointer(
-    ctx: wire.Context, pointer: CardanoBlockchainPointerType
+async def show_cardano_address(
+    ctx: wire.Context,
+    address_parameters: CardanoAddressParametersType,
+    address: str,
+    protocol_magic: int,
 ) -> None:
-    content = "Pointer address:\nBlock: %s\nTransaction: %s\nCertificate: %s" % (
-        pointer.block_index,
-        pointer.tx_index,
-        pointer.certificate_index,
-    )
-    await confirm_metadata(
+    network_name = None
+    if not protocol_magics.is_mainnet(protocol_magic):
+        network_name = protocol_magics.to_ui_string(protocol_magic)
+
+    title = "%s address" % ADDRESS_TYPE_NAMES[address_parameters.address_type]
+    address_extra = None
+    title_qr = title
+    if address_parameters.address_type in (
+        CardanoAddressType.BYRON,
+        CardanoAddressType.BASE,
+        CardanoAddressType.BASE_KEY_SCRIPT,
+        CardanoAddressType.POINTER,
+        CardanoAddressType.ENTERPRISE,
+        CardanoAddressType.REWARD,
+    ):
+        if address_parameters.address_n:
+            address_extra = address_n_to_str(address_parameters.address_n)
+            title_qr = address_n_to_str(address_parameters.address_n)
+        elif address_parameters.address_n_staking:
+            address_extra = address_n_to_str(address_parameters.address_n_staking)
+            title_qr = address_n_to_str(address_parameters.address_n_staking)
+
+    await show_address(
         ctx,
-        "warning_pointer",
-        title="Warning",
-        icon=ui.ICON_WRONG,
-        icon_color=ui.RED,
-        content=content,
-        br_code=ButtonRequestType.Other,
+        address=address,
+        title="%s address" % ADDRESS_TYPE_NAMES[address_parameters.address_type],
+        network=network_name,
+        address_extra=address_extra,
+        title_qr=title_qr,
     )
