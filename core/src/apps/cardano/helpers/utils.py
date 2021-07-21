@@ -166,4 +166,4 @@ def validate_stake_credential(
         if len(script_hash) != SCRIPT_HASH_SIZE:
             raise error
     else:
-        error
+        raise error

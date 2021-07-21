@@ -44,7 +44,7 @@ def validate_certificate(
     protocol_magic: int,
     network_id: int,
 ) -> None:
-    if certificate.type not in (
+    if certificate.type in (
         CardanoCertificateType.STAKE_DELEGATION,
         CardanoCertificateType.STAKE_REGISTRATION,
         CardanoCertificateType.STAKE_DEREGISTRATION,
