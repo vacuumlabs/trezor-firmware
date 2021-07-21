@@ -74,6 +74,10 @@ def format_asset_fingerprint(policy_id: bytes, asset_name_bytes: bytes) -> str:
     return bech32.encode("asset", fingerprint)
 
 
+def format_script_hash(script_hash: bytes) -> str:
+    return bech32.encode(HRP_SCRIPT_HASH, script_hash)
+
+
 def get_set_credential(
     path: list[int],
     key_hash: bytes | None,
@@ -121,7 +125,7 @@ def format_credential(
     elif key_hash:
         return [(None, key_hash)]
     elif script_hash:
-        return [(None, bech32.encode(HRP_SCRIPT_HASH, script_hash))]
+        return [(None, format_script_hash(script_hash))]
     elif pointer:
         return [
             ("Block: %s" % pointer.block_index, None),

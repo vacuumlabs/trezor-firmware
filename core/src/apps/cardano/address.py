@@ -51,12 +51,12 @@ def validate_address_parameters(parameters: CardanoAddressParametersType) -> Non
         if parameters.address_type == CardanoAddressType.BASE:
             if not is_shelley_path(parameters.address_n):
                 raise INVALID_ADDRESS_PARAMETERS
-            _validate_base_address_staking_info(
+            _validate_base_address_stake_credential(
                 parameters.address_n_staking, parameters.staking_key_hash
             )
 
         elif parameters.address_type == CardanoAddressType.BASE_SCRIPT_KEY:
-            _validate_base_address_staking_info(
+            _validate_base_address_stake_credential(
                 parameters.address_n_staking, parameters.staking_key_hash
             )
             if (
@@ -214,7 +214,7 @@ def _validate_address_parameters_structure(
         raise INVALID_ADDRESS_PARAMETERS
 
 
-def _validate_base_address_staking_info(
+def _validate_base_address_stake_credential(
     staking_path: list[int],
     staking_key_hash: bytes | None,
 ) -> None:

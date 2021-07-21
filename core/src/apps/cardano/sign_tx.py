@@ -798,17 +798,19 @@ def _validate_token(
         raise INVALID_TOKEN_BUNDLE
 
 
-# TODO show certificate script hash
 async def _show_certificate(
     ctx: wire.Context,
     certificate: CardanoTxCertificate,
     signing_mode: CardanoTxSigningMode,
 ) -> None:
     if signing_mode == CardanoTxSigningMode.ORDINARY_TRANSACTION:
-        if certificate.path:
-            await _fail_or_warn_if_invalid_path(
-                ctx, SCHEMA_STAKING, certificate.path, CERTIFICATE_PATH_NAME
-            )
+        assert certificate.path  # validate_certificate
+        await _fail_or_warn_if_invalid_path(
+            ctx, SCHEMA_STAKING, certificate.path, CERTIFICATE_PATH_NAME
+        )
+        await confirm_certificate(ctx, certificate)
+    elif signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
+        assert certificate.script_hash  # validate_certificate
         await confirm_certificate(ctx, certificate)
     elif signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         await _show_stake_pool_registration_certificate(ctx, certificate)

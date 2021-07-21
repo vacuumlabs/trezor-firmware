@@ -35,6 +35,7 @@ from .helpers.utils import (
     format_asset_fingerprint,
     format_credential,
     format_optional_int,
+    format_script_hash,
     format_stake_pool_id,
     get_set_credential,
     get_set_credential_title,
@@ -413,7 +414,7 @@ async def confirm_certificate(
         )
     else:
         assert certificate.script_hash is not None  # validate_certificate
-        props.append(("for script:", certificate.script_hash))
+        props.append(("for script:", format_script_hash(certificate.script_hash)))
 
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
         assert certificate.pool is not None  # validate_certificate

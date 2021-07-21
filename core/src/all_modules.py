@@ -438,6 +438,8 @@ if utils.BITCOIN_ONLY:
     import apps.cardano.get_public_key
     apps.cardano.helpers
     import apps.cardano.helpers
+    apps.cardano.helpers.address_credential_policy
+    import apps.cardano.helpers.address_credential_policy
     apps.cardano.helpers.bech32
     import apps.cardano.helpers.bech32
     apps.cardano.helpers.cbor_hash_builder
@@ -450,8 +452,6 @@ if utils.BITCOIN_ONLY:
     import apps.cardano.helpers.paths
     apps.cardano.helpers.protocol_magics
     import apps.cardano.helpers.protocol_magics
-    apps.cardano.helpers.staking_use_cases
-    import apps.cardano.helpers.staking_use_cases
     apps.cardano.helpers.tx_builder
     import apps.cardano.helpers.tx_builder
     apps.cardano.helpers.tx_builder_state_machine
