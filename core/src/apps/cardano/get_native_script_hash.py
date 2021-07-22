@@ -2,8 +2,7 @@ from trezor import log, wire
 from trezor.messages import CardanoNativeScriptHash
 
 from . import native_script, seed
-from .helpers import bech32
-from .layout import show_human_readable_script_hash, show_native_script
+from .layout import show_native_script, show_policy_id, show_script_hash
 
 if False:
     from trezor.messages import CardanoGetNativeScriptHash
@@ -24,8 +23,7 @@ async def get_native_script_hash(
 
     if msg.show_display:
         await show_native_script(ctx, msg.script)
-        await show_human_readable_script_hash(
-            ctx, bech32.encode(bech32.HRP_SCRIPT_HASH, script_hash)
-        )
+        await show_script_hash(ctx, script_hash)
+        await show_policy_id(ctx, script_hash)
 
     return CardanoNativeScriptHash(script_hash=script_hash)

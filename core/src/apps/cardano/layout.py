@@ -107,25 +107,21 @@ async def show_native_script(
 
     props: list[PropertyType] = [
         (
-            "Script%s:" % (" " + indices_str if indices_str else ""),
-            SCRIPT_TYPE_NAMES[script.type].lower(),
+            "Script%s - %s:"
+            % (
+                (" " + indices_str if indices_str else ""),
+                SCRIPT_TYPE_NAMES[script.type],
+            ),
+            None,
         )
     ]
-
-    if script.type in (
-        CardanoNativeScriptType.ALL,
-        CardanoNativeScriptType.ANY,
-        CardanoNativeScriptType.N_OF_K,
-    ):
-        assert script.scripts  # validate_script
-        props.append(("Confirm %i nested scripts" % len(script.scripts), None))
 
     if script.type == CardanoNativeScriptType.PUB_KEY:
         assert script.key_hash is not None or script.key_path  # validate_script
         if script.key_hash:
-            props.append(("Key:", script.key_hash))
+            props.append((None, script.key_hash))
         elif script.key_path:
-            props.append(("Key path: %s" % address_n_to_str(script.key_path), None))
+            props.append((address_n_to_str(script.key_path), None))
     elif script.type == CardanoNativeScriptType.N_OF_K:
         assert script.required_signatures_count is not None  # validate_script
         props.append(
@@ -133,10 +129,18 @@ async def show_native_script(
         )
     elif script.type == CardanoNativeScriptType.INVALID_BEFORE:
         assert script.invalid_before is not None  # validate_script
-        props.append(("Invalid before: %s" % script.invalid_before, None))
+        props.append((str(script.invalid_before), None))
     elif script.type == CardanoNativeScriptType.INVALID_HEREAFTER:
         assert script.invalid_hereafter is not None  # validate_script
-        props.append(("Invalid hereafter: %s" % script.invalid_hereafter, None))
+        props.append((str(script.invalid_hereafter), None))
+
+    if script.type in (
+        CardanoNativeScriptType.ALL,
+        CardanoNativeScriptType.ANY,
+        CardanoNativeScriptType.N_OF_K,
+    ):
+        assert script.scripts  # validate_script
+        props.append(("Confirm %i nested scripts." % len(script.scripts), None))
 
     await confirm_properties(
         ctx,
@@ -150,15 +154,22 @@ async def show_native_script(
         await show_native_script(ctx, sub_script, indices + [(i + 1)])
 
 
-# TODO pass in script_hash and use format_script_hash
-async def show_human_readable_script_hash(
-    ctx: wire.Context, human_readable_script_hash: str
-) -> None:
+async def show_script_hash(ctx: wire.Context, script_hash: bytes) -> None:
     await confirm_properties(
         ctx,
         "verify_script",
         title="Verify script",
-        props=[("Script hash:", human_readable_script_hash)],
+        props=[("Script hash:", format_script_hash(script_hash))],
+        br_code=ButtonRequestType.Other,
+    )
+
+
+async def show_policy_id(ctx: wire.Context, script_hash: bytes) -> None:
+    await confirm_properties(
+        ctx,
+        "verify_script",
+        title="Verify script",
+        props=[("Policy ID:", script_hash)],
         br_code=ButtonRequestType.Other,
     )
 
