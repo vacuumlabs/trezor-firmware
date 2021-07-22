@@ -163,6 +163,10 @@ if TYPE_CHECKING:
         CardanoTxAuxiliaryData = 327
         CardanoPoolOwner = 328
         CardanoPoolRelayParameters = 329
+        CardanoGetNativeScriptHash = 330
+        CardanoNativeScriptHash = 331
+        CardanoTxMint = 332
+        CardanoTxScriptWitnessRequest = 333
         RippleGetAddress = 400
         RippleAddress = 401
         RippleSignTx = 402
@@ -336,6 +340,14 @@ if TYPE_CHECKING:
         REWARD = 14
         REWARD_SCRIPT = 15
 
+    class CardanoNativeScriptType(IntEnum):
+        PUB_KEY = 0
+        ALL = 1
+        ANY = 2
+        N_OF_K = 3
+        INVALID_BEFORE = 4
+        INVALID_HEREAFTER = 5
+
     class CardanoCertificateType(IntEnum):
         STAKE_REGISTRATION = 0
         STAKE_DEREGISTRATION = 1
@@ -354,6 +366,7 @@ if TYPE_CHECKING:
     class CardanoTxSigningMode(IntEnum):
         ORDINARY_TRANSACTION = 0
         POOL_REGISTRATION_AS_OWNER = 1
+        MULTISIG_TRANSACTION = 2
 
     class CardanoTxWitnessType(IntEnum):
         BYRON_WITNESS = 0

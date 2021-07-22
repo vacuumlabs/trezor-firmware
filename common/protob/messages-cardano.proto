@@ -25,6 +25,15 @@ enum CardanoAddressType {
     REWARD_SCRIPT = 15;
 }
 
+enum CardanoNativeScriptType {
+    PUB_KEY = 0;
+    ALL = 1;
+    ANY = 2;
+    N_OF_K = 3;
+    INVALID_BEFORE = 4;
+    INVALID_HEREAFTER = 5;
+}
+
 enum CardanoCertificateType {
     STAKE_REGISTRATION = 0;
     STAKE_DEREGISTRATION = 1;
@@ -46,6 +55,7 @@ enum CardanoTxAuxiliaryDataSupplementType {
 enum CardanoTxSigningMode {
     ORDINARY_TRANSACTION = 0;
     POOL_REGISTRATION_AS_OWNER = 1;
+    MULTISIG_TRANSACTION = 2;
 }
 
 enum CardanoTxWitnessType {
@@ -64,6 +74,39 @@ message CardanoBlockchainPointerType {
     required uint32 certificate_index = 3;
 }
 
+/*
+ * @embed
+ */
+message CardanoNativeScript {
+    required CardanoNativeScriptType type = 1;
+    repeated CardanoNativeScript scripts = 2;
+
+    optional bytes key_hash = 3;
+    repeated uint32 key_path = 4;
+    optional uint32 required_signatures_count = 5;
+    optional uint64 invalid_before = 6;
+    optional uint64 invalid_hereafter = 7;
+}
+
+/**
+ * Request: Ask device for Cardano native script hash
+ * @start
+ * @next CardanoNativeScriptHash
+ * @next Failure
+ */
+message CardanoGetNativeScriptHash {
+    required CardanoNativeScript script = 1;
+    optional bool show_display = 2 [default=false];     // optionally prompt for confirmation on trezor display
+}
+
+/**
+ * Request: Ask device for Cardano native script hash
+ * @end
+ */
+message CardanoNativeScriptHash {
+    required bytes script_hash = 1;
+}
+
 /**
  * Structure to represent address parameters so they can be
  * reused in CardanoGetAddress and CardanoTxOutputType.
@@ -80,6 +123,8 @@ message CardanoAddressParametersType {
                                                                     // can be sent directly e.g. if it doesn't belong to
                                                                     // the same account as address_n
     optional CardanoBlockchainPointerType certificate_pointer = 5;  // a pointer to the staking key registration certificate
+    optional bytes script_payment_hash = 6;
+    optional bytes script_staking_hash = 7;
 }
 
 /**
@@ -143,6 +188,8 @@ message CardanoSignTxInit {
     required bool has_auxiliary_data = 10;
     optional uint64 validity_interval_start = 11;
     required uint32 witnesses_count = 12;
+    required bool has_token_minting = 13;
+    required uint32 script_witness_requests_count = 14;
 }
 
 /**
@@ -180,7 +227,8 @@ message CardanoAssetGroup {
  */
 message CardanoToken {
     required bytes asset_name_bytes = 1;     // asset name as bytestring (may be either ascii string or hash)
-    required uint64 amount = 2;              // asset amount
+    optional uint64 amount = 2;              // asset amount
+    optional sint64 mint_amount = 3;         // mint amount (can also be negative in which case the tokens are burnt)
 }
 
 /**
@@ -241,6 +289,7 @@ message CardanoPoolParametersType {
     repeated uint32 path = 2;                                 // BIP-32 path to derive (staking) key
     optional bytes pool = 3;                                  // pool hash
     optional CardanoPoolParametersType pool_parameters = 4;   // used for stake pool registration certificate
+    optional bytes script_hash = 5;                           // used for multisig
 }
 
 /**
@@ -250,6 +299,7 @@ message CardanoPoolParametersType {
 message CardanoTxWithdrawal {
     repeated uint32 path = 1;
     required uint64 amount = 2;
+    optional bytes script_hash = 3;     // used for multisig
 }
 
 /**
@@ -273,6 +323,14 @@ message CardanoTxAuxiliaryData {
 }
 
 /**
+ * Request: Transaction mint
+ * @next CardanoTxItemAck
+ */
+message CardanoTxMint {
+    required uint32 asset_groups_count = 1;
+}
+
+/**
  * Response: Acknowledgement of the last transaction item received
  * @next CardanoTxInput
  * @next CardanoTxOutput
@@ -284,6 +342,8 @@ message CardanoTxAuxiliaryData {
  * @next CardanoTxWithdrawal
  * @next CardanoTxAuxiliaryData
  * @next CardanoTxWitnessRequest
+ * @next CardanoTxMint
+ * @next CardanoTxScriptWitnessRequest
  */
 message CardanoTxItemAck {
 }
@@ -291,6 +351,7 @@ message CardanoTxItemAck {
 /**
  * Response: Device-generated supplement for the auxiliary data
  * @next CardanoTxWitnessRequest
+ * @next CardanoTxScriptWitnessRequest
  */
 message CardanoTxAuxiliaryDataSupplement {
     required CardanoTxAuxiliaryDataSupplementType type = 1;
@@ -316,6 +377,14 @@ message CardanoTxWitnessResponse {
     required bytes pub_key = 2;
     required bytes signature = 3;
     optional bytes chain_code = 4;
+}
+
+/**
+ * Request: Ask the device to sign with a multisig (script) path
+ * @next CardanoTxWitnessResponse
+ */
+message CardanoTxScriptWitnessRequest {
+    repeated uint32 path = 1;
 }
 
 /**
@@ -392,7 +461,7 @@ message CardanoSignTx {
 
     message CardanoTokenType {
         required bytes asset_name_bytes = 1;     // asset name as bytestring (may be either ascii string or hash)
-        required uint64 amount = 2;        // asset amount
+        optional uint64 amount = 2;              // asset amount
     }
 
     /**

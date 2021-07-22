@@ -1,0 +1,323 @@
+{
+  "setup": {
+    "mnemonic": "all all all all all all all all all all all all",
+    "passphrase": ""
+  },
+  "tests": [
+    {
+      "description": "Multisig transaction with token minting",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "validity_interval_start": 47,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+              "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+              "amount": "1234",
+              "token_bundle": [
+                {
+                  "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                  "tokens": [
+                    {
+                      "asset_name_bytes": "74652474436f696e",
+                      "amount": "100"
+                    }
+                  ]
+                },
+                {
+                  "policy_id": "a5a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                  "tokens": [
+                    {
+                      "asset_name_bytes": "74652474436f696e",
+                      "amount": "100"
+                    }
+                  ]
+                }
+              ]
+          }
+        ],
+        "mint": [
+          {
+            "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+            "tokens": [
+              {
+                "asset_name_bytes": "74652474436f696e",
+                "mint_amount": "100"
+              },
+              {
+                "asset_name_bytes": "75652474436f696e",
+                "mint_amount": "-100"
+              }
+            ]
+          },
+          {
+            "policy_id": "a5a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+            "tokens": [
+              {
+                "asset_name_bytes": "74652474436f696e",
+                "mint_amount": "100"
+              },
+              {
+                "asset_name_bytes": "75652474436f696e",
+                "mint_amount": "-100"
+              }
+            ]
+          }
+        ],
+        "signing_mode": "MULTISIG_TRANSACTION",
+        "script_witness_requests": [
+          {
+            "path": "m/1854'/1815'/0'/0/0"
+          }
+        ]
+      },
+      "result": {
+        "tx_hash": "415a11436cc2e581c6a6fd446277b615c662da7db075e7a3e9f3aa88900218c9",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "b10be5c0d11ad8292bbe69e220ca0cfbe154610b3041a8e72f9d515c226ab3b1",
+            "signature": "b5111dde26086ef8c7014c7ba2cbfcf420754aa3eacd6fc30ac326098a86eb855c57a49e4d03fb4fcf3aa03d6b521fbf41c7bf87479f5f8cb8e6904fac6e660a",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "Multisig transaction with stake registration certificate",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [
+          {
+            "type": 0,
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          }
+        ],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "signing_mode": "MULTISIG_TRANSACTION",
+        "script_witness_requests": [
+          {
+            "path": "m/1854'/1815'/0'/0/0"
+          }
+        ]
+      },
+      "result": {
+        "tx_hash": "ed9fc2755091fa72b58e9dd06db05cce87c0c6f3962f587d5fc348fe478f0752",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "b10be5c0d11ad8292bbe69e220ca0cfbe154610b3041a8e72f9d515c226ab3b1",
+            "signature": "dccfcce8a2a17673c0e465a60a334eabbe326127d3dd04b727702ea486ed7c231259353c0890cfcb8209169eda7a139aeec42c77ce87231b0b9c250efb64450e",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "Multisig transaction with stake registration and stake delegation certificates",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [
+          {
+            "type": 0,
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          },
+          {
+            "type": 2,
+            "pool": "f61c42cbf7c8c53af3f520508212ad3e72f674f957fe23ff0acb4973",
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          }
+        ],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "signing_mode": "MULTISIG_TRANSACTION",
+        "script_witness_requests": [
+          {
+            "path": "m/1854'/1815'/0'/0/0"
+          },
+          {
+            "path": "m/1854'/1815'/2'/0/0"
+          }
+        ]
+      },
+      "result": {
+        "tx_hash": "26fb07b23368898665829283985ffe6c4cb2ec13758e83f467b78e5061f9619b",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "b10be5c0d11ad8292bbe69e220ca0cfbe154610b3041a8e72f9d515c226ab3b1",
+            "signature": "c3fc7aae0a78b3b888f68775da3b9ba1e5478f2003e8c1f0b558172acd23205f2652e7e021f5041a4a1a785fad4f711ca80a9b39afd2939644d4da47d86f7b05",
+            "chain_code": null
+          },
+          {
+            "type": 1,
+            "pub_key": "fefdfe1639a4b5a8b9495b968b7c9ae3f674aac30c67248b8d63c2ab8003d191",
+            "signature": "8e4c3ce8ca8c258ee3a10764b32af972f2f6efb440b640b0d94be940608208a8e3d8e63203899f12b9554d93bee7779842e9fba89f34ab077454404a605a7104",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "Multisig transaction with stake deregistration",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [
+          {
+            "type": 1,
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          }
+        ],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "signing_mode": "MULTISIG_TRANSACTION",
+        "script_witness_requests": [
+          {
+            "path": "m/1854'/1815'/0'/0/0"
+          },
+          {
+            "path": "m/1854'/1815'/2'/0/0"
+          }
+        ]
+      },
+      "result": {
+        "tx_hash": "c4e70484c964eca910219047542632ac9a9ac81f11f5d5afd8bb1b0ef4366d69",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "b10be5c0d11ad8292bbe69e220ca0cfbe154610b3041a8e72f9d515c226ab3b1",
+            "signature": "059fa17fb8e8302083d110ec4587d6ce80b3bc15baa75e0a2d449df190ce462d0e6ebc67d96f74fa6ce0b149714d1ef24f40c24846fef9d58405c6e2287e540b",
+            "chain_code": null
+          },
+          {
+            "type": 1,
+            "pub_key": "fefdfe1639a4b5a8b9495b968b7c9ae3f674aac30c67248b8d63c2ab8003d191",
+            "signature": "4aea062f126130e3f96aed24db142a738b36e3cf899d7d6def579c98c8f9be87b621019dc31785b3a7e8762f70d0bda8e2992d4f60a1395afc66870041a71d0c",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "Multisig transaction with stake deregistration and withdrawal",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [
+          {
+            "type": 1,
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          }
+        ],
+        "withdrawals": [
+          {
+            "amount": "1000",
+            "script_hash": "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
+          }
+        ],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "signing_mode": "MULTISIG_TRANSACTION",
+        "script_witness_requests": [
+          {
+            "path": "m/1854'/1815'/0'/0/0"
+          },
+          {
+            "path": "m/1854'/1815'/2'/0/0"
+          }
+        ]
+      },
+      "result": {
+        "tx_hash": "591f858831cf5da83213f45b955dcd5e77377383dd94935289908239b285b882",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "b10be5c0d11ad8292bbe69e220ca0cfbe154610b3041a8e72f9d515c226ab3b1",
+            "signature": "8235c8df6983128beb449faa30492a3a3302f8c3d6d936f42df1a9ef5f5b65632a11de668ef5db784132202c4b7bed41cffc3f10a4f4878b1b2a46b365e7210e",
+            "chain_code": null
+          },
+          {
+            "type": 1,
+            "pub_key": "fefdfe1639a4b5a8b9495b968b7c9ae3f674aac30c67248b8d63c2ab8003d191",
+            "signature": "e742da13cb29a0815be9da391165256ccb1dbc5e249c30ca5f1f248bbfa59fa3c0ea1a9adf25b0de7e13aa8793355c897485fb6bacababa75757855f41ef7f0f",
+            "chain_code": null
+          }
+        ]
+      }
+    }
+  ]
+}
