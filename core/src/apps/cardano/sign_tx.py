@@ -103,8 +103,8 @@ from .layout import (
     confirm_token_minting,
     confirm_transaction,
     confirm_withdrawal,
-    show_output_payment_credential,
-    show_output_stake_credential,
+    show_set_output_payment_credential,
+    show_set_output_stake_credential,
     show_transaction_signing_mode,
     show_warning_path,
     show_warning_tx_contains_mint,
@@ -733,14 +733,14 @@ async def _show_output(
                 stake_credential_policy, CHANGE_OUTPUT_STAKING_PATH_NAME
             )
 
-            await show_output_payment_credential(
+            await show_set_output_payment_credential(
                 ctx,
                 address_parameters.address_n,
                 address_parameters.script_payment_hash,
                 address_parameters.address_type,
                 payment_credential_policy,
             )
-            await show_output_stake_credential(
+            await show_set_output_stake_credential(
                 ctx,
                 address_parameters.address_n_staking,
                 address_parameters.staking_key_hash,

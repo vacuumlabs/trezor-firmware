@@ -221,19 +221,19 @@ async def confirm_sending_token(
     )
 
 
-async def show_output_payment_credential(
+async def show_set_output_payment_credential(
     ctx: wire.Context,
     path: list[int],
     script_hash: bytes | None,
     address_type: CardanoAddressType,
     credential_policy: int,
 ) -> None:
-    await show_credential(
+    await show_set_credential(
         ctx, path, None, script_hash, None, address_type, credential_policy, "payment"
     )
 
 
-async def show_output_stake_credential(
+async def show_set_output_stake_credential(
     ctx: wire.Context,
     path: list[int],
     key_hash: bytes | None,
@@ -242,7 +242,7 @@ async def show_output_stake_credential(
     address_type: CardanoAddressType,
     credential_policy: int,
 ) -> None:
-    await show_credential(
+    await show_set_credential(
         ctx,
         path,
         key_hash,
@@ -254,7 +254,7 @@ async def show_output_stake_credential(
     )
 
 
-async def show_credential(
+async def show_set_credential(
     ctx: wire.Context,
     path: list[int],
     key_hash: bytes | None,

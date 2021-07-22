@@ -9,7 +9,7 @@ from .helpers.address_credential_policy import (
     get_payment_credential_policy,
     get_stake_credential_policy,
 )
-from .layout import show_cardano_address, show_credential
+from .layout import show_cardano_address, show_set_credential
 from .sign_tx import validate_network_info
 
 if False:
@@ -54,7 +54,7 @@ async def _display_address(
 ) -> None:
     address_policy = get_address_policy(keychain, address_parameters)
     if address_policy == ADDRESS_POLICY_SHOW_SPLIT:
-        await show_credential(
+        await show_set_credential(
             ctx,
             address_parameters.address_n,
             None,
@@ -64,7 +64,7 @@ async def _display_address(
             get_payment_credential_policy(address_parameters),
             "payment",
         )
-        await show_credential(
+        await show_set_credential(
             ctx,
             address_parameters.address_n_staking,
             address_parameters.staking_key_hash,
