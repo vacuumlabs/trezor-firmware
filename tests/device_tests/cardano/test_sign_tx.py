@@ -75,7 +75,9 @@ def test_cardano_sign_tx(client, parameters, result):
 
 
 @parametrize_using_common_fixtures(
-    "cardano/sign_tx.failed.json", "cardano/sign_tx_stake_pool_registration.failed.json"
+    "cardano/sign_tx.failed.json",
+    "cardano/sign_tx.multisig.failed.json",
+    "cardano/sign_tx_stake_pool_registration.failed.json",
 )
 def test_cardano_sign_tx_failed(client, parameters, result):
     signing_mode = cardano.SIGNING_MODE_IDS[parameters["signing_mode"]]
@@ -89,6 +91,13 @@ def test_cardano_sign_tx_failed(client, parameters, result):
         cardano.parse_script_witness_requests(p)
         for p in parameters["script_witness_requests"]
     ]
+
+    if parameters.get("security_checks") == "prompt":
+        device.apply_settings(
+            client, safety_checks=messages.SafetyCheckLevel.PromptTemporarily
+        )
+    else:
+        device.apply_settings(client, safety_checks=messages.SafetyCheckLevel.Strict)
 
     with client:
         with pytest.raises(TrezorFailure, match=result["error_message"]):

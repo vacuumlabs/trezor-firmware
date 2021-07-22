@@ -149,7 +149,6 @@ def derive_public_key(
     return public_key if not extended else public_key + node.chain_code()
 
 
-# TODO move to a better place?
 def validate_stake_credential(
     path: list[int],
     script_hash: bytes | None,
