@@ -454,8 +454,12 @@ if utils.BITCOIN_ONLY:
     import apps.cardano.helpers
     apps.cardano.helpers.account_path_check
     import apps.cardano.helpers.account_path_check
+    apps.cardano.helpers.address_credential_policy
+    import apps.cardano.helpers.address_credential_policy
     apps.cardano.helpers.bech32
     import apps.cardano.helpers.bech32
+    apps.cardano.helpers.credential_params
+    import apps.cardano.helpers.credential_params
     apps.cardano.helpers.hash_builder_collection
     import apps.cardano.helpers.hash_builder_collection
     apps.cardano.helpers.network_ids
@@ -464,8 +468,6 @@ if utils.BITCOIN_ONLY:
     import apps.cardano.helpers.paths
     apps.cardano.helpers.protocol_magics
     import apps.cardano.helpers.protocol_magics
-    apps.cardano.helpers.staking_use_cases
-    import apps.cardano.helpers.staking_use_cases
     apps.cardano.helpers.utils
     import apps.cardano.helpers.utils
     apps.cardano.layout

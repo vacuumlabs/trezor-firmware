@@ -1120,6 +1120,8 @@ if TYPE_CHECKING:
         address_n_staking: "list[int]"
         staking_key_hash: "bytes | None"
         certificate_pointer: "CardanoBlockchainPointerType | None"
+        script_payment_hash: "bytes | None"
+        script_staking_hash: "bytes | None"
 
         def __init__(
             self,
@@ -1129,6 +1131,8 @@ if TYPE_CHECKING:
             address_n_staking: "list[int] | None" = None,
             staking_key_hash: "bytes | None" = None,
             certificate_pointer: "CardanoBlockchainPointerType | None" = None,
+            script_payment_hash: "bytes | None" = None,
+            script_staking_hash: "bytes | None" = None,
         ) -> None:
             pass
 

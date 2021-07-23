@@ -34,6 +34,7 @@ pytestmark = [
     "cardano/get_address_byron.slip39.json",
     "cardano/get_base_address.json",
     "cardano/get_base_address_with_staking_key_hash.json",
+    "cardano/get_base_address_with_script_hashes.json",
     "cardano/get_enterprise_address.json",
     "cardano/get_pointer_address.json",
     "cardano/get_reward_address.json",
@@ -45,7 +46,9 @@ def test_cardano_get_address(client, parameters, result):
             address_type=getattr(
                 CardanoAddressType, parameters["address_type"].upper()
             ),
-            address_n=parse_path(parameters["path"]),
+            address_n=parse_path(parameters.get("path"))
+            if "path" in parameters
+            else None,
             address_n_staking=parse_path(parameters.get("staking_path"))
             if "staking_path" in parameters
             else None,
@@ -55,6 +58,12 @@ def test_cardano_get_address(client, parameters, result):
             block_index=parameters.get("block_index"),
             tx_index=parameters.get("tx_index"),
             certificate_index=parameters.get("certificate_index"),
+            script_payment_hash=bytes.fromhex(parameters.get("script_payment_hash"))
+            if "script_payment_hash" in parameters
+            else None,
+            script_staking_hash=bytes.fromhex(parameters.get("script_staking_hash"))
+            if "script_staking_hash" in parameters
+            else None,
         ),
         protocol_magic=parameters["protocol_magic"],
         network_id=parameters["network_id"],
