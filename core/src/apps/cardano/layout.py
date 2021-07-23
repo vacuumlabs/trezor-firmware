@@ -5,6 +5,7 @@ from trezor.enums import (
     CardanoCertificateType,
     CardanoNativeScriptHashDisplayFormat,
     CardanoNativeScriptType,
+    CardanoTxSigningMode,
 )
 from trezor.messages import CardanoAddressParametersType
 from trezor.strings import format_amount
@@ -38,6 +39,7 @@ from .helpers.utils import (
     format_stake_pool_id,
     to_account_path,
 )
+from .seed import is_minting_path, is_multisig_path
 
 if False:
     from trezor import wire
@@ -187,6 +189,20 @@ async def show_script_hash(
     )
 
 
+async def show_transaction_signing_mode(
+    ctx: wire.Context, signing_mode: CardanoTxSigningMode
+) -> None:
+    if signing_mode == CardanoTxSigningMode.SCRIPT_TRANSACTION:
+        await confirm_metadata(
+            ctx,
+            "confirm_signing_mode",
+            title="Confirm transaction",
+            content="Confirming a script transaction.",
+            larger_vspace=True,
+            br_code=ButtonRequestType.Other,
+        )
+
+
 async def confirm_sending(
     ctx: wire.Context,
     ada_amount: int,
@@ -211,6 +227,8 @@ async def confirm_sending(
 async def confirm_sending_token(
     ctx: wire.Context, policy_id: bytes, token: CardanoToken
 ) -> None:
+    assert token.amount is not None  # _validate_token
+
     await confirm_properties(
         ctx,
         "confirm_token",
@@ -309,6 +327,31 @@ async def show_warning_tx_output_contains_tokens(ctx: wire.Context) -> None:
     )
 
 
+async def confirm_witness_request(
+    ctx: wire.Context,
+    witness_path: list[int],
+) -> None:
+    if is_multisig_path(witness_path):
+        path_title = "multi-sig path"
+    elif is_minting_path(witness_path):
+        path_title = "token minting path"
+    else:
+        path_title = "path"
+
+    await confirm_properties(
+        ctx,
+        "confirm_total",
+        title="Confirm transaction",
+        props=[
+            (
+                "Sign transaction with %s:" % path_title,
+                address_n_to_str(witness_path),
+            )
+        ],
+        br_code=ButtonRequestType.Other,
+    )
+
+
 async def confirm_transaction(
     ctx: wire.Context,
     fee: int,
@@ -348,13 +391,21 @@ async def confirm_certificate(
     # in this call
     assert certificate.type != CardanoCertificateType.STAKE_POOL_REGISTRATION
 
-    props = [
+    props: list[PropertyType] = [
         ("Confirm:", CERTIFICATE_TYPE_NAMES[certificate.type]),
-        (
-            "for account %s:" % format_account_number(certificate.path),
-            address_n_to_str(to_account_path(certificate.path)),
-        ),
     ]
+
+    if certificate.path:
+        props.append(
+            (
+                "for account %s:" % format_account_number(certificate.path),
+                address_n_to_str(to_account_path(certificate.path)),
+            ),
+        )
+    else:
+        assert certificate.script_hash is not None  # validate_certificate
+        props.append(("for script:", format_script_hash(certificate.script_hash)))
+
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
         assert certificate.pool is not None  # validate_certificate
         props.append(("to pool:", format_stake_pool_id(certificate.pool)))
@@ -498,18 +549,28 @@ async def confirm_stake_pool_registration_final(
 async def confirm_withdrawal(
     ctx: wire.Context, withdrawal: CardanoTxWithdrawal
 ) -> None:
+    props: list[PropertyType] = [
+        ("Confirm withdrawal", None),
+    ]
+
+    if withdrawal.path:
+        props.append(
+            (
+                "for account %s:" % format_account_number(withdrawal.path),
+                address_n_to_str(to_account_path(withdrawal.path)),
+            )
+        )
+    else:
+        assert withdrawal.script_hash is not None  # validate_withdrawal
+        props.append(("for script:", format_script_hash(withdrawal.script_hash)))
+
+    props.append(("Amount:", format_coin_amount(withdrawal.amount)))
+
     await confirm_properties(
         ctx,
         "confirm_withdrawal",
         title="Confirm transaction",
-        props=[
-            (
-                "Confirm withdrawal\nfor account %s:"
-                % format_account_number(withdrawal.path),
-                address_n_to_str(to_account_path(withdrawal.path)),
-            ),
-            ("Amount:", format_coin_amount(withdrawal.amount)),
-        ],
+        props=props,
         br_code=ButtonRequestType.Other,
     )
 
@@ -551,43 +612,40 @@ async def show_auxiliary_data_hash(
     )
 
 
-async def show_warning_address_foreign_staking_key(
-    ctx: wire.Context,
-    account_path: list[int],
-    staking_account_path: list[int],
-    staking_key_hash: bytes | None,
-) -> None:
-    # TODO: confirm_properties not appropriate here
-    # instead, presumably, this should be a flow:
-    # 1. show_warning: Mismatch! continue?
-    # 2. confirm_blob(mismatched_value)
-    props: list[PropertyType] = [
-        (
-            "Stake rights associated with this address do not match your account %s:"
-            % format_account_number(account_path),
-            address_n_to_str(account_path),
-        )
-    ]
+async def show_warning_tx_contains_mint(ctx: wire.Context) -> None:
+    await confirm_metadata(
+        ctx,
+        "confirm_tokens",
+        title="Confirm transaction",
+        content="The transaction contains\nminting or burning of\ntokens.",
+        larger_vspace=True,
+        br_code=ButtonRequestType.Other,
+    )
 
-    if staking_account_path:
-        props.append(
-            (
-                "Stake account %s:" % format_account_number(staking_account_path),
-                address_n_to_str(staking_account_path),
-            )
-        )
-    else:
-        assert staking_key_hash is not None  # _validate_base_address_staking_info
-        props.append(("Staking key:", staking_key_hash))
-    props.append(("Continue?", None))
+
+async def confirm_token_minting(
+    ctx: wire.Context, policy_id: bytes, token: CardanoToken
+) -> None:
+    assert token.mint_amount is not None  # _validate_token
+    is_minting = token.mint_amount >= 0
 
     await confirm_properties(
         ctx,
-        "warning_foreign_stakingkey",
-        title="Warning",
-        props=props,
-        icon=ui.ICON_WRONG,
-        icon_color=ui.RED,
+        "confirm_mint",
+        title="Confirm transaction",
+        props=[
+            (
+                "Asset fingerprint:",
+                format_asset_fingerprint(
+                    policy_id=policy_id,
+                    asset_name_bytes=token.asset_name_bytes,
+                ),
+            ),
+            (
+                "Amount %s:" % ("minted" if is_minting else "burned"),
+                format_amount(token.mint_amount, 0),
+            ),
+        ],
         br_code=ButtonRequestType.Other,
     )
 

@@ -1219,6 +1219,7 @@ if TYPE_CHECKING:
         has_auxiliary_data: "bool"
         validity_interval_start: "int | None"
         witness_requests_count: "int"
+        minting_asset_groups_count: "int"
 
         def __init__(
             self,
@@ -1233,6 +1234,7 @@ if TYPE_CHECKING:
             withdrawals_count: "int",
             has_auxiliary_data: "bool",
             witness_requests_count: "int",
+            minting_asset_groups_count: "int",
             ttl: "int | None" = None,
             validity_interval_start: "int | None" = None,
         ) -> None:
@@ -1296,13 +1298,15 @@ if TYPE_CHECKING:
 
     class CardanoToken(protobuf.MessageType):
         asset_name_bytes: "bytes"
-        amount: "int"
+        amount: "int | None"
+        mint_amount: "int | None"
 
         def __init__(
             self,
             *,
             asset_name_bytes: "bytes",
-            amount: "int",
+            amount: "int | None" = None,
+            mint_amount: "int | None" = None,
         ) -> None:
             pass
 
@@ -1401,6 +1405,7 @@ if TYPE_CHECKING:
         path: "list[int]"
         pool: "bytes | None"
         pool_parameters: "CardanoPoolParametersType | None"
+        script_hash: "bytes | None"
 
         def __init__(
             self,
@@ -1409,6 +1414,7 @@ if TYPE_CHECKING:
             path: "list[int] | None" = None,
             pool: "bytes | None" = None,
             pool_parameters: "CardanoPoolParametersType | None" = None,
+            script_hash: "bytes | None" = None,
         ) -> None:
             pass
 
@@ -1419,12 +1425,14 @@ if TYPE_CHECKING:
     class CardanoTxWithdrawal(protobuf.MessageType):
         path: "list[int]"
         amount: "int"
+        script_hash: "bytes | None"
 
         def __init__(
             self,
             *,
             amount: "int",
             path: "list[int] | None" = None,
+            script_hash: "bytes | None" = None,
         ) -> None:
             pass
 
@@ -1466,6 +1474,20 @@ if TYPE_CHECKING:
 
         @classmethod
         def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoTxAuxiliaryData"]:
+            return isinstance(msg, cls)
+
+    class CardanoTxMint(protobuf.MessageType):
+        asset_groups_count: "int"
+
+        def __init__(
+            self,
+            *,
+            asset_groups_count: "int",
+        ) -> None:
+            pass
+
+        @classmethod
+        def is_type_of(cls, msg: protobuf.MessageType) -> TypeGuard["CardanoTxMint"]:
             return isinstance(msg, cls)
 
     class CardanoTxItemAck(protobuf.MessageType):
