@@ -1,6 +1,3 @@
-import ustruct as struct
-from micropython import const
-
 from apps.common import cbor
 
 if False:
@@ -10,10 +7,6 @@ if False:
 else:
     T = 0  # type: ignore
     Generic = [object]  # type: ignore
-
-
-_CBOR_TYPE_ARRAY = const(0b100 << 5)
-_CBOR_TYPE_MAP = const(0b101 << 5)
 
 
 class LazyCborCollection(Generic[T]):
@@ -88,7 +81,7 @@ class LazyCborDict(LazyCborCollection):
     def cbor_serialize(
         self,
     ) -> Iterator[bytes | Type[LazyCborCollection.PauseIteration]]:
-        yield _get_cbor_header(_CBOR_TYPE_MAP, self.size)
+        yield cbor.create_map_header(self.size)
         yield self.PauseIteration
 
         for element in self:
@@ -103,28 +96,9 @@ class LazyCborList(LazyCborCollection):
     def cbor_serialize(
         self,
     ) -> Iterator[bytes | Type[LazyCborCollection.PauseIteration]]:
-        yield _get_cbor_header(_CBOR_TYPE_ARRAY, self.size)
+        yield cbor.create_array_header(self.size)
         yield self.PauseIteration
 
         for element in self:
             yield from cbor.encode_streamed(element)
             yield self.PauseIteration
-
-
-def _get_cbor_header(typ: int, l: int) -> bytes:
-    """
-    Duplicate the cbor._header function so we don't have to expose it from cbor.py. This way the implementation details
-    of cbor.py stay hidden and aren't exposed just for the sake of lazy collections.
-    """
-    if l < 24:
-        return struct.pack(">B", typ + l)
-    elif l < 2 ** 8:
-        return struct.pack(">BB", typ + 24, l)
-    elif l < 2 ** 16:
-        return struct.pack(">BH", typ + 25, l)
-    elif l < 2 ** 32:
-        return struct.pack(">BI", typ + 26, l)
-    elif l < 2 ** 64:
-        return struct.pack(">BQ", typ + 27, l)
-    else:
-        raise NotImplementedError("Length %d not suppported" % l)

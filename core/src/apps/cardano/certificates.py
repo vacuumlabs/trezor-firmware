@@ -73,8 +73,6 @@ def cborize_certificate(
             (0, get_public_key_hash(keychain, certificate.path)),
             certificate.pool,
         )
-    elif certificate.type == CardanoCertificateType.STAKE_POOL_REGISTRATION:
-        assert False, "Use cborize_initial_pool_registration_certificate_fields instead"
     else:
         raise INVALID_CERTIFICATE
 

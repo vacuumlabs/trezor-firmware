@@ -310,3 +310,11 @@ def decode(cbor: bytes) -> Value:
     if r.remaining_count():
         raise ValueError
     return res
+
+
+def create_array_header(size: int) -> bytes:
+    return _header(_CBOR_ARRAY, size)
+
+
+def create_map_header(size: int) -> bytes:
+    return _header(_CBOR_MAP, size)

@@ -44,7 +44,7 @@ def cli():
     "-s",
     "--signing-mode",
     required=True,
-    type=click.Choice(cardano.SIGNING_MODE_IDS.keys(), case_sensitive=False),
+    type=ChoiceType({m.name: m for m in messages.CardanoTxSigningMode}),
 )
 @click.option(
     "-p", "--protocol-magic", type=int, default=cardano.PROTOCOL_MAGICS["mainnet"]
@@ -60,7 +60,7 @@ def sign_tx(client, file, signing_mode, protocol_magic, network_id, testnet):
         protocol_magic = cardano.PROTOCOL_MAGICS["testnet"]
         network_id = cardano.NETWORK_IDS["testnet"]
 
-    signing_mode_id = cardano.SIGNING_MODE_IDS[signing_mode]
+    signing_mode = messages.CardanoTxSigningMode.__members__[signing_mode]
     inputs = [cardano.parse_input(input) for input in transaction["inputs"]]
     outputs = [cardano.parse_output(output) for output in transaction["outputs"]]
     fee = transaction["fee"]
@@ -78,7 +78,7 @@ def sign_tx(client, file, signing_mode, protocol_magic, network_id, testnet):
 
     sign_tx_response = cardano.sign_tx(
         client,
-        signing_mode_id,
+        signing_mode,
         inputs,
         outputs,
         fee,

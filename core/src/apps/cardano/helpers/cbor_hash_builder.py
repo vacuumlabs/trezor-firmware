@@ -5,14 +5,8 @@ from apps.cardano.helpers.lazy_cbor_collection import (
 )
 
 if False:
-    from typing import Any, Protocol
-
-    class HashFn(Protocol):
-        def update(self, chunk: bytes) -> None:
-            ...
-
-        def digest(self) -> bytes:
-            ...
+    from typing import Any
+    from trezor.utils import HashContext
 
 
 class CborHashBuilder:
@@ -21,7 +15,7 @@ class CborHashBuilder:
     filled up with items.
     """
 
-    def __init__(self, hash_fn: HashFn, initial_active_item: LazyCborCollection):
+    def __init__(self, hash_fn: HashContext, initial_active_item: LazyCborCollection):
         self.hash_fn = hash_fn
         self.active_items_stack: list[LazyCborCollection] = [initial_active_item]
         self.serializer = initial_active_item.cbor_serialize()
