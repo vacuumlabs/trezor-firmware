@@ -114,24 +114,23 @@ async def sign_tx(
 ) -> CardanoSignTxFinished:
     is_network_id_verifiable = await _validate_tx_signing_request(ctx, msg)
 
-    # inputs, outputs and fee are mandatory fields, count the number of optional fields present
-    tx_body_map_item_count = 3 + sum(
-        (
-            msg.ttl is not None,
-            msg.certificates_count > 0,
-            msg.withdrawals_count > 0,
-            msg.has_auxiliary_data,
-            msg.validity_interval_start is not None,
-        )
+    tx_builder = TxBuilder(
+        msg.inputs_count,
+        msg.outputs_count,
+        msg.fee,
+        msg.ttl,
+        msg.certificates_count,
+        msg.withdrawals_count,
+        msg.has_auxiliary_data,
+        msg.validity_interval_start,
     )
-    builder = TxBuilder(tx_body_map_item_count)
 
-    await _process_transaction(ctx, msg, keychain, builder)
+    await _process_transaction(ctx, msg, keychain, tx_builder)
 
     await _confirm_transaction(ctx, msg, is_network_id_verifiable)
 
     try:
-        tx_hash = builder.get_tx_hash()
+        tx_hash = tx_builder.get_tx_hash()
 
         response_after_witnesses = await _process_witnesses(
             ctx, keychain, tx_hash, msg.witnesses_count, msg.signing_mode
@@ -169,24 +168,22 @@ async def _process_transaction(
     ctx: wire.Context,
     msg: CardanoSignTxInit,
     keychain: seed.Keychain,
-    builder: TxBuilder,
+    tx_builder: TxBuilder,
 ) -> None:
-    await _process_inputs(ctx, builder, msg.inputs_count)
+    await _process_inputs(ctx, tx_builder, msg.inputs_count)
     await _process_outputs(
         ctx,
         keychain,
-        builder,
+        tx_builder,
         msg.outputs_count,
         msg.signing_mode,
         msg.protocol_magic,
         msg.network_id,
     )
-    builder.add_fee(msg.fee)
-    builder.add_ttl(msg.ttl)
     await _process_certificates(
         ctx,
         keychain,
-        builder,
+        tx_builder,
         msg.certificates_count,
         msg.signing_mode,
         msg.protocol_magic,
@@ -195,7 +192,7 @@ async def _process_transaction(
     await _process_withdrawals(
         ctx,
         keychain,
-        builder,
+        tx_builder,
         msg.withdrawals_count,
         msg.protocol_magic,
         msg.network_id,
@@ -203,13 +200,12 @@ async def _process_transaction(
     await _process_auxiliary_data(
         ctx,
         keychain,
-        builder,
+        tx_builder,
         msg.has_auxiliary_data,
         msg.protocol_magic,
         msg.network_id,
     )
-    builder.add_validity_interval_start(msg.validity_interval_start)
-    builder.finish()
+    tx_builder.finish()
 
 
 async def _confirm_transaction(
@@ -233,28 +229,24 @@ async def _confirm_transaction(
 
 
 async def _process_inputs(
-    ctx: wire.Context, builder: TxBuilder, inputs_count: int
+    ctx: wire.Context, tx_builder: TxBuilder, inputs_count: int
 ) -> None:
     """Read, validate and serialize the inputs."""
-    builder.start_inputs(inputs_count)
     for index in range(inputs_count):
         input: CardanoTxInput = await ctx.call(CardanoTxItemAck(), CardanoTxInput)
-        builder.add_input(input.prev_hash, input.prev_index)
-
-    builder.finish_inputs()
+        tx_builder.send((input.prev_hash, input.prev_index))
 
 
 async def _process_outputs(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    builder: TxBuilder,
+    tx_builder: TxBuilder,
     outputs_count: int,
     signing_mode: CardanoTxSigningMode,
     protocol_magic: int,
     network_id: int,
 ) -> None:
     """Read, validate, confirm and serialize the outputs, return the total non-change output amount."""
-    builder.start_outputs(outputs_count)
     total_amount = 0
     for _ in range(outputs_count):
         output: CardanoTxOutput = await ctx.call(CardanoTxItemAck(), CardanoTxOutput)
@@ -272,20 +264,21 @@ async def _process_outputs(
         output_address = _get_output_address(
             keychain, protocol_magic, network_id, output
         )
+
+        tx_builder.send(output.asset_groups_count)
         if output.asset_groups_count == 0:
-            builder.add_simple_output(output.amount, output_address)
+            tx_builder.send((output_address, output.amount))
         else:
-            builder.add_output_with_tokens(output.amount, output_address)
+            tx_builder.send(output_address)
+            tx_builder.send(output.amount)
             await _process_asset_groups(
                 ctx,
-                builder,
+                tx_builder,
                 output.asset_groups_count,
                 _should_show_tokens(output, signing_mode),
             )
-            builder.finish_output_with_tokens()
 
         total_amount += output.amount
-    builder.finish_outputs()
 
     if total_amount > LOVELACE_MAX_SUPPLY:
         raise wire.ProcessError("Total transaction amount is out of range!")
@@ -293,7 +286,7 @@ async def _process_outputs(
 
 async def _process_asset_groups(
     ctx: wire.Context,
-    builder: TxBuilder,
+    tx_builder: TxBuilder,
     asset_groups_count: int,
     should_show_tokens: bool,
 ) -> None:
@@ -301,7 +294,6 @@ async def _process_asset_groups(
     # until the CIP with canonical CBOR is finalized storing the seen_policy_ids is the only way we can check for
     # duplicate policy_ids
     seen_policy_ids: set[bytes] = set()
-    builder.start_asset_groups(asset_groups_count)
     for _ in range(asset_groups_count):
         asset_group: CardanoAssetGroup = await ctx.call(
             CardanoTxItemAck(), CardanoAssetGroup
@@ -309,21 +301,20 @@ async def _process_asset_groups(
         asset_group.policy_id = bytes(asset_group.policy_id)
         _validate_asset_group(asset_group, seen_policy_ids)
         seen_policy_ids.add(asset_group.policy_id)
-        builder.add_asset_group(asset_group.policy_id, asset_group.tokens_count)
 
+        tx_builder.send(asset_group.policy_id)
         await _process_tokens(
             ctx,
-            builder,
+            tx_builder,
             asset_group.policy_id,
             asset_group.tokens_count,
             should_show_tokens,
         )
-    builder.finish_asset_groups()
 
 
 async def _process_tokens(
     ctx: wire.Context,
-    builder: TxBuilder,
+    tx_builder: TxBuilder,
     policy_id: bytes,
     tokens_count: int,
     should_show_tokens: bool,
@@ -332,6 +323,8 @@ async def _process_tokens(
     # until the CIP with canonical CBOR is finalized storing the seen_asset_name_bytes is the only way we can check for
     # duplicate tokens
     seen_asset_name_bytes: set[bytes] = set()
+
+    tx_builder.send(tokens_count)
     for _ in range(tokens_count):
         token: CardanoToken = await ctx.call(CardanoTxItemAck(), CardanoToken)
         token.asset_name_bytes = bytes(token.asset_name_bytes)
@@ -339,15 +332,13 @@ async def _process_tokens(
         seen_asset_name_bytes.add(token.asset_name_bytes)
         if should_show_tokens:
             await confirm_sending_token(ctx, policy_id, token)
-        builder.add_token(token.asset_name_bytes, token.amount)
-
-    builder.finish_tokens()
+        tx_builder.send((token.asset_name_bytes, token.amount))
 
 
 async def _process_certificates(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    builder: TxBuilder,
+    tx_builder: TxBuilder,
     certificates_count: int,
     signing_mode: CardanoTxSigningMode,
     protocol_magic: int,
@@ -356,7 +347,6 @@ async def _process_certificates(
     """Read, validate, confirm and serialize the certificates."""
     if certificates_count == 0:
         return
-    builder.start_certificates(certificates_count)
     for _ in range(certificates_count):
         certificate: CardanoTxCertificate = await ctx.call(
             CardanoTxItemAck(), CardanoTxCertificate
@@ -364,65 +354,64 @@ async def _process_certificates(
         validate_certificate(certificate, protocol_magic, network_id)
         await _show_certificate(ctx, certificate, signing_mode)
 
+        tx_builder.send(certificate.type)
         if certificate.type == CardanoCertificateType.STAKE_POOL_REGISTRATION:
             pool_parameters = certificate.pool_parameters
             assert pool_parameters is not None  # validate_certificate
-
-            builder.start_pool_registration_certificate_and_add_fields(
+            tx_builder.send(
                 cborize_initial_pool_registration_certificate_fields(certificate)
             )
             await _process_pool_owners(
-                ctx, keychain, builder, pool_parameters.owners_count, network_id
+                ctx,
+                keychain,
+                tx_builder,
+                pool_parameters.owners_count,
+                network_id,
             )
-            await _process_pool_relays(ctx, builder, pool_parameters.relays_count)
-            builder.add_pool_metadata(cborize_pool_metadata(pool_parameters.metadata))
-            builder.finish_pool_registration_certificate()
+            await _process_pool_relays(ctx, tx_builder, pool_parameters.relays_count)
+            tx_builder.send(cborize_pool_metadata(pool_parameters.metadata))
         else:
-            builder.add_simple_certificate(cborize_certificate(keychain, certificate))
-
-    builder.finish_certificates()
+            tx_builder.send(cborize_certificate(keychain, certificate))
 
 
 async def _process_pool_owners(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    builder: TxBuilder,
+    tx_builder: TxBuilder,
     owners_count: int,
     network_id: int,
 ) -> None:
     owners_as_path_count = 0
-    builder.start_pool_owners(owners_count)
+
+    tx_builder.send(owners_count)
     for _ in range(owners_count):
         owner: CardanoPoolOwner = await ctx.call(CardanoTxItemAck(), CardanoPoolOwner)
         validate_pool_owner(owner)
         await _show_pool_owner(ctx, keychain, owner, network_id)
-        builder.add_pool_owner(cborize_pool_owner(keychain, owner))
+        tx_builder.send(cborize_pool_owner(keychain, owner))
 
         if owner.staking_key_path:
             owners_as_path_count += 1
-
-    builder.finish_pool_owners()
 
     assert_certificate_cond(owners_as_path_count == 1)
 
 
 async def _process_pool_relays(
-    ctx: wire.Context, builder: TxBuilder, relays_count: int
+    ctx: wire.Context, tx_builder: TxBuilder, relays_count: int
 ) -> None:
-    builder.start_pool_relays(relays_count)
+    tx_builder.send(relays_count)
     for _ in range(relays_count):
         relay: CardanoPoolRelayParameters = await ctx.call(
             CardanoTxItemAck(), CardanoPoolRelayParameters
         )
         validate_pool_relay(relay)
-        builder.add_pool_relay(cborize_pool_relay(relay))
-    builder.finish_pool_relays()
+        tx_builder.send(cborize_pool_relay(relay))
 
 
 async def _process_withdrawals(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    builder: TxBuilder,
+    tx_builder: TxBuilder,
     withdrawals_count: int,
     protocol_magic: int,
     network_id: int,
@@ -430,7 +419,6 @@ async def _process_withdrawals(
     """Read, validate, confirm and serialize the withdrawals."""
     if withdrawals_count == 0:
         return
-    builder.start_withdrawals(withdrawals_count)
 
     # until the CIP with canonical CBOR is finalized storing the seen_withdrawals is the only way we can check for
     # duplicate withdrawals
@@ -450,14 +438,13 @@ async def _process_withdrawals(
             protocol_magic,
             network_id,
         )
-        builder.add_withdrawal(reward_address, withdrawal.amount)
-    builder.finish_withdrawals()
+        tx_builder.send((reward_address, withdrawal.amount))
 
 
 async def _process_auxiliary_data(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    builder: TxBuilder,
+    tx_builder: TxBuilder,
     has_auxiliary_data: bool,
     protocol_magic: int,
     network_id: int,
@@ -486,7 +473,7 @@ async def _process_auxiliary_data(
         protocol_magic,
         network_id,
     )
-    builder.add_auxiliary_data_hash(auxiliary_data_hash)
+    tx_builder.send(auxiliary_data_hash)
     await ctx.call(auxiliary_data_supplement, CardanoTxHostAck)
 
 

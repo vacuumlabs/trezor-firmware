@@ -1,12 +1,10 @@
 from micropython import const
 
 from trezor.crypto import hashlib
+from trezor.enums import CardanoCertificateType
 
-from apps.common import cbor
-
-from .cbor_hash_builder import CborHashBuilder
-from .lazy_cbor_collection import LazyCborDict, LazyCborList
-from .tx_builder_state_machine import TxBuilderStateMachine
+from apps.cardano.helpers.cbor_hash_builder import CborHashBuilder
+from apps.cardano.helpers.lazy_cbor_collection import LazyCborDict, LazyCborList
 
 TX_BODY_KEY_INPUTS = const(0)
 TX_BODY_KEY_OUTPUTS = const(1)
@@ -19,204 +17,281 @@ TX_BODY_KEY_VALIDITY_INTERVAL_START = const(8)
 
 POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT = 10
 
+if False:
+    from typing import Any, Callable, Iterator, Union
+
+    Generator = Iterator[
+        Union[
+            Callable[[int], None],
+            Callable[[CardanoCertificateType], None],
+            Callable[[tuple], None],
+            Callable[[bytes], None],
+            None,
+        ]
+    ]
+
 
 class TxBuilder:
-    """
-    Serves as a helper for interactions with cbor_hash_builder.
-    """
+    def __init__(
+        self,
+        inputs_count: int,
+        outputs_count: int,
+        fee: int,
+        ttl: int | None,
+        certificates_count: int,
+        withdrawals_count: int,
+        has_auxiliary_data: bool,
+        validity_interval_start: int | None,
+    ):
+        self._inputs_count = inputs_count
+        self._outputs_count = outputs_count
+        self._fee = fee
+        self._ttl = ttl
+        self._certificates_count = certificates_count
+        self._withdrawals_count = withdrawals_count
+        self._has_auxiliary_data = has_auxiliary_data
+        self._validity_interval_start = validity_interval_start
 
-    def __init__(self, tx_body_map_item_count: int):
-        self.cbor_hash_builder = CborHashBuilder(
+        self._current_asset_groups_count: int | None = None
+        self._current_policy_id: bytes | None = None
+        self._current_token_count: int | None = None
+        self._current_certificate_type: CardanoCertificateType | None = None
+        self._current_initial_pool_registration_items: tuple | None = None
+        self._current_pool_owners_count: int | None = None
+        self._current_relays_count: int | None = None
+        self._auxiliary_data_hash: bytes | None = None
+
+        # inputs, outputs and fee are mandatory fields, count the number of optional fields present
+        tx_body_map_item_count = 3 + sum(
+            (
+                self._ttl is not None,
+                self._certificates_count > 0,
+                self._withdrawals_count > 0,
+                self._has_auxiliary_data,
+                self._validity_interval_start is not None,
+            )
+        )
+        self._tx_hash_builder = CborHashBuilder(
             hashlib.blake2b(outlen=32), LazyCborDict(tx_body_map_item_count)
         )
-        self.state_machine = TxBuilderStateMachine()
 
-    def get_tx_hash(self) -> bytes:
-        assert self.state_machine.state == self.state_machine.STATE_END
-        return self.cbor_hash_builder.get_hash()
+        self.generator = self._create_generator()
 
-    def start_inputs(self, inputs_count: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_INPUTS_START)
-        self.cbor_hash_builder.add_lazy_collection_at_key(
+    def _create_generator(
+        self,
+    ) -> Generator:
+        # inputs
+        self._tx_hash_builder.add_lazy_collection_at_key(
             key=TX_BODY_KEY_INPUTS,
-            collection=LazyCborList(inputs_count),
+            collection=LazyCborList(self._inputs_count),
         )
+        for _ in range(self._inputs_count):
+            yield self._tx_hash_builder.add_item
+        self._tx_hash_builder.finish_current_lazy_collection()
 
-    def add_input(self, prev_hash: bytes, prev_index: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_INPUT_ADD)
-        self.cbor_hash_builder.add_item((prev_hash, prev_index))
-
-    def finish_inputs(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_INPUTS_FINISH)
-        self.cbor_hash_builder.finish_current_lazy_collection()
-
-    def start_outputs(self, outputs_count: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_OUTPUTS_START)
-        self.cbor_hash_builder.add_lazy_collection_at_key(
+        # outputs
+        self._tx_hash_builder.add_lazy_collection_at_key(
             key=TX_BODY_KEY_OUTPUTS,
-            collection=LazyCborList(outputs_count),
+            collection=LazyCborList(self._outputs_count),
         )
+        for _ in range(self._outputs_count):
+            # get asset groups count
+            yield self._set_current_asset_groups_count
+            if self._current_asset_groups_count is None:
+                raise ValueError
 
-    def add_simple_output(self, amount: int, address: bytes) -> None:
-        self.state_machine.transition(
-            TxBuilderStateMachine.ACTION_OUTPUT_ADD_WITHOUT_TOKENS
-        )
-        self.cbor_hash_builder.add_item((address, amount))
+            asset_groups_count = self._current_asset_groups_count
+            if asset_groups_count == 0:
+                # simple output
+                yield self._tx_hash_builder.add_item
+            else:
+                # output
+                self._tx_hash_builder.add_lazy_collection(LazyCborList(2))
+                yield self._tx_hash_builder.add_item
+                # output value
+                self._tx_hash_builder.add_lazy_collection(LazyCborList(2))
+                yield self._tx_hash_builder.add_item
+                # asset groups
+                self._tx_hash_builder.add_lazy_collection(
+                    LazyCborDict(asset_groups_count)
+                )
+                for _ in range(asset_groups_count):
+                    yield self._set_current_policy_id
+                    if self._current_policy_id is None:
+                        raise ValueError
 
-    def add_output_with_tokens(self, amount: int, address: bytes) -> None:
-        self.state_machine.transition(
-            TxBuilderStateMachine.ACTION_OUTPUT_ADD_WITH_TOKENS
-        )
-        # output structure is [address, [amount, asset_groups]]
-        self.cbor_hash_builder.add_lazy_collection(LazyCborList(2))
-        self.cbor_hash_builder.add_item(address)
-        self.cbor_hash_builder.add_lazy_collection(LazyCborList(2))
-        self.cbor_hash_builder.add_item(amount)
+                    yield self._set_current_token_count
+                    if self._current_token_count is None:
+                        raise ValueError
 
-    def start_asset_groups(self, asset_groups_count: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_ASSET_GROUPS_START)
-        self.cbor_hash_builder.add_lazy_collection(LazyCborDict(asset_groups_count))
+                    self._tx_hash_builder.add_lazy_collection_at_key(
+                        key=self._current_policy_id,
+                        collection=LazyCborDict(self._current_token_count),
+                    )
+                    # tokens
+                    for _ in range(self._current_token_count):
+                        yield self._tx_hash_builder.add_item
+                    self._tx_hash_builder.finish_current_lazy_collection()
 
-    def add_asset_group(self, policy_id: bytes, tokens_count: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_ASSET_GROUP_ADD)
-        self.cbor_hash_builder.add_lazy_collection_at_key(
-            key=policy_id,
-            collection=LazyCborDict(tokens_count),
-        )
+                    self._current_policy_id = None
+                    self._current_token_count = None
 
-    def add_token(self, asset_name_bytes: bytes, amount: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_TOKEN_ADD)
-        self.cbor_hash_builder.add_item((asset_name_bytes, amount))
+                # asset groups
+                self._tx_hash_builder.finish_current_lazy_collection()
+                # output value
+                self._tx_hash_builder.finish_current_lazy_collection()
+                # output
+                self._tx_hash_builder.finish_current_lazy_collection()
 
-    def finish_tokens(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_TOKENS_FINISH)
-        self.cbor_hash_builder.finish_current_lazy_collection()
+            self._current_asset_groups_count = None
 
-    def finish_asset_groups(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_ASSET_GROUPS_FINISH)
-        self.cbor_hash_builder.finish_current_lazy_collection()
+        self._tx_hash_builder.finish_current_lazy_collection()
 
-    def finish_output_with_tokens(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_OUTPUT_FINISH)
-        # finish twice since an output with tokens contains a nested collection - [address, [amount, asset_groups]]
-        self.cbor_hash_builder.finish_current_lazy_collection()
-        self.cbor_hash_builder.finish_current_lazy_collection()
+        # fee
+        self._tx_hash_builder.add_item((TX_BODY_KEY_FEE, self._fee))
 
-    def finish_outputs(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_OUTPUTS_FINISH)
-        self.cbor_hash_builder.finish_current_lazy_collection()
+        # ttl
+        if self._ttl is not None:
+            self._tx_hash_builder.add_item((TX_BODY_KEY_TTL, self._ttl))
 
-    def add_fee(self, fee: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_FEE_ADD)
-        self.cbor_hash_builder.add_item((TX_BODY_KEY_FEE, fee))
-
-    def add_ttl(self, ttl: int | None) -> None:
-        if ttl is not None:
-            self.state_machine.transition(TxBuilderStateMachine.ACTION_TTL_ADD)
-            self.cbor_hash_builder.add_item((TX_BODY_KEY_TTL, ttl))
-
-    def start_certificates(self, certificates_count: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_CERTIFICATES_START)
-        self.cbor_hash_builder.add_lazy_collection_at_key(
-            key=TX_BODY_KEY_CERTIFICATES,
-            collection=LazyCborList(certificates_count),
-        )
-
-    def add_simple_certificate(
-        self,
-        cborized_certificate: cbor.CborSequence,
-    ) -> None:
-        self.state_machine.transition(
-            TxBuilderStateMachine.ACTION_CERTIFICATE_ADD_SIMPLE
-        )
-        self.cbor_hash_builder.add_item(cborized_certificate)
-
-    def start_pool_registration_certificate_and_add_fields(
-        self,
-        cborized_certificate_fields: cbor.CborSequence,
-    ) -> None:
-        """
-        Adding a pool registration certificate is split up into multiple messages. That is why here we first add all
-        the fields which come before pool_owners, then add pool_owners, pool_relays and finally pool_metadata in
-        separate functions.
-        """
-        self.state_machine.transition(
-            TxBuilderStateMachine.ACTION_CERTIFICATE_ADD_POOL_REGISTRATION
-        )
-        self.cbor_hash_builder.add_lazy_collection(
-            LazyCborList(POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT)
-        )
-        for item in cborized_certificate_fields:
-            self.cbor_hash_builder.add_item(item)
-
-    def start_pool_owners(self, owners_count: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_POOL_OWNERS_START)
-        self.cbor_hash_builder.add_lazy_collection(LazyCborList(owners_count))
-
-    def add_pool_owner(self, cborized_pool_owner: bytes) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_POOL_OWNER_ADD)
-        self.cbor_hash_builder.add_item(cborized_pool_owner)
-
-    def finish_pool_owners(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_POOL_OWNERS_FINISH)
-        self.cbor_hash_builder.finish_current_lazy_collection()
-
-    def start_pool_relays(self, relays_count: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_POOL_RELAYS_START)
-        self.cbor_hash_builder.add_lazy_collection(LazyCborList(relays_count))
-
-    def add_pool_relay(self, cborized_pool_relay: cbor.CborSequence) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_POOL_RELAY_ADD)
-        self.cbor_hash_builder.add_item(cborized_pool_relay)
-
-    def finish_pool_relays(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_POOL_RELAYS_FINISH)
-        self.cbor_hash_builder.finish_current_lazy_collection()
-
-    def add_pool_metadata(self, pool_metadata: cbor.CborSequence | None) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_POOL_METADATA_ADD)
-        self.cbor_hash_builder.add_item(pool_metadata)
-
-    def finish_pool_registration_certificate(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_CERTIFICATE_FINISH)
-        self.cbor_hash_builder.finish_current_lazy_collection()
-
-    def finish_certificates(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_CERTIFICATES_FINISH)
-        self.cbor_hash_builder.finish_current_lazy_collection()
-
-    def start_withdrawals(self, withdrawals_count: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_WITHDRAWALS_START)
-        self.cbor_hash_builder.add_lazy_collection_at_key(
-            key=TX_BODY_KEY_WITHDRAWALS,
-            collection=LazyCborDict(withdrawals_count),
-        )
-
-    def add_withdrawal(self, reward_address: bytes, amount: int) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_WITHDRAWAL_ADD)
-        self.cbor_hash_builder.add_item((reward_address, amount))
-
-    def finish_withdrawals(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_WITHDRAWAL_FINISH)
-        self.cbor_hash_builder.finish_current_lazy_collection()
-
-    def add_auxiliary_data_hash(self, auxiliary_data_hash: bytes) -> None:
-        self.state_machine.transition(
-            TxBuilderStateMachine.ACTION_AUXILIARY_DATA_HASH_ADD
-        )
-        self.cbor_hash_builder.add_item(
-            (TX_BODY_KEY_AUXILIARY_DATA, auxiliary_data_hash)
-        )
-
-    def add_validity_interval_start(self, validity_interval_start: int | None) -> None:
-        if validity_interval_start is not None:
-            self.state_machine.transition(
-                TxBuilderStateMachine.ACTION_VALIDITY_INTERVAL_START_ADD
+        # certificates
+        if self._certificates_count > 0:
+            self._tx_hash_builder.add_lazy_collection_at_key(
+                key=TX_BODY_KEY_CERTIFICATES,
+                collection=LazyCborList(self._certificates_count),
             )
-            self.cbor_hash_builder.add_item(
-                (TX_BODY_KEY_VALIDITY_INTERVAL_START, validity_interval_start)
+            for _ in range(self._certificates_count):
+                yield self._set_current_certificate_type
+                if self._current_certificate_type is None:
+                    raise ValueError
+
+                if (
+                    self._current_certificate_type
+                    == CardanoCertificateType.STAKE_POOL_REGISTRATION
+                ):
+                    self._tx_hash_builder.add_lazy_collection(
+                        LazyCborList(POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT)
+                    )
+
+                    # initial items
+                    yield self._set_current_initial_pool_registration_items
+                    if (
+                        self._current_initial_pool_registration_items is None
+                        or not isinstance(
+                            self._current_initial_pool_registration_items, tuple
+                        )
+                        or len(self._current_initial_pool_registration_items) != 7
+                    ):
+                        raise ValueError
+
+                    initial_items = self._current_initial_pool_registration_items
+
+                    for item in initial_items:
+                        self._tx_hash_builder.add_item(item)
+
+                    # owners
+                    yield self._set_current_pool_owners_count
+                    if self._current_pool_owners_count is None:
+                        raise ValueError
+
+                    self._tx_hash_builder.add_lazy_collection(
+                        LazyCborList(self._current_pool_owners_count)
+                    )
+                    for _ in range(self._current_pool_owners_count):
+                        yield self._tx_hash_builder.add_item
+                    self._tx_hash_builder.finish_current_lazy_collection()
+
+                    # relays
+                    yield self._set_current_relays_count
+                    if self._current_relays_count is None:
+                        raise ValueError
+
+                    self._tx_hash_builder.add_lazy_collection(
+                        LazyCborList(self._current_relays_count)
+                    )
+                    for _ in range(self._current_relays_count):
+                        yield self._tx_hash_builder.add_item
+                    self._tx_hash_builder.finish_current_lazy_collection()
+
+                    # metadata
+                    yield self._tx_hash_builder.add_item
+
+                    self._tx_hash_builder.finish_current_lazy_collection()
+
+                    self._current_certificate_type = None
+                    self._current_initial_pool_registration_items = None
+                    self._current_pool_owners_count = None
+                    self._current_relays_count = None
+                else:
+                    yield self._tx_hash_builder.add_item
+            self._tx_hash_builder.finish_current_lazy_collection()
+
+        # withdrawals
+        if self._withdrawals_count > 0:
+            self._tx_hash_builder.add_lazy_collection_at_key(
+                key=TX_BODY_KEY_WITHDRAWALS,
+                collection=LazyCborDict(self._withdrawals_count),
             )
+            for _ in range(self._withdrawals_count):
+                yield self._tx_hash_builder.add_item
+            self._tx_hash_builder.finish_current_lazy_collection()
+
+        # auxiliary data
+        if self._has_auxiliary_data:
+            yield self._set_auxiliary_data_hash
+            if self._auxiliary_data_hash is None:
+                raise ValueError
+
+            self._tx_hash_builder.add_item(
+                (TX_BODY_KEY_AUXILIARY_DATA, self._auxiliary_data_hash)
+            )
+            self._auxiliary_data_hash = None
+
+        # ttl
+        if self._validity_interval_start is not None:
+            self._tx_hash_builder.add_item(
+                (TX_BODY_KEY_VALIDITY_INTERVAL_START, self._validity_interval_start)
+            )
+
+        self._tx_hash_builder.finish_current_lazy_collection()
+
+        yield None
+
+    def _set_current_asset_groups_count(self, asset_groups_count: int) -> None:
+        self._current_asset_groups_count = asset_groups_count
+
+    def _set_current_policy_id(self, policy_id: bytes) -> None:
+        self._current_policy_id = policy_id
+
+    def _set_current_token_count(self, token_count: int) -> None:
+        self._current_token_count = token_count
+
+    def _set_current_certificate_type(
+        self, certificate_type: CardanoCertificateType
+    ) -> None:
+        self._current_certificate_type = certificate_type
+
+    def _set_current_pool_owners_count(self, owners_count: int) -> None:
+        self._current_pool_owners_count = owners_count
+
+    def _set_current_relays_count(self, relays: int) -> None:
+        self._current_relays_count = relays
+
+    def _set_current_initial_pool_registration_items(
+        self, initial_pool_registration_items: tuple
+    ) -> None:
+        self._current_initial_pool_registration_items = initial_pool_registration_items
+
+    def _set_auxiliary_data_hash(self, auxiliary_data_hash: bytes) -> None:
+        self._auxiliary_data_hash = auxiliary_data_hash
+
+    def send(self, item: Any) -> None:
+        fn = next(self.generator)
+        if fn:
+            fn(item)
 
     def finish(self) -> None:
-        self.state_machine.transition(TxBuilderStateMachine.ACTION_FINISH)
-        self.cbor_hash_builder.finish_current_lazy_collection()
+        next(self.generator)
+
+    def get_tx_hash(self) -> bytes:
+        return self._tx_hash_builder.get_hash()
