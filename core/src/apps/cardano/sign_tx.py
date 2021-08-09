@@ -1,4 +1,7 @@
+from micropython import const
+
 from trezor import log, wire
+from trezor.crypto import hashlib
 from trezor.crypto.curve import ed25519
 from trezor.enums import (
     CardanoAddressType,
@@ -62,6 +65,8 @@ from .helpers import (
     protocol_magics,
     staking_use_cases,
 )
+from .helpers.cbor_hash_builder import CborHashBuilder
+from .helpers.lazy_cbor_collection import LazyCborDict, LazyCborList
 from .helpers.paths import (
     ACCOUNT_PATH_INDEX,
     BIP_PATH_LENGTH,
@@ -76,7 +81,6 @@ from .helpers.paths import (
     SCHEMA_STAKING_ANY_ACCOUNT,
     WITNESS_PATH_NAME,
 )
-from .helpers.tx_builder import TxBuilder
 from .helpers.utils import derive_public_key, to_account_path
 from .layout import (
     confirm_certificate,
@@ -107,6 +111,17 @@ if False:
 MINTING_POLICY_ID_LENGTH = 28
 MAX_ASSET_NAME_LENGTH = 32
 
+TX_BODY_KEY_INPUTS = const(0)
+TX_BODY_KEY_OUTPUTS = const(1)
+TX_BODY_KEY_FEE = const(2)
+TX_BODY_KEY_TTL = const(3)
+TX_BODY_KEY_CERTIFICATES = const(4)
+TX_BODY_KEY_WITHDRAWALS = const(5)
+TX_BODY_KEY_AUXILIARY_DATA = const(7)
+TX_BODY_KEY_VALIDITY_INTERVAL_START = const(8)
+
+POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT = 10
+
 
 @seed.with_keychain
 async def sign_tx(
@@ -114,23 +129,26 @@ async def sign_tx(
 ) -> CardanoSignTxFinished:
     is_network_id_verifiable = await _validate_tx_signing_request(ctx, msg)
 
-    tx_builder = TxBuilder(
-        msg.inputs_count,
-        msg.outputs_count,
-        msg.fee,
-        msg.ttl,
-        msg.certificates_count,
-        msg.withdrawals_count,
-        msg.has_auxiliary_data,
-        msg.validity_interval_start,
+    # inputs, outputs and fee are mandatory fields, count the number of optional fields present
+    tx_body_map_item_count = 3 + sum(
+        (
+            msg.ttl is not None,
+            msg.certificates_count > 0,
+            msg.withdrawals_count > 0,
+            msg.has_auxiliary_data,
+            msg.validity_interval_start is not None,
+        )
+    )
+    hash_builder = CborHashBuilder(
+        hashlib.blake2b(outlen=32), LazyCborDict(tx_body_map_item_count)
     )
 
-    await _process_transaction(ctx, msg, keychain, tx_builder)
+    await _process_transaction(ctx, msg, keychain, hash_builder)
 
     await _confirm_transaction(ctx, msg, is_network_id_verifiable)
 
     try:
-        tx_hash = tx_builder.get_tx_hash()
+        tx_hash = hash_builder.get_hash()
 
         response_after_witnesses = await _process_witnesses(
             ctx, keychain, tx_hash, msg.witnesses_count, msg.signing_mode
@@ -168,22 +186,25 @@ async def _process_transaction(
     ctx: wire.Context,
     msg: CardanoSignTxInit,
     keychain: seed.Keychain,
-    tx_builder: TxBuilder,
+    hash_builder: CborHashBuilder,
 ) -> None:
-    await _process_inputs(ctx, tx_builder, msg.inputs_count)
+    await _process_inputs(ctx, hash_builder, msg.inputs_count)
     await _process_outputs(
         ctx,
         keychain,
-        tx_builder,
+        hash_builder,
         msg.outputs_count,
         msg.signing_mode,
         msg.protocol_magic,
         msg.network_id,
     )
+    hash_builder.add_item((TX_BODY_KEY_FEE, msg.fee))
+    if msg.ttl is not None:
+        hash_builder.add_item((TX_BODY_KEY_TTL, msg.ttl))
     await _process_certificates(
         ctx,
         keychain,
-        tx_builder,
+        hash_builder,
         msg.certificates_count,
         msg.signing_mode,
         msg.protocol_magic,
@@ -192,7 +213,7 @@ async def _process_transaction(
     await _process_withdrawals(
         ctx,
         keychain,
-        tx_builder,
+        hash_builder,
         msg.withdrawals_count,
         msg.protocol_magic,
         msg.network_id,
@@ -200,12 +221,16 @@ async def _process_transaction(
     await _process_auxiliary_data(
         ctx,
         keychain,
-        tx_builder,
+        hash_builder,
         msg.has_auxiliary_data,
         msg.protocol_magic,
         msg.network_id,
     )
-    tx_builder.finish()
+    if msg.validity_interval_start is not None:
+        hash_builder.add_item(
+            (TX_BODY_KEY_VALIDITY_INTERVAL_START, msg.validity_interval_start)
+        )
+    hash_builder.finish_current_lazy_collection()
 
 
 async def _confirm_transaction(
@@ -229,24 +254,34 @@ async def _confirm_transaction(
 
 
 async def _process_inputs(
-    ctx: wire.Context, tx_builder: TxBuilder, inputs_count: int
+    ctx: wire.Context, hash_builder: CborHashBuilder, inputs_count: int
 ) -> None:
     """Read, validate and serialize the inputs."""
+    hash_builder.add_lazy_collection_at_key(
+        key=TX_BODY_KEY_INPUTS,
+        collection=LazyCborList(inputs_count),
+    )
     for index in range(inputs_count):
         input: CardanoTxInput = await ctx.call(CardanoTxItemAck(), CardanoTxInput)
-        tx_builder.send((input.prev_hash, input.prev_index))
+        hash_builder.add_item((input.prev_hash, input.prev_index))
+
+    hash_builder.finish_current_lazy_collection()
 
 
 async def _process_outputs(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    tx_builder: TxBuilder,
+    hash_builder: CborHashBuilder,
     outputs_count: int,
     signing_mode: CardanoTxSigningMode,
     protocol_magic: int,
     network_id: int,
 ) -> None:
     """Read, validate, confirm and serialize the outputs, return the total non-change output amount."""
+    hash_builder.add_lazy_collection_at_key(
+        key=TX_BODY_KEY_OUTPUTS,
+        collection=LazyCborList(outputs_count),
+    )
     total_amount = 0
     for _ in range(outputs_count):
         output: CardanoTxOutput = await ctx.call(CardanoTxItemAck(), CardanoTxOutput)
@@ -264,21 +299,25 @@ async def _process_outputs(
         output_address = _get_output_address(
             keychain, protocol_magic, network_id, output
         )
-
-        tx_builder.send(output.asset_groups_count)
         if output.asset_groups_count == 0:
-            tx_builder.send((output_address, output.amount))
+            hash_builder.add_item((output_address, output.amount))
         else:
-            tx_builder.send(output_address)
-            tx_builder.send(output.amount)
+            hash_builder.add_lazy_collection(LazyCborList(2))
+            hash_builder.add_item(output_address)
+            hash_builder.add_lazy_collection(LazyCborList(2))
+            hash_builder.add_item(output.amount)
             await _process_asset_groups(
                 ctx,
-                tx_builder,
+                hash_builder,
                 output.asset_groups_count,
                 _should_show_tokens(output, signing_mode),
             )
+            # finish twice since an output with tokens contains a nested collection - [address, [amount, asset_groups]]
+            hash_builder.finish_current_lazy_collection()
+            hash_builder.finish_current_lazy_collection()
 
         total_amount += output.amount
+    hash_builder.finish_current_lazy_collection()
 
     if total_amount > LOVELACE_MAX_SUPPLY:
         raise wire.ProcessError("Total transaction amount is out of range!")
@@ -286,7 +325,7 @@ async def _process_outputs(
 
 async def _process_asset_groups(
     ctx: wire.Context,
-    tx_builder: TxBuilder,
+    hash_builder: CborHashBuilder,
     asset_groups_count: int,
     should_show_tokens: bool,
 ) -> None:
@@ -294,6 +333,7 @@ async def _process_asset_groups(
     # until the CIP with canonical CBOR is finalized storing the seen_policy_ids is the only way we can check for
     # duplicate policy_ids
     seen_policy_ids: set[bytes] = set()
+    hash_builder.add_lazy_collection(LazyCborDict(asset_groups_count))
     for _ in range(asset_groups_count):
         asset_group: CardanoAssetGroup = await ctx.call(
             CardanoTxItemAck(), CardanoAssetGroup
@@ -301,20 +341,24 @@ async def _process_asset_groups(
         asset_group.policy_id = bytes(asset_group.policy_id)
         _validate_asset_group(asset_group, seen_policy_ids)
         seen_policy_ids.add(asset_group.policy_id)
+        hash_builder.add_lazy_collection_at_key(
+            key=asset_group.policy_id,
+            collection=LazyCborDict(asset_group.tokens_count),
+        )
 
-        tx_builder.send(asset_group.policy_id)
         await _process_tokens(
             ctx,
-            tx_builder,
+            hash_builder,
             asset_group.policy_id,
             asset_group.tokens_count,
             should_show_tokens,
         )
+    hash_builder.finish_current_lazy_collection()
 
 
 async def _process_tokens(
     ctx: wire.Context,
-    tx_builder: TxBuilder,
+    hash_builder: CborHashBuilder,
     policy_id: bytes,
     tokens_count: int,
     should_show_tokens: bool,
@@ -323,8 +367,6 @@ async def _process_tokens(
     # until the CIP with canonical CBOR is finalized storing the seen_asset_name_bytes is the only way we can check for
     # duplicate tokens
     seen_asset_name_bytes: set[bytes] = set()
-
-    tx_builder.send(tokens_count)
     for _ in range(tokens_count):
         token: CardanoToken = await ctx.call(CardanoTxItemAck(), CardanoToken)
         token.asset_name_bytes = bytes(token.asset_name_bytes)
@@ -332,13 +374,15 @@ async def _process_tokens(
         seen_asset_name_bytes.add(token.asset_name_bytes)
         if should_show_tokens:
             await confirm_sending_token(ctx, policy_id, token)
-        tx_builder.send((token.asset_name_bytes, token.amount))
+        hash_builder.add_item((token.asset_name_bytes, token.amount))
+
+    hash_builder.finish_current_lazy_collection()
 
 
 async def _process_certificates(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    tx_builder: TxBuilder,
+    hash_builder: CborHashBuilder,
     certificates_count: int,
     signing_mode: CardanoTxSigningMode,
     protocol_magic: int,
@@ -347,6 +391,10 @@ async def _process_certificates(
     """Read, validate, confirm and serialize the certificates."""
     if certificates_count == 0:
         return
+    hash_builder.add_lazy_collection_at_key(
+        key=TX_BODY_KEY_CERTIFICATES,
+        collection=LazyCborList(certificates_count),
+    )
     for _ in range(certificates_count):
         certificate: CardanoTxCertificate = await ctx.call(
             CardanoTxItemAck(), CardanoTxCertificate
@@ -354,64 +402,69 @@ async def _process_certificates(
         validate_certificate(certificate, protocol_magic, network_id)
         await _show_certificate(ctx, certificate, signing_mode)
 
-        tx_builder.send(certificate.type)
         if certificate.type == CardanoCertificateType.STAKE_POOL_REGISTRATION:
             pool_parameters = certificate.pool_parameters
             assert pool_parameters is not None  # validate_certificate
-            tx_builder.send(
-                cborize_initial_pool_registration_certificate_fields(certificate)
+
+            hash_builder.add_lazy_collection(
+                LazyCborList(POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT)
             )
+            for item in cborize_initial_pool_registration_certificate_fields(
+                certificate
+            ):
+                hash_builder.add_item(item)
             await _process_pool_owners(
-                ctx,
-                keychain,
-                tx_builder,
-                pool_parameters.owners_count,
-                network_id,
+                ctx, keychain, hash_builder, pool_parameters.owners_count, network_id
             )
-            await _process_pool_relays(ctx, tx_builder, pool_parameters.relays_count)
-            tx_builder.send(cborize_pool_metadata(pool_parameters.metadata))
+            await _process_pool_relays(ctx, hash_builder, pool_parameters.relays_count)
+            hash_builder.add_item(cborize_pool_metadata(pool_parameters.metadata))
+            hash_builder.finish_current_lazy_collection()
         else:
-            tx_builder.send(cborize_certificate(keychain, certificate))
+            hash_builder.add_item(cborize_certificate(keychain, certificate))
+
+    hash_builder.finish_current_lazy_collection()
 
 
 async def _process_pool_owners(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    tx_builder: TxBuilder,
+    hash_builder: CborHashBuilder,
     owners_count: int,
     network_id: int,
 ) -> None:
     owners_as_path_count = 0
-
-    tx_builder.send(owners_count)
+    hash_builder.add_lazy_collection(LazyCborList(owners_count))
     for _ in range(owners_count):
         owner: CardanoPoolOwner = await ctx.call(CardanoTxItemAck(), CardanoPoolOwner)
         validate_pool_owner(owner)
         await _show_pool_owner(ctx, keychain, owner, network_id)
-        tx_builder.send(cborize_pool_owner(keychain, owner))
+        hash_builder.add_item(cborize_pool_owner(keychain, owner))
 
         if owner.staking_key_path:
             owners_as_path_count += 1
+
+    hash_builder.finish_current_lazy_collection()
 
     assert_certificate_cond(owners_as_path_count == 1)
 
 
 async def _process_pool_relays(
-    ctx: wire.Context, tx_builder: TxBuilder, relays_count: int
+    ctx: wire.Context, hash_builder: CborHashBuilder, relays_count: int
 ) -> None:
-    tx_builder.send(relays_count)
+    hash_builder.add_lazy_collection(LazyCborList(relays_count))
     for _ in range(relays_count):
         relay: CardanoPoolRelayParameters = await ctx.call(
             CardanoTxItemAck(), CardanoPoolRelayParameters
         )
         validate_pool_relay(relay)
-        tx_builder.send(cborize_pool_relay(relay))
+        hash_builder.add_item(cborize_pool_relay(relay))
+    hash_builder.finish_current_lazy_collection()
 
 
 async def _process_withdrawals(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    tx_builder: TxBuilder,
+    hash_builder: CborHashBuilder,
     withdrawals_count: int,
     protocol_magic: int,
     network_id: int,
@@ -419,6 +472,11 @@ async def _process_withdrawals(
     """Read, validate, confirm and serialize the withdrawals."""
     if withdrawals_count == 0:
         return
+
+    hash_builder.add_lazy_collection_at_key(
+        key=TX_BODY_KEY_WITHDRAWALS,
+        collection=LazyCborDict(withdrawals_count),
+    )
 
     # until the CIP with canonical CBOR is finalized storing the seen_withdrawals is the only way we can check for
     # duplicate withdrawals
@@ -438,13 +496,14 @@ async def _process_withdrawals(
             protocol_magic,
             network_id,
         )
-        tx_builder.send((reward_address, withdrawal.amount))
+        hash_builder.add_item((reward_address, withdrawal.amount))
+    hash_builder.finish_current_lazy_collection()
 
 
 async def _process_auxiliary_data(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    tx_builder: TxBuilder,
+    hash_builder: CborHashBuilder,
     has_auxiliary_data: bool,
     protocol_magic: int,
     network_id: int,
@@ -473,7 +532,7 @@ async def _process_auxiliary_data(
         protocol_magic,
         network_id,
     )
-    tx_builder.send(auxiliary_data_hash)
+    hash_builder.add_item((TX_BODY_KEY_AUXILIARY_DATA, auxiliary_data_hash))
     await ctx.call(auxiliary_data_supplement, CardanoTxHostAck)
 
 
