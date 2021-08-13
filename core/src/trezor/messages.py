@@ -1157,6 +1157,7 @@ if TYPE_CHECKING:
         has_auxiliary_data: "bool"
         validity_interval_start: "int | None"
         witness_requests_count: "int"
+        script_data_hash: "bytes | None"
 
         def __init__(
             self,
@@ -1173,6 +1174,7 @@ if TYPE_CHECKING:
             witness_requests_count: "int",
             ttl: "int | None" = None,
             validity_interval_start: "int | None" = None,
+            script_data_hash: "bytes | None" = None,
         ) -> None:
             pass
 

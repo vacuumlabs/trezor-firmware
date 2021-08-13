@@ -57,11 +57,13 @@ from .certificates import (
 )
 from .helpers import (
     INVALID_OUTPUT,
+    INVALID_SCRIPT_DATA_HASH,
     INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE,
     INVALID_STAKEPOOL_REGISTRATION_TX_WITNESSES,
     INVALID_TOKEN_BUNDLE_OUTPUT,
     INVALID_WITHDRAWAL,
     LOVELACE_MAX_SUPPLY,
+    SCRIPT_DATA_HASH_SIZE,
     network_ids,
     protocol_magics,
     staking_use_cases,
@@ -81,6 +83,7 @@ from .helpers.paths import (
 from .helpers.utils import derive_public_key, to_account_path
 from .layout import (
     confirm_certificate,
+    confirm_script_data_hash,
     confirm_sending,
     confirm_sending_token,
     confirm_stake_pool_metadata,
@@ -116,6 +119,7 @@ TX_BODY_KEY_CERTIFICATES = const(4)
 TX_BODY_KEY_WITHDRAWALS = const(5)
 TX_BODY_KEY_AUXILIARY_DATA = const(7)
 TX_BODY_KEY_VALIDITY_INTERVAL_START = const(8)
+TX_BODY_KEY_SCRIPT_DATA_HASH = const(11)
 
 POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT = 10
 
@@ -134,6 +138,7 @@ async def sign_tx(
             msg.withdrawals_count > 0,
             msg.has_auxiliary_data,
             msg.validity_interval_start is not None,
+            msg.script_data_hash is not None,
         )
     )
 
@@ -255,6 +260,9 @@ async def _process_transaction(
 
     if msg.validity_interval_start is not None:
         tx_dict.add(TX_BODY_KEY_VALIDITY_INTERVAL_START, msg.validity_interval_start)
+
+    if msg.script_data_hash is not None:
+        await _process_script_data_hash(ctx, tx_dict, msg.script_data_hash)
 
 
 async def _confirm_transaction(
@@ -561,6 +569,19 @@ async def _process_auxiliary_data(
     await ctx.call(auxiliary_data_supplement, CardanoTxHostAck)
 
 
+async def _process_script_data_hash(
+    ctx: wire.Context,
+    tx_body_builder_dict: HashBuilderDict,
+    script_data_hash: bytes,
+) -> None:
+    """Validate, confirm and serialize the script data hash."""
+    _validate_script_data_hash(script_data_hash)
+
+    await confirm_script_data_hash(ctx, script_data_hash)
+
+    tx_body_builder_dict.add(TX_BODY_KEY_SCRIPT_DATA_HASH, script_data_hash)
+
+
 async def _process_witness_requests(
     ctx: wire.Context,
     keychain: seed.Keychain,
@@ -801,6 +822,12 @@ def _validate_witness_request(
         _ensure_no_payment_witness(witness_request)
 
     account_path_checker.add_witness_request(witness_request)
+
+
+def _validate_script_data_hash(script_data_hash: bytes) -> None:
+    if len(script_data_hash) != SCRIPT_DATA_HASH_SIZE:
+        raise INVALID_SCRIPT_DATA_HASH
+    # TODO re-assess the validation once more - specifically with regards to signing modes
 
 
 def _ensure_no_payment_witness(witness: CardanoTxWitnessRequest) -> None:

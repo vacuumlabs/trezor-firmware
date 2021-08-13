@@ -425,6 +425,17 @@ async def confirm_catalyst_registration(
     )
 
 
+async def confirm_script_data_hash(ctx: wire.Context, script_data_hash: bytes) -> None:
+    await confirm_properties(
+        ctx,
+        "confirm_script_data_hash",
+        title="Confirm transaction",
+        props=[("Script data hash:", script_data_hash)],
+        # TODO decide if the hash shouldn't be shown in bech32
+        br_code=ButtonRequestType.Other,
+    )
+
+
 async def show_auxiliary_data_hash(
     ctx: wire.Context, auxiliary_data_hash: bytes
 ) -> None:

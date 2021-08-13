@@ -414,6 +414,12 @@ def parse_auxiliary_data(auxiliary_data) -> messages.CardanoTxAuxiliaryData:
     )
 
 
+def parse_script_data_hash(script_data_hash) -> Optional[bytes]:
+    if script_data_hash is None:
+        return None
+    return bytes.fromhex(script_data_hash)
+
+
 def _get_witness_paths(
     inputs: List[InputWithPath],
     certificates: List[CertificateWithPoolOwnersAndRelays],
@@ -506,6 +512,7 @@ def sign_tx(
     protocol_magic: int = PROTOCOL_MAGICS["mainnet"],
     network_id: int = NETWORK_IDS["mainnet"],
     auxiliary_data: messages.CardanoTxAuxiliaryData = None,
+    script_data_hash: Optional[bytes] = None,
 ) -> SignTxResponse:
     UNEXPECTED_RESPONSE_ERROR = exceptions.TrezorException("Unexpected response")
 
@@ -525,6 +532,7 @@ def sign_tx(
             network_id=network_id,
             has_auxiliary_data=auxiliary_data is not None,
             witness_requests_count=len(witness_paths),
+            script_data_hash=script_data_hash,
         )
     )
     if not isinstance(response, messages.CardanoTxItemAck):

@@ -14,6 +14,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -43,6 +44,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -72,6 +74,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -101,6 +104,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -130,6 +134,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -159,6 +164,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -188,6 +194,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -222,6 +229,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -251,6 +259,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -280,6 +289,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -309,6 +319,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -338,6 +349,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -367,6 +379,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -396,6 +409,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -425,6 +439,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -462,6 +477,7 @@
         ],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -497,6 +513,7 @@
         ],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -531,6 +548,7 @@
           }
         ],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -565,6 +583,7 @@
           }
         ],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -603,6 +622,7 @@
           }
         ],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -634,6 +654,7 @@
         "auxiliary_data": {
           "hash": "a200a11864a118c843aa00ff01"
         },
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -673,6 +694,7 @@
             }
           }
         },
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -714,6 +736,7 @@
             "nonce": 140
           }
         },
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -734,6 +757,36 @@
       }
     },
     {
+      "description": "Script data hash has incorrect length",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "script_data_hash": "d593fd793c377ac50a3169bb8378ffc257c944da31aa8f355dfa5a4f",
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "Ae2tdPwUPEZCanmBz5g2GEwFqKTKpNJcGYPKfDxoNeKZ8bRHr8366kseiK2",
+            "amount": "3003112"
+          }
+        ],
+        "signing_mode": "ORDINARY_TRANSACTION"
+      },
+      "result": {
+        "error_message": "Invalid script data hash"
+      }
+    },
+    {
       "description": "Change output path larger than 100",
       "parameters": {
         "protocol_magic": 764824073,
@@ -743,6 +796,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/190'/0/0",
@@ -778,6 +832,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -818,6 +873,7 @@
         ],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/190'/0/0",
@@ -847,6 +903,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -891,6 +948,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -940,6 +998,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -980,6 +1039,7 @@
         ],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1014,6 +1074,7 @@
           }
         ],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1048,6 +1109,7 @@
         ],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1088,6 +1150,7 @@
           }
         ],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1133,6 +1196,7 @@
           }
         ],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1161,6 +1225,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/0",
@@ -1194,6 +1259,7 @@
         "certificates": [],
         "withdrawals": [],
         "auxiliary_data": null,
+        "script_data_hash": null,
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/0",

@@ -1966,6 +1966,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         10: protobuf.Field("has_auxiliary_data", "bool", repeated=False, required=True),
         11: protobuf.Field("validity_interval_start", "uint64", repeated=False, required=False),
         12: protobuf.Field("witness_requests_count", "uint32", repeated=False, required=True),
+        13: protobuf.Field("script_data_hash", "bytes", repeated=False, required=False),
     }
 
     def __init__(
@@ -1983,6 +1984,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         witness_requests_count: "int",
         ttl: Optional["int"] = None,
         validity_interval_start: Optional["int"] = None,
+        script_data_hash: Optional["bytes"] = None,
     ) -> None:
         self.signing_mode = signing_mode
         self.protocol_magic = protocol_magic
@@ -1996,6 +1998,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         self.witness_requests_count = witness_requests_count
         self.ttl = ttl
         self.validity_interval_start = validity_interval_start
+        self.script_data_hash = script_data_hash
 
 
 class CardanoTxInput(protobuf.MessageType):

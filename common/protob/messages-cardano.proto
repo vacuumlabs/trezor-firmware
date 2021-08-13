@@ -143,6 +143,7 @@ message CardanoSignTxInit {
     required bool has_auxiliary_data = 10;
     optional uint64 validity_interval_start = 11;
     required uint32 witness_requests_count = 12;
+    optional bytes script_data_hash = 13;
 }
 
 /**
