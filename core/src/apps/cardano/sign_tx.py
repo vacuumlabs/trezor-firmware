@@ -397,16 +397,13 @@ async def _process_asset_groups(
     should_show_tokens: bool,
 ) -> None:
     """Read, validate and serialize the asset groups of an output."""
-    # until the CIP with canonical CBOR is finalized storing the seen_policy_ids is the only way we can check for
-    # duplicate policy_ids
-    seen_policy_ids: set[bytes] = set()
+    previous_policy_id: bytes = b""
     for _ in range(asset_groups_count):
         asset_group: CardanoAssetGroup = await ctx.call(
             CardanoTxItemAck(), CardanoAssetGroup
         )
-        asset_group.policy_id = asset_group.policy_id
-        _validate_output_asset_group(asset_group, seen_policy_ids)
-        seen_policy_ids.add(asset_group.policy_id)
+        _validate_output_asset_group(asset_group, previous_policy_id)
+        previous_policy_id = asset_group.policy_id
 
         tokens: HashBuilderDict[bytes, int] = HashBuilderDict(asset_group.tokens_count)
         with asset_groups_dict.add(asset_group.policy_id, tokens):
@@ -427,14 +424,11 @@ async def _process_tokens(
     should_show_tokens: bool,
 ) -> None:
     """Read, validate, confirm and serialize the tokens of an asset group."""
-    # until the CIP with canonical CBOR is finalized storing the seen_asset_name_bytes is the only way we can check for
-    # duplicate tokens
-    seen_asset_name_bytes: set[bytes] = set()
+    previous_asset_name_bytes: bytes = b""
     for _ in range(tokens_count):
         token: CardanoToken = await ctx.call(CardanoTxItemAck(), CardanoToken)
-        token.asset_name_bytes = token.asset_name_bytes
-        _validate_output_token(token, seen_asset_name_bytes)
-        seen_asset_name_bytes.add(token.asset_name_bytes)
+        _validate_output_token(token, previous_asset_name_bytes)
+        previous_asset_name_bytes = token.asset_name_bytes
         if should_show_tokens:
             await confirm_sending_token(ctx, policy_id, token)
 
@@ -555,15 +549,17 @@ async def _process_withdrawals(
     if withdrawals_count == 0:
         return
 
-    # until the CIP with canonical CBOR is finalized storing the seen_withdrawals is the only way we can check for
-    # duplicate withdrawals
-    seen_withdrawals: set[tuple[int, ...] | bytes] = set()
+    previous_credential: tuple[int, ...] | bytes = b""
     for _ in range(withdrawals_count):
         withdrawal: CardanoTxWithdrawal = await ctx.call(
             CardanoTxItemAck(), CardanoTxWithdrawal
         )
-        _validate_withdrawal(
-            withdrawal, seen_withdrawals, signing_mode, account_path_checker
+
+        previous_credential = _validate_withdrawal(
+            withdrawal,
+            previous_credential,
+            signing_mode,
+            account_path_checker,
         )
         await confirm_withdrawal(ctx, withdrawal)
         reward_address_type = (
@@ -627,16 +623,13 @@ async def _process_minting(
 
     await show_warning_tx_contains_mint(ctx)
 
-    # until the CIP with canonical CBOR is finalized storing the seen_policy_ids is the only way we can check for
-    # duplicate policy_ids
-    seen_policy_ids: set[bytes] = set()
+    previous_policy_id: bytes = b""
     for _ in range(token_minting.asset_groups_count):
         asset_group: CardanoAssetGroup = await ctx.call(
             CardanoTxItemAck(), CardanoAssetGroup
         )
-        asset_group.policy_id = asset_group.policy_id
-        _validate_minting_asset_group(asset_group, seen_policy_ids)
-        seen_policy_ids.add(asset_group.policy_id)
+        _validate_minting_asset_group(asset_group, previous_policy_id)
+        previous_policy_id = asset_group.policy_id
 
         tokens: HashBuilderDict[bytes, int] = HashBuilderDict(asset_group.tokens_count)
         with minting_dict.add(asset_group.policy_id, tokens):
@@ -655,14 +648,11 @@ async def _process_minting_tokens(
     tokens_count: int,
 ) -> None:
     """Read, validate, confirm and serialize the tokens of an asset group."""
-    # until the CIP with canonical CBOR is finalized storing the seen_asset_name_bytes is the only way we can check for
-    # duplicate tokens
-    seen_asset_name_bytes: set[bytes] = set()
+    previous_asset_name_bytes: bytes = b""
     for _ in range(tokens_count):
         token: CardanoToken = await ctx.call(CardanoTxItemAck(), CardanoToken)
-        token.asset_name_bytes = token.asset_name_bytes
-        _validate_minting_token(token, seen_asset_name_bytes)
-        seen_asset_name_bytes.add(token.asset_name_bytes)
+        _validate_minting_token(token, previous_asset_name_bytes)
+        previous_asset_name_bytes = token.asset_name_bytes
         await confirm_token_minting(ctx, policy_id, token)
 
         assert token.mint_amount is not None  # _validate_token
@@ -846,19 +836,19 @@ async def _show_output(
 
 
 def _validate_output_asset_group(
-    asset_group: CardanoAssetGroup, seen_policy_ids: set[bytes]
+    asset_group: CardanoAssetGroup, previous_policy_id: bytes
 ) -> None:
-    _validate_asset_group(asset_group, seen_policy_ids, False)
+    _validate_asset_group(asset_group, previous_policy_id, False)
 
 
 def _validate_minting_asset_group(
-    asset_group: CardanoAssetGroup, seen_policy_ids: set[bytes]
+    asset_group: CardanoAssetGroup, previous_policy_id: bytes
 ) -> None:
-    _validate_asset_group(asset_group, seen_policy_ids, True)
+    _validate_asset_group(asset_group, previous_policy_id, True)
 
 
 def _validate_asset_group(
-    asset_group: CardanoAssetGroup, seen_policy_ids: set[bytes], is_mint: bool
+    asset_group: CardanoAssetGroup, previous_policy_id: bytes, is_mint: bool
 ) -> None:
     INVALID_TOKEN_BUNDLE = (
         INVALID_TOKEN_BUNDLE_MINT if is_mint else INVALID_TOKEN_BUNDLE_OUTPUT
@@ -868,24 +858,24 @@ def _validate_asset_group(
         raise INVALID_TOKEN_BUNDLE
     if asset_group.tokens_count == 0:
         raise INVALID_TOKEN_BUNDLE
-    if asset_group.policy_id in seen_policy_ids:
+    if not cbor.less_than(previous_policy_id, asset_group.policy_id):
         raise INVALID_TOKEN_BUNDLE
 
 
 def _validate_output_token(
-    token: CardanoToken, seen_asset_name_bytes: set[bytes]
+    token: CardanoToken, previous_asset_name_bytes: bytes
 ) -> None:
-    _validate_token(token, seen_asset_name_bytes, False)
+    _validate_token(token, previous_asset_name_bytes, False)
 
 
 def _validate_minting_token(
-    token: CardanoToken, seen_asset_name_bytes: set[bytes]
+    token: CardanoToken, previous_asset_name_bytes: bytes
 ) -> None:
-    _validate_token(token, seen_asset_name_bytes, True)
+    _validate_token(token, previous_asset_name_bytes, True)
 
 
 def _validate_token(
-    token: CardanoToken, seen_asset_name_bytes: set[bytes], is_mint: bool
+    token: CardanoToken, previous_asset_name_bytes: bytes, is_mint: bool
 ) -> None:
     INVALID_TOKEN_BUNDLE = (
         INVALID_TOKEN_BUNDLE_MINT if is_mint else INVALID_TOKEN_BUNDLE_OUTPUT
@@ -900,7 +890,7 @@ def _validate_token(
 
     if len(token.asset_name_bytes) > MAX_ASSET_NAME_LENGTH:
         raise INVALID_TOKEN_BUNDLE
-    if token.asset_name_bytes in seen_asset_name_bytes:
+    if not cbor.less_than(previous_asset_name_bytes, token.asset_name_bytes):
         raise INVALID_TOKEN_BUNDLE
 
 
@@ -924,10 +914,10 @@ async def _show_certificate(
 
 def _validate_withdrawal(
     withdrawal: CardanoTxWithdrawal,
-    seen_withdrawals: set[tuple[int, ...] | bytes],
+    previous_credential: tuple[int, ...] | bytes,
     signing_mode: CardanoTxSigningMode,
     account_path_checker: AccountPathChecker,
-) -> None:
+) -> tuple[int, ...] | bytes:
     validate_stake_credential(
         withdrawal.path, withdrawal.script_hash, signing_mode, INVALID_WITHDRAWAL
     )
@@ -938,12 +928,11 @@ def _validate_withdrawal(
     credential = tuple(withdrawal.path) if withdrawal.path else withdrawal.script_hash
     assert credential  # validate_stake_credential
 
-    if credential in seen_withdrawals:
-        raise wire.ProcessError("Duplicate withdrawals")
-    else:
-        seen_withdrawals.add(credential)
+    if not cbor.less_than(previous_credential, credential):
+        raise INVALID_WITHDRAWAL
 
     account_path_checker.add_withdrawal(withdrawal)
+    return credential
 
 
 def _get_output_address(

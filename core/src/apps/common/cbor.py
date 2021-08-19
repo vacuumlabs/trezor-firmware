@@ -317,3 +317,13 @@ def create_array_header(size: int) -> bytes:
 
 def create_map_header(size: int) -> bytes:
     return _header(_CBOR_MAP, size)
+
+
+def less_than(value1: Value, value2: Value) -> bool:
+    """
+    Returns True if value1 is smaller than value2 with regards to
+    the cbor map key ordering as defined in
+    https://datatracker.ietf.org/doc/html/rfc7049#section-3.9
+    """
+    u, v = encode(value1), encode(value2)
+    return len(u) < len(v) or (len(u) == len(v) and u < v)

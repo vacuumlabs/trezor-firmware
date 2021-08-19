@@ -1488,6 +1488,182 @@
           }
         ]
       }
+    },
+
+    {
+      "description": "Ordinary transaction with multiple correctly ordered tokens and withdrawals",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "validity_interval_start": 47,
+        "certificates": [],
+        "withdrawals": [
+          {
+            "path": "m/1852'/1815'/0'/2/0",
+            "amount": "1000"
+          },
+          {
+            "path": "m/1852'/1815'/1'/2/0",
+            "amount": "3000"
+          },
+          {
+            "path": "m/1852'/1815'/3'/2/0",
+            "amount": "10"
+          }
+        ],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "2000000",
+            "token_bundle": [
+              {
+                "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                "tokens": [
+                  {
+                    "asset_name_bytes": "f5652474436f69",
+                    "amount": "9878754"
+                  },
+                  {
+                    "asset_name_bytes": "f6652474436f69",
+                    "amount": "7878754"
+                  },
+                  {
+                    "asset_name_bytes": "74652474436f696e",
+                    "amount": "7878754"
+                  },
+                  {
+                    "asset_name_bytes": "75652474436f696e",
+                    "amount": "1234"
+                  },
+                  {
+                    "asset_name_bytes": "c5652474436f696e",
+                    "amount": "1234"
+                  }
+                ]
+              },
+              {
+                "policy_id": "96a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                "tokens": [
+                  {
+                    "asset_name_bytes": "74652474436f696e",
+                    "amount": "7878754"
+                  }
+                ]
+              },
+              {
+                "policy_id": "d6a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                "tokens": [
+                  {
+                    "asset_name_bytes": "74652474436f696e",
+                    "amount": "7878754"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "2000000",
+            "token_bundle": [
+              {
+                "policy_id": "a6a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+                "tokens": [
+                  {
+                    "asset_name_bytes": "74652474436f696e",
+                    "amount": "7878754"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "mint": [
+          {
+            "policy_id": "95a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+            "tokens": [
+              {
+                "asset_name_bytes": "f5652474436f69",
+                "mint_amount": "9878754"
+              },
+              {
+                "asset_name_bytes": "f6652474436f69",
+                "mint_amount": "7878754"
+              },
+              {
+                "asset_name_bytes": "74652474436f696e",
+                "mint_amount": "-7878754"
+              },
+              {
+                "asset_name_bytes": "75652474436f696e",
+                "mint_amount": "-1234"
+              },
+              {
+                "asset_name_bytes": "c5652474436f696e",
+                "mint_amount": "-1234"
+              }
+            ]
+          },
+          {
+            "policy_id": "96a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+            "tokens": [
+              {
+                "asset_name_bytes": "74652474436f696e",
+                "mint_amount": "7878754"
+              }
+            ]
+          },
+          {
+            "policy_id": "d6a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
+            "tokens": [
+              {
+                "asset_name_bytes": "74652474436f696e",
+                "mint_amount": "7878754"
+              }
+            ]
+          }
+        ],
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witness_requests": []
+      },
+      "result": {
+        "tx_hash": "4ec366797f9d808fe7a89eb6e639e23ee68a3b1d6e6e19b9b80b108b12aa72e4",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "aa0098d7106136e0340104f96829bba31d0db2b019542bc99eaa127a8189324ca421b1bae89a2472c3dfaef2db9ff2ab8ed3d5eba7a870433140f8310691f007",
+            "chain_code": null
+          },
+          {
+            "type": 1,
+            "pub_key": "bc65be1b0b9d7531778a1317c2aa6de936963c3f9ac7d5ee9e9eda25e0c97c5e",
+            "signature": "1d0cbe01bcf1f77604fd750ebeea0bc9b624ce6e63367e2c9e4a5255f8adc6b7e945e01071e8b8f05e770a5573e23b7a903909effbfff3eae3d02963f5efb304",
+            "chain_code": null
+          },
+          {
+            "type": 1,
+            "pub_key": "79f81c0b814ee61b4463792a7a5cf45940f15813d8ebe1ecc6261ecd8afc5799",
+            "signature": "8e949e9d6be2db00670edc3083a880c120d9bd8f81c416a59b87dcfb7f79c0811c30708dcdc9d696ee123c86018eef64b7eccce7f149922f87e1d6670cdc3c0f",
+            "chain_code": null
+          },
+          {
+            "type": 1,
+            "pub_key": "f8465f9eb3c383c6049d90eb65fb3497a33bc8a74c7703a608f2a4dbc11c5b30",
+            "signature": "4f4cc14af60c9febe9053f25e0214a73abdb10869af2711a7d08d91db1875abb5e738ffa2dc54583a89953eda65a302866d4bfbc830b66a3e42d0b9919603e06",
+            "chain_code": null
+          }
+        ]
+      }
     }
   ]
 }
