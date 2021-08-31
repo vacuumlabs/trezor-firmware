@@ -549,19 +549,16 @@ async def _process_withdrawals(
     if withdrawals_count == 0:
         return
 
-    previous_credential: tuple[int, ...] | bytes = b""
+    previous_reward_address: bytes = b""
     for _ in range(withdrawals_count):
         withdrawal: CardanoTxWithdrawal = await ctx.call(
             CardanoTxItemAck(), CardanoTxWithdrawal
         )
-
-        previous_credential = _validate_withdrawal(
+        _validate_withdrawal(
             withdrawal,
-            previous_credential,
             signing_mode,
             account_path_checker,
         )
-        await confirm_withdrawal(ctx, withdrawal)
         reward_address_type = (
             CardanoAddressType.REWARD
             if withdrawal.path
@@ -577,6 +574,12 @@ async def _process_withdrawals(
             protocol_magic,
             network_id,
         )
+
+        if not cbor.are_canonically_ordered(previous_reward_address, reward_address):
+            raise INVALID_WITHDRAWAL
+        previous_reward_address = reward_address
+
+        await confirm_withdrawal(ctx, withdrawal)
 
         withdrawals_dict.add(reward_address, withdrawal.amount)
 
@@ -858,7 +861,7 @@ def _validate_asset_group(
         raise INVALID_TOKEN_BUNDLE
     if asset_group.tokens_count == 0:
         raise INVALID_TOKEN_BUNDLE
-    if not cbor.less_than(previous_policy_id, asset_group.policy_id):
+    if not cbor.are_canonically_ordered(previous_policy_id, asset_group.policy_id):
         raise INVALID_TOKEN_BUNDLE
 
 
@@ -890,7 +893,9 @@ def _validate_token(
 
     if len(token.asset_name_bytes) > MAX_ASSET_NAME_LENGTH:
         raise INVALID_TOKEN_BUNDLE
-    if not cbor.less_than(previous_asset_name_bytes, token.asset_name_bytes):
+    if not cbor.are_canonically_ordered(
+        previous_asset_name_bytes, token.asset_name_bytes
+    ):
         raise INVALID_TOKEN_BUNDLE
 
 
@@ -914,10 +919,9 @@ async def _show_certificate(
 
 def _validate_withdrawal(
     withdrawal: CardanoTxWithdrawal,
-    previous_credential: tuple[int, ...] | bytes,
     signing_mode: CardanoTxSigningMode,
     account_path_checker: AccountPathChecker,
-) -> tuple[int, ...] | bytes:
+) -> None:
     validate_stake_credential(
         withdrawal.path, withdrawal.script_hash, signing_mode, INVALID_WITHDRAWAL
     )
@@ -928,11 +932,7 @@ def _validate_withdrawal(
     credential = tuple(withdrawal.path) if withdrawal.path else withdrawal.script_hash
     assert credential  # validate_stake_credential
 
-    if not cbor.less_than(previous_credential, credential):
-        raise INVALID_WITHDRAWAL
-
     account_path_checker.add_withdrawal(withdrawal)
-    return credential
 
 
 def _get_output_address(
