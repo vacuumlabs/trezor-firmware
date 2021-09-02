@@ -513,6 +513,7 @@ def sign_tx(
     network_id: int = NETWORK_IDS["mainnet"],
     auxiliary_data: messages.CardanoTxAuxiliaryData = None,
     script_data_hash: Optional[bytes] = None,
+    collateral_inputs: List[InputWithPath] = (),
 ) -> SignTxResponse:
     UNEXPECTED_RESPONSE_ERROR = exceptions.TrezorException("Unexpected response")
 
@@ -533,6 +534,7 @@ def sign_tx(
             has_auxiliary_data=auxiliary_data is not None,
             witness_requests_count=len(witness_paths),
             script_data_hash=script_data_hash,
+            collateral_inputs_count=len(collateral_inputs),
         )
     )
     if not isinstance(response, messages.CardanoTxItemAck):
@@ -543,6 +545,7 @@ def sign_tx(
         _get_output_items(outputs),
         _get_certificate_items(certificates),
         withdrawals,
+        _get_input_items(collateral_inputs),
     ):
         response = client.call(tx_item)
         if not isinstance(response, messages.CardanoTxItemAck):

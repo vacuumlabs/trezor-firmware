@@ -19,6 +19,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -57,6 +58,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -100,6 +102,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",

@@ -41,6 +41,9 @@ def test_cardano_sign_tx(client, parameters, result):
     withdrawals = [cardano.parse_withdrawal(w) for w in parameters["withdrawals"]]
     auxiliary_data = cardano.parse_auxiliary_data(parameters["auxiliary_data"])
     script_data_hash = cardano.parse_script_data_hash(parameters["script_data_hash"])
+    collateral_inputs = [
+        cardano.parse_input(i) for i in parameters["collateral_inputs"]
+    ]
 
     if parameters.get("security_checks") == "prompt":
         device.apply_settings(
@@ -64,6 +67,7 @@ def test_cardano_sign_tx(client, parameters, result):
             network_id=parameters["network_id"],
             auxiliary_data=auxiliary_data,
             script_data_hash=script_data_hash,
+            collateral_inputs=collateral_inputs,
         )
         assert response == _transform_expected_result(result)
 
@@ -79,6 +83,9 @@ def test_cardano_sign_tx_failed(client, parameters, result):
     withdrawals = [cardano.parse_withdrawal(w) for w in parameters["withdrawals"]]
     auxiliary_data = cardano.parse_auxiliary_data(parameters["auxiliary_data"])
     script_data_hash = cardano.parse_script_data_hash(parameters["script_data_hash"])
+    collateral_inputs = [
+        cardano.parse_input(i) for i in parameters["collateral_inputs"]
+    ]
 
     with client:
         with pytest.raises(TrezorFailure, match=result["error_message"]):
@@ -96,6 +103,7 @@ def test_cardano_sign_tx_failed(client, parameters, result):
                 network_id=parameters["network_id"],
                 auxiliary_data=auxiliary_data,
                 script_data_hash=script_data_hash,
+                collateral_inputs=collateral_inputs,
             )
 
 

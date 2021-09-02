@@ -83,6 +83,7 @@ from .helpers.paths import (
 from .helpers.utils import derive_public_key, to_account_path
 from .layout import (
     confirm_certificate,
+    confirm_collateral_input,
     confirm_script_data_hash,
     confirm_sending,
     confirm_sending_token,
@@ -120,6 +121,7 @@ TX_BODY_KEY_WITHDRAWALS = const(5)
 TX_BODY_KEY_AUXILIARY_DATA = const(7)
 TX_BODY_KEY_VALIDITY_INTERVAL_START = const(8)
 TX_BODY_KEY_SCRIPT_DATA_HASH = const(11)
+TX_BODY_KEY_COLLATERAL_INPUTS = const(13)
 
 POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT = 10
 
@@ -139,6 +141,7 @@ async def sign_tx(
             msg.has_auxiliary_data,
             msg.validity_interval_start is not None,
             msg.script_data_hash is not None,
+            msg.collateral_inputs_count > 0,
         )
     )
 
@@ -247,6 +250,15 @@ async def _process_transaction(
                 msg.protocol_magic,
                 msg.network_id,
                 account_path_checker,
+            )
+
+    if msg.collateral_inputs_count > 0:
+        collateral_inputs_list: HashBuilderList[tuple[bytes, int]] = HashBuilderList(
+            msg.collateral_inputs_count
+        )
+        with tx_dict.add(TX_BODY_KEY_COLLATERAL_INPUTS, collateral_inputs_list):
+            await _process_collateral_inputs(
+                ctx, collateral_inputs_list, msg.collateral_inputs_count
             )
 
     if msg.has_auxiliary_data:
@@ -580,6 +592,22 @@ async def _process_script_data_hash(
     await confirm_script_data_hash(ctx, script_data_hash)
 
     tx_body_builder_dict.add(TX_BODY_KEY_SCRIPT_DATA_HASH, script_data_hash)
+
+
+async def _process_collateral_inputs(
+    ctx: wire.Context,
+    collateral_inputs_list: HashBuilderList[tuple[bytes, int]],
+    collateral_inputs_count: int,
+) -> None:
+    """Read, validate, show and serialize the collateral inputs."""
+    for index in range(collateral_inputs_count):
+        collateral_input: CardanoTxInput = await ctx.call(
+            CardanoTxItemAck(), CardanoTxInput
+        )
+        collateral_inputs_list.append(
+            (collateral_input.prev_hash, collateral_input.prev_index)
+        )
+        await confirm_collateral_input(ctx, collateral_input)
 
 
 async def _process_witness_requests(

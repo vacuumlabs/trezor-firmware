@@ -30,6 +30,7 @@ if False:
     from trezor.messages import (
         CardanoBlockchainPointerType,
         CardanoTxCertificate,
+        CardanoTxInput,
         CardanoTxWithdrawal,
         CardanoPoolParametersType,
         CardanoPoolOwner,
@@ -432,6 +433,22 @@ async def confirm_script_data_hash(ctx: wire.Context, script_data_hash: bytes) -
         title="Confirm transaction",
         props=[("Script data hash:", script_data_hash)],
         # TODO decide if the hash shouldn't be shown in bech32
+        br_code=ButtonRequestType.Other,
+    )
+
+
+async def confirm_collateral_input(
+    ctx: wire.Context, collateral_input: CardanoTxInput
+) -> None:
+    await confirm_properties(
+        ctx,
+        "confirm_collateral_input",
+        title="Confirm transaction",
+        props=[
+            ("Collateral input ID:", collateral_input.prev_hash),
+            # TODO decide if the hash shouldn't be shown in bech32
+            ("Collateral input index:", str(collateral_input.prev_index)),
+        ],
         br_code=ButtonRequestType.Other,
     )
 

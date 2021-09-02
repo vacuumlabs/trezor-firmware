@@ -69,6 +69,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": null,
@@ -161,6 +162,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": null,
@@ -254,6 +256,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": null,
@@ -313,6 +316,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": null,
@@ -372,6 +376,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": null,
@@ -466,6 +471,7 @@
           "hash": "ea4c91860dd5ec5449f8f985d227946ff39086b17f10b5afb93d12ee87050b6a"
         },
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": null,
@@ -558,6 +564,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": "d593fd793c377ac50a3169bb8378ffc257c944da31aa8f355dfa5a4f6ff89e02",
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": null,

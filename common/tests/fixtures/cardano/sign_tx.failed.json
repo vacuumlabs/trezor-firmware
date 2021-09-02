@@ -15,6 +15,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -45,6 +46,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -75,6 +77,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -105,6 +108,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -135,6 +139,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -165,6 +170,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -195,6 +201,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -230,6 +237,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -260,6 +268,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -290,6 +299,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -320,6 +330,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -350,6 +361,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -380,6 +392,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -410,6 +423,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -440,6 +454,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -478,6 +493,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -514,6 +530,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -549,6 +566,7 @@
         ],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -584,6 +602,7 @@
         ],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -623,6 +642,7 @@
         ],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -655,6 +675,7 @@
           "hash": "a200a11864a118c843aa00ff01"
         },
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -695,6 +716,7 @@
           }
         },
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -737,6 +759,7 @@
           }
         },
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -767,6 +790,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": "d593fd793c377ac50a3169bb8378ffc257c944da31aa8f355dfa5a4f",
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -797,6 +821,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/190'/0/0",
@@ -833,6 +858,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -874,6 +900,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/190'/0/0",
@@ -904,6 +931,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -949,6 +977,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -999,6 +1028,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1040,6 +1070,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1075,6 +1106,7 @@
         ],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1110,6 +1142,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1151,6 +1184,7 @@
         ],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1197,6 +1231,7 @@
         ],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1226,6 +1261,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/0",
@@ -1260,6 +1296,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/0",

@@ -1158,6 +1158,7 @@ if TYPE_CHECKING:
         validity_interval_start: "int | None"
         witness_requests_count: "int"
         script_data_hash: "bytes | None"
+        collateral_inputs_count: "int"
 
         def __init__(
             self,
@@ -1172,6 +1173,7 @@ if TYPE_CHECKING:
             withdrawals_count: "int",
             has_auxiliary_data: "bool",
             witness_requests_count: "int",
+            collateral_inputs_count: "int",
             ttl: "int | None" = None,
             validity_interval_start: "int | None" = None,
             script_data_hash: "bytes | None" = None,

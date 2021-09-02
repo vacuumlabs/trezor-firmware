@@ -15,6 +15,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -53,6 +54,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -96,6 +98,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -140,6 +143,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -211,6 +215,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -256,6 +261,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/190'/0/0",
@@ -301,6 +307,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -345,6 +352,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -389,6 +397,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -435,6 +444,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -483,6 +493,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -526,6 +537,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -569,6 +581,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -618,6 +631,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -672,6 +686,7 @@
         ],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -722,6 +737,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/190'/0/0",
@@ -768,6 +784,7 @@
           "hash": "ea4c91860dd5ec5449f8f985d227946ff39086b17f10b5afb93d12ee87050b6a"
         },
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -817,6 +834,7 @@
           }
         },
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -860,6 +878,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": "d593fd793c377ac50a3169bb8378ffc257c944da31aa8f355dfa5a4f6ff89e02",
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -888,6 +907,51 @@
       }
     },
     {
+      "description": "transaction with collateral",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "script_data_hash": null,
+        "collateral_inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "signing_mode": "ORDINARY_TRANSACTION"
+      },
+      "result": {
+        "tx_hash": "97b8e65e8e34dec8c22f311736ec0c3d25d2dcf61de06e7f2864bc7a0322ee68",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "639378d825f9fadf37fa69af912315103d1fbce6dc49bf246cd65a4b43f9106a133fcd8ce7a449c902c4d7114b87c08d2586749241796920edc06e12b96f4e02",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
       "description": "Testnet transaction",
       "parameters": {
         "protocol_magic": 42,
@@ -898,6 +962,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/1",
@@ -946,6 +1011,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1002,6 +1068,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1069,6 +1136,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1108,6 +1176,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/44'/1815'/0'/0/0",
@@ -1163,6 +1232,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1208,6 +1278,7 @@
         "withdrawals": [],
         "auxiliary_data": null,
         "script_data_hash": null,
+        "collateral_inputs": [],
         "inputs": [
           {
             "path": "m/1852'/1815'/0'/0/0",
@@ -1363,33 +1434,45 @@
           }
         },
         "script_data_hash": null,
+        "collateral_inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "d593fd793c377ac50a3169bb8378ffc257c944da31aa8f355dfa5a4f6ff89e02",
+            "prev_index": 0
+          },
+          {
+            "path": "m/1852'/1815'/0'/0/1",
+            "prev_hash": "d593fd793c377ac50a3169bb8378ffc257c944da31aa8f355dfa5a4f6ff89e02",
+            "prev_index": 0
+          }
+        ],
         "signing_mode": "ORDINARY_TRANSACTION"
       },
       "result": {
-        "tx_hash": "ee0dfef8b97857ebe7aa8935af50e9f8f608ff4054c0c034600750d722d90631",
+        "tx_hash": "3eaf37be6d7666161ab30f7428bc48f582e5f4ee7c78e8b575445e74499f3a73",
         "witnesses": [
           {
             "type": 1,
             "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
-            "signature": "7d17407e4e8f8b89f8794c022408a84e6f7ef163957d9d7e8ebee4cf9b5c87750c7c559f3a2663441535eec88ebce8540e7d7ea30897de984b1053b818374007",
+            "signature": "8ee6d98dd5ec26e32e66d5c6f3fe414e5051a71516af987d80b4bedbc4313de3a5360ae66f993a908b11692761bd7527fade3908c894a3ef803cfb5a0578e607",
             "chain_code": null
           },
           {
             "type": 1,
             "pub_key": "36a8ef21d5b98fdf23a27325cf643deaac35e912c835e35037f23d1061ae5b16",
-            "signature": "df62ec013a32d137c86931cec726d104cbc3193776026ec36d10450d9cbd289abc4c2d44311878b3aba035a8aec2c076522183027f9da046b586b5de5c460504",
+            "signature": "d312828d8f3c5a808c7a2174ae7ce45fe0fc80f64d6093ffd0ed2895b0e66478793c149cc1ad89b609403ef6a4c43a9d08797dcef63fe7df3cb60e557652ab05",
             "chain_code": null
           },
           {
             "type": 1,
             "pub_key": "e90d7b0a6cf831b0042d37961dd528842860e77914e715bcece676c75353b812",
-            "signature": "e249396d227f1d0540e58b64610bdb990eb1f1db9b3bae4a3d4a8088679af4a3bab464a5c912f7041a5fabc37e3009b3e1f4d76e2406429a0ebed85b880ecd0c",
+            "signature": "a057c923517c81013a25dad54000e26c3107bbb53b7a1da5427ee188f9ed01ec11ca973f919f4fa98c9f4068819afd53f05e3fc59ed9e573befe08ed2e1d6b01",
             "chain_code": null
           },
           {
             "type": 1,
             "pub_key": "bc65be1b0b9d7531778a1317c2aa6de936963c3f9ac7d5ee9e9eda25e0c97c5e",
-            "signature": "0dfd139ce3e255664a77de7d199ce5e4f1a1238ec17a6acec4aaae79be2ccd9b1d21127164c059c8aea2c4b91292aaf352c824550db7594b59e4eca6455d3f03",
+            "signature": "5d442be6ac738f496db9492b6e1ebc0c81d7e84cc2ac634dd0ab517b68f87df252fd6ce16d2a91b1781dbb0f56d7210296d8b5509233918692827fa91c55ba05",
             "chain_code": null
           }
         ],
