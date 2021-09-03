@@ -1491,7 +1491,7 @@
     },
 
     {
-      "description": "Ordinary transaction with multiple correctly ordered tokens and withdrawals",
+      "description": "Ordinary transaction with multiple correctly ordered tokens",
       "parameters": {
         "protocol_magic": 764824073,
         "network_id": 1,
@@ -1502,15 +1502,7 @@
         "withdrawals": [
           {
             "path": "m/1852'/1815'/0'/2/0",
-            "amount": "1000"
-          },
-          {
-            "path": "m/1852'/1815'/1'/2/0",
             "amount": "3000"
-          },
-          {
-            "path": "m/1852'/1815'/3'/2/0",
-            "amount": "10"
           }
         ],
         "auxiliary_data": null,
@@ -1628,30 +1620,18 @@
         "additional_witness_requests": []
       },
       "result": {
-        "tx_hash": "8695cd1e2b87a7442b3ca1a77a7dca3925858bd52597d5214f9163199e326845",
+        "tx_hash": "fcc516f60f4f0bb52f98a16a018ef5c7ac4867a27fcdccf87f368711a06bf665",
         "witnesses": [
           {
             "type": 1,
             "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
-            "signature": "4dba0db12c17fd498477dcb8223f819e8f898404cff98e0a7f0ee8405be8854f76cd539e58bf6bc9957780ac4ea825e9c96a7ce8f270cb72545b246d2e8e8500",
+            "signature": "2741ae945b30a1b896d48e90b3d629f69b358c90cd7fcb981e5dd4941fc38d4e425febcf8fb5680046db90b76e127c1b09c946639a0d47dc7ede8e9a30373c01",
             "chain_code": null
           },
           {
             "type": 1,
             "pub_key": "bc65be1b0b9d7531778a1317c2aa6de936963c3f9ac7d5ee9e9eda25e0c97c5e",
-            "signature": "989d245d0707401deb5d42eb0303fa8ae549ae7c366fe18995843eba8be3d0b89a91d2ebee98fe1a090cb3f4e01da7b90c11a40e6db5272b1603afb39540f10b",
-            "chain_code": null
-          },
-          {
-            "type": 1,
-            "pub_key": "79f81c0b814ee61b4463792a7a5cf45940f15813d8ebe1ecc6261ecd8afc5799",
-            "signature": "0c5d9d1c2b75cec115d0fbb13cc99a6ebf1c078b6a19935a77753aad564e8202655e20b5bbb115e368307981dc9061d728931a56512699ac4f85bb954a05930a",
-            "chain_code": null
-          },
-          {
-            "type": 1,
-            "pub_key": "f8465f9eb3c383c6049d90eb65fb3497a33bc8a74c7703a608f2a4dbc11c5b30",
-            "signature": "ece66e80dd16b3e12a6cfede8f004880c0a15fd923ddc3ac3442855f5c55bb1f1aba5164161e232b4e0724bcba56a695cac909163a3f8ddd7726073ddf272908",
+            "signature": "f43b09b40b4f92b83f21639d1c6289838152723db798e260fe9b7f7b0cdca98f0e412c3bb4589a65d1f536405d37f5c6f99a09ff850c01f855e580b00c2f4808",
             "chain_code": null
           }
         ]
