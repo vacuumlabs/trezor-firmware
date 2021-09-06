@@ -1499,12 +1499,7 @@
         "ttl": 10,
         "validity_interval_start": 47,
         "certificates": [],
-        "withdrawals": [
-          {
-            "path": "m/1852'/1815'/0'/2/0",
-            "amount": "3000"
-          }
-        ],
+        "withdrawals": [],
         "auxiliary_data": null,
         "inputs": [
           {
@@ -1537,7 +1532,7 @@
                     "asset_name_bytes": "75652474436f696e",
                     "amount": "1234"
                   }
-                ]                
+                ]
               },
               {
                 "policy_id": "96a292ffee938be03e9bae5657982a74e9014eb4960108c9e23a5b39",
@@ -1620,18 +1615,12 @@
         "additional_witness_requests": []
       },
       "result": {
-        "tx_hash": "fcc516f60f4f0bb52f98a16a018ef5c7ac4867a27fcdccf87f368711a06bf665",
+        "tx_hash": "f1bda77315626ce61c784f3e60a74128f29b7d00a0c8baca030464293da2d7c4",
         "witnesses": [
           {
             "type": 1,
             "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
-            "signature": "2741ae945b30a1b896d48e90b3d629f69b358c90cd7fcb981e5dd4941fc38d4e425febcf8fb5680046db90b76e127c1b09c946639a0d47dc7ede8e9a30373c01",
-            "chain_code": null
-          },
-          {
-            "type": 1,
-            "pub_key": "bc65be1b0b9d7531778a1317c2aa6de936963c3f9ac7d5ee9e9eda25e0c97c5e",
-            "signature": "f43b09b40b4f92b83f21639d1c6289838152723db798e260fe9b7f7b0cdca98f0e412c3bb4589a65d1f536405d37f5c6f99a09ff850c01f855e580b00c2f4808",
+            "signature": "4254a6cae8156771ac8e1e75ceb8003f8370a7f6b08013fda32174b56025fcb01bc9d7f4e1eed10bc2c0ff1020eda47475f728cc824ef98a109fd9fe6a1c4105",
             "chain_code": null
           }
         ]
