@@ -555,28 +555,17 @@ async def _process_withdrawals(
             CardanoTxItemAck(), CardanoTxWithdrawal
         )
         _validate_withdrawal(
+            keychain,
             withdrawal,
             signing_mode,
-            account_path_checker,
-        )
-        reward_address_type = (
-            CardanoAddressType.REWARD
-            if withdrawal.path
-            else CardanoAddressType.REWARD_SCRIPT
-        )
-        reward_address = derive_address_bytes(
-            keychain,
-            CardanoAddressParametersType(
-                address_type=reward_address_type,
-                address_n_staking=withdrawal.path,
-                script_staking_hash=withdrawal.script_hash,
-            ),
             protocol_magic,
             network_id,
+            account_path_checker,
+            previous_reward_address,
         )
-
-        if not cbor.are_canonically_ordered(previous_reward_address, reward_address):
-            raise INVALID_WITHDRAWAL
+        reward_address = _derive_withdrawal_reward_address_bytes(
+            keychain, withdrawal, protocol_magic, network_id
+        )
         previous_reward_address = reward_address
 
         await confirm_withdrawal(ctx, withdrawal)
@@ -918,9 +907,13 @@ async def _show_certificate(
 
 
 def _validate_withdrawal(
+    keychain: seed.Keychain,
     withdrawal: CardanoTxWithdrawal,
     signing_mode: CardanoTxSigningMode,
+    protocol_magic: int,
+    network_id: int,
     account_path_checker: AccountPathChecker,
+    previous_reward_address: bytes,
 ) -> None:
     validate_stake_credential(
         withdrawal.path, withdrawal.script_hash, signing_mode, INVALID_WITHDRAWAL
@@ -932,7 +925,36 @@ def _validate_withdrawal(
     credential = tuple(withdrawal.path) if withdrawal.path else withdrawal.script_hash
     assert credential  # validate_stake_credential
 
+    reward_address = _derive_withdrawal_reward_address_bytes(
+        keychain, withdrawal, protocol_magic, network_id
+    )
+    if not cbor.are_canonically_ordered(previous_reward_address, reward_address):
+        raise INVALID_WITHDRAWAL
+
     account_path_checker.add_withdrawal(withdrawal)
+
+
+def _derive_withdrawal_reward_address_bytes(
+    keychain: seed.Keychain,
+    withdrawal: CardanoTxWithdrawal,
+    protocol_magic: int,
+    network_id: int,
+) -> bytes:
+    reward_address_type = (
+        CardanoAddressType.REWARD
+        if withdrawal.path
+        else CardanoAddressType.REWARD_SCRIPT
+    )
+    return derive_address_bytes(
+        keychain,
+        CardanoAddressParametersType(
+            address_type=reward_address_type,
+            address_n_staking=withdrawal.path,
+            script_staking_hash=withdrawal.script_hash,
+        ),
+        protocol_magic,
+        network_id,
+    )
 
 
 def _get_output_address(
