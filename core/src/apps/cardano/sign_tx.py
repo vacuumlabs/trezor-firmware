@@ -63,7 +63,6 @@ from .helpers import (
     INVALID_STAKEPOOL_REGISTRATION_TX_WITNESSES,
     INVALID_TOKEN_BUNDLE_MINT,
     INVALID_TOKEN_BUNDLE_OUTPUT,
-    INVALID_TX_SIGNING_REQUEST,
     INVALID_WITHDRAWAL,
     INVALID_WITNESS_REQUEST,
     LOVELACE_MAX_SUPPLY,
@@ -101,7 +100,6 @@ from .layout import (
     show_transaction_signing_mode,
     show_warning_path,
     show_warning_tx_contains_mint,
-    show_warning_tx_network_unverifiable,
     show_warning_tx_output_contains_tokens,
 )
 from .seed import is_byron_path, is_multisig_path, is_shelley_path
@@ -124,6 +122,7 @@ TX_BODY_KEY_WITHDRAWALS = const(5)
 TX_BODY_KEY_AUXILIARY_DATA = const(7)
 TX_BODY_KEY_VALIDITY_INTERVAL_START = const(8)
 TX_BODY_KEY_MINT = const(9)
+TX_BODY_KEY_NETWORK_ID = const(15)
 
 POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT = 10
 
@@ -132,12 +131,13 @@ POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT = 10
 async def sign_tx(
     ctx: wire.Context, msg: CardanoSignTxInit, keychain: seed.Keychain
 ) -> CardanoSignTxFinished:
-    is_network_id_verifiable = await _validate_tx_signing_request(ctx, msg)
+    await _validate_tx_signing_request(ctx, msg)
 
     await show_transaction_signing_mode(ctx, msg.signing_mode)
 
-    # inputs, outputs and fee are mandatory fields, count the number of optional fields present
-    tx_body_map_item_count = 3 + sum(
+    # inputs, outputs, fee and network_id are mandatory, count the number
+    # of optional fields present
+    tx_body_map_item_count = 4 + sum(
         (
             msg.ttl is not None,
             msg.certificates_count > 0,
@@ -156,7 +156,7 @@ async def sign_tx(
     with tx_dict:
         await _process_transaction(ctx, msg, keychain, tx_dict, account_path_checker)
 
-    await _confirm_transaction(ctx, msg, is_network_id_verifiable)
+    await _confirm_transaction(ctx, msg)
 
     try:
         tx_hash = hash_fn.digest()
@@ -183,25 +183,14 @@ async def sign_tx(
 
 async def _validate_tx_signing_request(
     ctx: wire.Context, msg: CardanoSignTxInit
-) -> bool:
-    """Validate the data in the signing request and return whether the provided network id is verifiable."""
+) -> None:
+    """Validate the data in the signing request."""
     if msg.fee > LOVELACE_MAX_SUPPLY:
         raise wire.ProcessError("Fee is out of range!")
     validate_network_info(msg.network_id, msg.protocol_magic)
 
-    is_network_id_verifiable = _is_network_id_verifiable(msg)
-    if msg.signing_mode == CardanoTxSigningMode.ORDINARY_TRANSACTION:
-        if not is_network_id_verifiable:
-            await show_warning_tx_network_unverifiable(ctx)
-    elif msg.signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
+    if msg.signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         _validate_stake_pool_registration_tx_structure(msg)
-    elif msg.signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
-        if not is_network_id_verifiable:
-            await show_warning_tx_network_unverifiable(ctx)
-    else:
-        raise INVALID_TX_SIGNING_REQUEST
-
-    return is_network_id_verifiable
 
 
 async def _process_transaction(
@@ -282,11 +271,12 @@ async def _process_transaction(
         with tx_dict.add(TX_BODY_KEY_MINT, minting_dict):
             await _process_minting(ctx, minting_dict)
 
+    tx_dict.add(TX_BODY_KEY_NETWORK_ID, msg.network_id)
+
 
 async def _confirm_transaction(
     ctx: wire.Context,
     msg: CardanoSignTxInit,
-    is_network_id_verifiable: bool,
 ) -> None:
     if msg.signing_mode in (
         CardanoTxSigningMode.ORDINARY_TRANSACTION,
@@ -298,7 +288,6 @@ async def _confirm_transaction(
             msg.protocol_magic,
             msg.ttl,
             msg.validity_interval_start,
-            is_network_id_verifiable,
         )
     elif msg.signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         await confirm_stake_pool_registration_final(
@@ -1008,19 +997,6 @@ async def _show_witness_request(
         await confirm_witness_request(ctx, witness_path)
     elif signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         await confirm_witness_request(ctx, witness_path)
-
-
-def _is_network_id_verifiable(msg: CardanoSignTxInit) -> bool:
-    """
-    checks whether there is at least one element that contains
-    information about network ID, otherwise Trezor cannot
-    guarantee that the tx is actually meant for the given network
-    """
-    return (
-        msg.outputs_count != 0
-        or msg.withdrawals_count != 0
-        or msg.signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER
-    )
 
 
 async def _fail_or_warn_if_invalid_path(

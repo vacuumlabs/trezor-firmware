@@ -359,17 +359,13 @@ async def confirm_transaction(
     protocol_magic: int,
     ttl: int | None,
     validity_interval_start: int | None,
-    is_network_id_verifiable: bool,
 ) -> None:
     props: list[PropertyType] = [
         ("Transaction fee:", format_coin_amount(fee)),
+        (f"Network: {protocol_magics.to_ui_string(protocol_magic)}", None),
+        (f"Valid since: {format_optional_int(validity_interval_start)}", None),
+        (f"TTL: {format_optional_int(ttl)}", None),
     ]
-
-    if is_network_id_verifiable:
-        props.append((f"Network: {protocol_magics.to_ui_string(protocol_magic)}", None))
-
-    props.append((f"Valid since: {format_optional_int(validity_interval_start)}", None))
-    props.append((f"TTL: {format_optional_int(ttl)}", None))
 
     await confirm_properties(
         ctx,
@@ -639,17 +635,6 @@ async def confirm_token_minting(
                 format_amount(token.mint_amount, 0),
             ),
         ],
-        br_code=ButtonRequestType.Other,
-    )
-
-
-async def show_warning_tx_network_unverifiable(ctx: wire.Context) -> None:
-    await confirm_metadata(
-        ctx,
-        "warning_no_outputs",
-        title="Warning",
-        content="Transaction has no outputs, network cannot be verified.",
-        larger_vspace=True,
         br_code=ButtonRequestType.Other,
     )
 
