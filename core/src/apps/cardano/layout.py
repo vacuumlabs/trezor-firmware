@@ -192,7 +192,7 @@ async def show_script_hash(
 async def show_transaction_signing_mode(
     ctx: wire.Context, signing_mode: CardanoTxSigningMode
 ) -> None:
-    if signing_mode == CardanoTxSigningMode.SCRIPT_TRANSACTION:
+    if signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
         await confirm_metadata(
             ctx,
             "confirm_signing_mode",
