@@ -32,7 +32,7 @@
           }
         ],
         "mint": [],
-        "signing_mode": "SCRIPT_TRANSACTION",
+        "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
             "path": "m/1854'/1815'/0'/0/0"
@@ -71,7 +71,7 @@
           }
         ],
         "mint": [],
-        "signing_mode": "SCRIPT_TRANSACTION",
+        "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
             "path": "m/1854'/1815'/0'/0/0"
@@ -114,7 +114,7 @@
           }
         ],
         "mint": [],
-        "signing_mode": "SCRIPT_TRANSACTION",
+        "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
             "path": "m/1854'/1815'/0'/0/0"
@@ -148,7 +148,7 @@
           }
         ],
         "mint": [],
-        "signing_mode": "SCRIPT_TRANSACTION",
+        "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
             "path": "m/1852'/1815'/0'/0/0"
@@ -184,7 +184,7 @@
           }
         ],
         "mint": [],
-        "signing_mode": "SCRIPT_TRANSACTION",
+        "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
             "path": "m/1854'/1815'/0'/0/0"
@@ -218,7 +218,7 @@
           }
         ],
         "mint": [],
-        "signing_mode": "SCRIPT_TRANSACTION",
+        "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
             "path": "m/1855'/1815'/0'"
@@ -304,7 +304,7 @@
             ]
           }
         ],
-        "signing_mode": "SCRIPT_TRANSACTION",
+        "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
             "path": "m/1855'/1815'/0'/0/0"

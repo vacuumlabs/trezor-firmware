@@ -29,7 +29,7 @@ class TestCardanoCertificate(unittest.TestCase):
                         "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
                     ),
                 ),
-                CardanoTxSigningMode.SCRIPT_TRANSACTION,
+                CardanoTxSigningMode.MULTISIG_TRANSACTION,
             ),
             (
                 CardanoTxCertificate(
@@ -51,7 +51,7 @@ class TestCardanoCertificate(unittest.TestCase):
                         "f61c42cbf7c8c53af3f520508212ad3e72f674f957fe23ff0acb4973"
                     ),
                 ),
-                CardanoTxSigningMode.SCRIPT_TRANSACTION,
+                CardanoTxSigningMode.MULTISIG_TRANSACTION,
             ),
             (
                 CardanoTxCertificate(
@@ -67,7 +67,7 @@ class TestCardanoCertificate(unittest.TestCase):
                         "29fb5fd4aa8cadd6705acc8263cee0fc62edca5ac38db593fec2f9fd"
                     ),
                 ),
-                CardanoTxSigningMode.SCRIPT_TRANSACTION,
+                CardanoTxSigningMode.MULTISIG_TRANSACTION,
             ),
             (
                 CardanoTxCertificate(

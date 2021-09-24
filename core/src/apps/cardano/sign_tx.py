@@ -201,7 +201,7 @@ async def _validate_tx_signing_request(
             await show_warning_tx_network_unverifiable(ctx)
     elif msg.signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         _validate_stake_pool_registration_tx_structure(msg)
-    elif msg.signing_mode == CardanoTxSigningMode.SCRIPT_TRANSACTION:
+    elif msg.signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
         if not is_network_id_verifiable:
             await show_warning_tx_network_unverifiable(ctx)
     else:
@@ -296,7 +296,7 @@ async def _confirm_transaction(
 ) -> None:
     if msg.signing_mode in (
         CardanoTxSigningMode.ORDINARY_TRANSACTION,
-        CardanoTxSigningMode.SCRIPT_TRANSACTION,
+        CardanoTxSigningMode.MULTISIG_TRANSACTION,
     ):
         await confirm_transaction(
             ctx,
@@ -872,7 +872,7 @@ async def _show_certificate(
             ctx, SCHEMA_STAKING, certificate.path, CERTIFICATE_PATH_NAME
         )
         await confirm_certificate(ctx, certificate)
-    elif signing_mode == CardanoTxSigningMode.SCRIPT_TRANSACTION:
+    elif signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
         assert certificate.script_hash  # validate_certificate
         await confirm_certificate(ctx, certificate)
     elif signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
@@ -977,7 +977,7 @@ def _validate_witness_request(
             raise INVALID_WITNESS_REQUEST
     elif signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         _ensure_only_staking_witnesses(witness_request)
-    elif signing_mode == CardanoTxSigningMode.SCRIPT_TRANSACTION:
+    elif signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
         if not is_multisig_path(witness_request.path) and not is_minting:
             raise INVALID_WITNESS_REQUEST
         if is_minting and not transaction_has_token_minting:
@@ -1020,7 +1020,7 @@ async def _show_witness_request(
             await confirm_witness_request(ctx, witness_path)
         elif not is_payment and not is_staking:
             await _fail_or_warn_path(ctx, witness_path, WITNESS_PATH_NAME)
-    elif signing_mode == CardanoTxSigningMode.SCRIPT_TRANSACTION:
+    elif signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
         await confirm_witness_request(ctx, witness_path)
     elif signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
         await confirm_witness_request(ctx, witness_path)

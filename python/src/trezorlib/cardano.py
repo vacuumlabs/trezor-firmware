@@ -24,7 +24,7 @@ from .tools import expect
 SIGNING_MODE_IDS = {
     "ORDINARY_TRANSACTION": messages.CardanoTxSigningMode.ORDINARY_TRANSACTION,
     "POOL_REGISTRATION_AS_OWNER": messages.CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER,
-    "SCRIPT_TRANSACTION": messages.CardanoTxSigningMode.SCRIPT_TRANSACTION,
+    "MULTISIG_TRANSACTION": messages.CardanoTxSigningMode.MULTISIG_TRANSACTION,
 }
 
 PROTOCOL_MAGICS = {"mainnet": 764824073, "testnet": 42}
@@ -534,8 +534,8 @@ def _get_witness_requests(
 ) -> List[messages.CardanoTxWitnessRequest]:
     paths = set()
 
-    # don't gather paths from tx elements in SCRIPT_TRANSACTION signing mode
-    if signing_mode != messages.CardanoTxSigningMode.SCRIPT_TRANSACTION:
+    # don't gather paths from tx elements in MULTISIG_TRANSACTION signing mode
+    if signing_mode != messages.CardanoTxSigningMode.MULTISIG_TRANSACTION:
         for _, path in inputs:
             if path:
                 paths.add(tuple(path))
