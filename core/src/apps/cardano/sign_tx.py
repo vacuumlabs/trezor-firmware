@@ -46,7 +46,6 @@ from .auxiliary_data import (
     validate_auxiliary_data,
 )
 from .certificates import (
-    assert_certificate_cond,
     cborize_certificate,
     cborize_initial_pool_registration_certificate_fields,
     cborize_pool_metadata,
@@ -59,7 +58,6 @@ from .certificates import (
 from .helpers import (
     INVALID_OUTPUT,
     INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE,
-    INVALID_STAKEPOOL_REGISTRATION_TX_WITNESSES,
     INVALID_TOKEN_BUNDLE_MINT,
     INVALID_TOKEN_BUNDLE_OUTPUT,
     INVALID_TX_SIGNING_REQUEST,
@@ -88,9 +86,9 @@ from .helpers.paths import (
     SCHEMA_MINT,
     SCHEMA_PAYMENT,
     SCHEMA_STAKING,
-    SCHEMA_STAKING_ANY_ACCOUNT,
     WITNESS_PATH_NAME,
 )
+from .helpers.pool_owner_path_check import PoolOwnerPathChecker
 from .helpers.utils import derive_public_key, validate_stake_credential
 from .layout import (
     confirm_certificate,
@@ -156,12 +154,15 @@ async def sign_tx(
     )
 
     account_path_checker = AccountPathChecker()
+    pool_owner_path_checker = PoolOwnerPathChecker()
 
     hash_fn = hashlib.blake2b(outlen=32)
     tx_dict: HashBuilderDict[int, Any] = HashBuilderDict(tx_body_map_item_count)
     tx_dict.start(hash_fn)
     with tx_dict:
-        await _process_transaction(ctx, msg, keychain, tx_dict, account_path_checker)
+        await _process_transaction(
+            ctx, msg, keychain, tx_dict, account_path_checker, pool_owner_path_checker
+        )
 
     await _confirm_transaction(ctx, msg, is_network_id_verifiable)
 
@@ -175,6 +176,7 @@ async def sign_tx(
             msg.signing_mode,
             msg.minting_asset_groups_count > 0,
             account_path_checker,
+            pool_owner_path_checker,
         )
 
         await ctx.call(response_after_witness_requests, CardanoTxHostAck)
@@ -217,6 +219,7 @@ async def _process_transaction(
     keychain: seed.Keychain,
     tx_dict: HashBuilderDict,
     account_path_checker: AccountPathChecker,
+    pool_owner_path_checker: PoolOwnerPathChecker,
 ) -> None:
     inputs_list: HashBuilderList[tuple[bytes, int]] = HashBuilderList(msg.inputs_count)
     with tx_dict.add(TX_BODY_KEY_INPUTS, inputs_list):
@@ -252,6 +255,7 @@ async def _process_transaction(
                 msg.protocol_magic,
                 msg.network_id,
                 account_path_checker,
+                pool_owner_path_checker,
             )
 
     if msg.withdrawals_count > 0:
@@ -451,6 +455,7 @@ async def _process_certificates(
     protocol_magic: int,
     network_id: int,
     account_path_checker: AccountPathChecker,
+    pool_owner_path_checker: PoolOwnerPathChecker,
 ) -> None:
     """Read, validate, confirm and serialize the certificates."""
     if certificates_count == 0:
@@ -490,6 +495,7 @@ async def _process_certificates(
                         protocol_magic,
                         network_id,
                         account_path_checker,
+                        pool_owner_path_checker,
                     )
 
                 relays_list: HashBuilderList[cbor.CborSequence] = HashBuilderList(
@@ -513,8 +519,8 @@ async def _process_pool_owners(
     protocol_magic: int,
     network_id: int,
     account_path_checker: AccountPathChecker,
+    pool_owner_path_checker: PoolOwnerPathChecker,
 ) -> None:
-    owners_as_path_count = 0
     for _ in range(owners_count):
         owner: CardanoPoolOwner = await ctx.call(CardanoTxItemAck(), CardanoPoolOwner)
         validate_pool_owner(owner, account_path_checker)
@@ -523,9 +529,9 @@ async def _process_pool_owners(
         pool_owners_list.append(cborize_pool_owner(keychain, owner))
 
         if owner.staking_key_path:
-            owners_as_path_count += 1
+            pool_owner_path_checker.add(owner.staking_key_path)
 
-    assert_certificate_cond(owners_as_path_count == 1)
+    pool_owner_path_checker.check_if_added()
 
 
 async def _process_pool_relays(
@@ -677,6 +683,7 @@ async def _process_witness_requests(
     signing_mode: CardanoTxSigningMode,
     transaction_has_token_minting: bool,
     account_path_checker: AccountPathChecker,
+    pool_owner_path_checker: PoolOwnerPathChecker,
 ) -> CardanoTxResponseType:
     response: CardanoTxResponseType = CardanoTxItemAck()
 
@@ -687,6 +694,7 @@ async def _process_witness_requests(
             signing_mode,
             transaction_has_token_minting,
             account_path_checker,
+            pool_owner_path_checker,
         )
         await _show_witness_request(ctx, witness_request.path, signing_mode)
         response = _get_witness(keychain, witness_request.path, tx_hash)
@@ -1005,6 +1013,7 @@ def _validate_witness_request(
     signing_mode: CardanoTxSigningMode,
     transaction_has_token_minting: bool,
     account_path_checker: AccountPathChecker,
+    pool_owner_path_checker: PoolOwnerPathChecker,
 ) -> None:
     # further witness path validation happens in _show_witness_request
     is_minting = SCHEMA_MINT.match(witness_request.path)
@@ -1019,7 +1028,7 @@ def _validate_witness_request(
         if is_minting and not transaction_has_token_minting:
             raise INVALID_WITNESS_REQUEST
     elif signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
-        _ensure_only_staking_witnesses(witness_request)
+        pool_owner_path_checker.check_witness_request(witness_request.path)
     elif signing_mode == CardanoTxSigningMode.SCRIPT_TRANSACTION:
         if not is_multisig_path(witness_request.path) and not is_minting:
             raise INVALID_WITNESS_REQUEST
@@ -1027,23 +1036,6 @@ def _validate_witness_request(
             raise INVALID_WITNESS_REQUEST
 
     account_path_checker.add_witness_request(witness_request)
-
-
-def _ensure_only_staking_witnesses(witness: CardanoTxWitnessRequest) -> None:
-    """
-    We have a separate tx signing flow for stake pool registration because it's a
-    transaction where the witnessable entries (i.e. inputs, withdrawals, etc.)
-    in the transaction are not supposed to be controlled by the HW wallet, which
-    means the user is vulnerable to unknowingly supplying a witness for an UTXO
-    or other tx entry they think is external, resulting in the co-signers
-    gaining control over their funds (Something SLIP-0019 is dealing with for
-    BTC but no similar standard is currently available for Cardano). Hence we
-    completely forbid witnessing inputs and other entries of the transaction
-    except the stake pool certificate itself and we provide a witness only to the
-    user's staking key in the list of pool owners.
-    """
-    if not SCHEMA_STAKING_ANY_ACCOUNT.match(witness.path):
-        raise INVALID_STAKEPOOL_REGISTRATION_TX_WITNESSES
 
 
 async def _show_witness_request(
