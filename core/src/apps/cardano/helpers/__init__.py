@@ -12,8 +12,8 @@ INVALID_AUXILIARY_DATA = wire.ProcessError("Invalid auxiliary data")
 INVALID_STAKE_POOL_REGISTRATION_TX_STRUCTURE = wire.ProcessError(
     "Stakepool registration transaction cannot contain other certificates, withdrawals or minting"
 )
-INVALID_STAKEPOOL_REGISTRATION_TX_WITNESSES = wire.ProcessError(
-    "Stakepool registration transaction can only contain staking witnesses"
+INVALID_STAKEPOOL_REGISTRATION_TX_WITNESS = wire.ProcessError(
+    "Stakepool registration transaction can only contain sinlge staking witnesses with the same path as in the certificate"
 )
 INVALID_WITNESS_REQUEST = wire.ProcessError("Invalid witness request")
 INVALID_NATIVE_SCRIPT = wire.ProcessError("Invalid native script")

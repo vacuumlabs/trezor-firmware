@@ -466,6 +466,8 @@ if utils.BITCOIN_ONLY:
     import apps.cardano.helpers.network_ids
     apps.cardano.helpers.paths
     import apps.cardano.helpers.paths
+    apps.cardano.helpers.pool_owner_path_check
+    import apps.cardano.helpers.pool_owner_path_check
     apps.cardano.helpers.protocol_magics
     import apps.cardano.helpers.protocol_magics
     apps.cardano.helpers.utils
