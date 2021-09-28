@@ -15,6 +15,7 @@ from trezor.ui.layouts import (
     confirm_output,
     confirm_path_warning,
     confirm_properties,
+    confirm_text,
     show_address,
 )
 
@@ -343,16 +344,12 @@ async def confirm_witness_request(
     else:
         path_title = "path"
 
-    await confirm_properties(
+    await confirm_text(
         ctx,
         "confirm_total",
         title="Confirm transaction",
-        props=[
-            (
-                "Sign transaction with %s:" % path_title,
-                address_n_to_str(witness_path),
-            )
-        ],
+        data=address_n_to_str(witness_path),
+        description="Sign transaction with %s:" % path_title,
         br_code=ButtonRequestType.Other,
     )
 
