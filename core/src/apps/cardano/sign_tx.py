@@ -402,8 +402,7 @@ async def _process_asset_groups(
         asset_group: CardanoAssetGroup = await ctx.call(
             CardanoTxItemAck(), CardanoAssetGroup
         )
-        asset_group.policy_id = asset_group.policy_id
-        _validate_output_asset_group(asset_group, seen_policy_ids)
+        _validate_asset_group(asset_group, seen_policy_ids)
         seen_policy_ids.add(asset_group.policy_id)
 
         tokens: HashBuilderDict[bytes, int] = HashBuilderDict(asset_group.tokens_count)
@@ -430,8 +429,7 @@ async def _process_tokens(
     seen_asset_name_bytes: set[bytes] = set()
     for _ in range(tokens_count):
         token: CardanoToken = await ctx.call(CardanoTxItemAck(), CardanoToken)
-        token.asset_name_bytes = token.asset_name_bytes
-        _validate_output_token(token, seen_asset_name_bytes)
+        _validate_token(token, seen_asset_name_bytes)
         seen_asset_name_bytes.add(token.asset_name_bytes)
         if should_show_tokens:
             await confirm_sending_token(ctx, policy_id, token)
@@ -632,8 +630,7 @@ async def _process_minting(
         asset_group: CardanoAssetGroup = await ctx.call(
             CardanoTxItemAck(), CardanoAssetGroup
         )
-        asset_group.policy_id = asset_group.policy_id
-        _validate_minting_asset_group(asset_group, seen_policy_ids)
+        _validate_asset_group(asset_group, seen_policy_ids, is_mint=True)
         seen_policy_ids.add(asset_group.policy_id)
 
         tokens: HashBuilderDict[bytes, int] = HashBuilderDict(asset_group.tokens_count)
@@ -658,8 +655,7 @@ async def _process_minting_tokens(
     seen_asset_name_bytes: set[bytes] = set()
     for _ in range(tokens_count):
         token: CardanoToken = await ctx.call(CardanoTxItemAck(), CardanoToken)
-        token.asset_name_bytes = token.asset_name_bytes
-        _validate_minting_token(token, seen_asset_name_bytes)
+        _validate_token(token, seen_asset_name_bytes, is_mint=True)
         seen_asset_name_bytes.add(token.asset_name_bytes)
         await confirm_token_minting(ctx, policy_id, token)
 
@@ -686,22 +682,14 @@ async def _process_witness_requests(
             transaction_has_token_minting,
             account_path_checker,
         )
-        await _show_witness_request(ctx, witness_request.path, signing_mode)
-        response = _get_witness(keychain, witness_request.path, tx_hash)
+        path = witness_request.path
+        await _show_witness_request(ctx, path, signing_mode)
+        if is_byron_path(path):
+            response = _get_byron_witness(keychain, path, tx_hash)
+        else:
+            response = _get_shelley_witness(keychain, path, tx_hash)
 
     return response
-
-
-def _get_witness(
-    keychain: seed.Keychain,
-    path: list[int],
-    tx_hash: bytes,
-) -> CardanoTxWitnessResponse:
-    return (
-        _get_byron_witness(keychain, path, tx_hash)
-        if is_byron_path(path)
-        else _get_shelley_witness(keychain, path, tx_hash)
-    )
 
 
 def _get_byron_witness(
@@ -840,20 +828,8 @@ async def _show_output(
     await confirm_sending(ctx, output.amount, address, is_change_output)
 
 
-def _validate_output_asset_group(
-    asset_group: CardanoAssetGroup, seen_policy_ids: set[bytes]
-) -> None:
-    _validate_asset_group(asset_group, seen_policy_ids, False)
-
-
-def _validate_minting_asset_group(
-    asset_group: CardanoAssetGroup, seen_policy_ids: set[bytes]
-) -> None:
-    _validate_asset_group(asset_group, seen_policy_ids, True)
-
-
 def _validate_asset_group(
-    asset_group: CardanoAssetGroup, seen_policy_ids: set[bytes], is_mint: bool
+    asset_group: CardanoAssetGroup, seen_policy_ids: set[bytes], is_mint: bool = False
 ) -> None:
     INVALID_TOKEN_BUNDLE = (
         INVALID_TOKEN_BUNDLE_MINT if is_mint else INVALID_TOKEN_BUNDLE_OUTPUT
@@ -867,20 +843,8 @@ def _validate_asset_group(
         raise INVALID_TOKEN_BUNDLE
 
 
-def _validate_output_token(
-    token: CardanoToken, seen_asset_name_bytes: set[bytes]
-) -> None:
-    _validate_token(token, seen_asset_name_bytes, False)
-
-
-def _validate_minting_token(
-    token: CardanoToken, seen_asset_name_bytes: set[bytes]
-) -> None:
-    _validate_token(token, seen_asset_name_bytes, True)
-
-
 def _validate_token(
-    token: CardanoToken, seen_asset_name_bytes: set[bytes], is_mint: bool
+    token: CardanoToken, seen_asset_name_bytes: set[bytes], is_mint: bool = False
 ) -> None:
     INVALID_TOKEN_BUNDLE = (
         INVALID_TOKEN_BUNDLE_MINT if is_mint else INVALID_TOKEN_BUNDLE_OUTPUT
