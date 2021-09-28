@@ -39,21 +39,18 @@ async def get_address(
         raise wire.ProcessError("Deriving address failed")
 
     if msg.show_display:
-        await _display_address(
-            ctx, keychain, address_parameters, address, msg.protocol_magic
-        )
+        await _display_address(ctx, address_parameters, address, msg.protocol_magic)
 
     return CardanoAddress(address=address)
 
 
 async def _display_address(
     ctx: wire.Context,
-    keychain: seed.Keychain,
     address_parameters: CardanoAddressParametersType,
     address: str,
     protocol_magic: int,
 ) -> None:
-    address_policy = get_address_policy(keychain, address_parameters)
+    address_policy = get_address_policy(address_parameters)
     if address_policy == ADDRESS_POLICY_SHOW_SPLIT:
         await show_credential(
             ctx,
@@ -63,7 +60,7 @@ async def _display_address(
         await show_credential(
             ctx,
             CredentialParams(CredentialParams.TYPE_STAKE, address_parameters),
-            get_stake_credential_policy(keychain, address_parameters),
+            get_stake_credential_policy(address_parameters),
         )
 
     await show_cardano_address(ctx, address_parameters, address, protocol_magic)

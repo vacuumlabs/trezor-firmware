@@ -72,7 +72,6 @@ from .helpers import (
 from .helpers.account_path_check import AccountPathChecker
 from .helpers.address_credential_policy import (
     ADDRESS_POLICY_SHOW_SIMPLE,
-    ADDRESS_POLICY_SHOW_SPLIT,
     CREDENTIAL_POLICY_FAIL_OR_WARN_UNUSUAL,
     get_address_policy,
     get_change_output_payment_credential_policy,
@@ -341,7 +340,6 @@ async def _process_outputs(
     for _ in range(outputs_count):
         output: CardanoTxOutput = await ctx.call(CardanoTxItemAck(), CardanoTxOutput)
         _validate_output(
-            keychain,
             output,
             signing_mode,
             protocol_magic,
@@ -349,7 +347,7 @@ async def _process_outputs(
             account_path_checker,
         )
 
-        should_show_output = _should_show_output(keychain, output, signing_mode)
+        should_show_output = _should_show_output(output, signing_mode)
         if should_show_output:
             await _show_output(
                 ctx,
@@ -757,7 +755,6 @@ def _validate_stake_pool_registration_tx_structure(msg: CardanoSignTxInit) -> No
 
 
 def _validate_output(
-    keychain: seed.Keychain,
     output: CardanoTxOutput,
     signing_mode: CardanoTxSigningMode,
     protocol_magic: int,
@@ -772,7 +769,7 @@ def _validate_output(
             raise INVALID_OUTPUT
 
         validate_address_parameters(address_parameters)
-        _fail_if_strict_and_unusual(keychain, address_parameters)
+        _fail_if_strict_and_unusual(address_parameters)
     elif output.address is not None:
         validate_output_address(output.address, protocol_magic, network_id)
     else:
@@ -782,15 +779,16 @@ def _validate_output(
 
 
 def _should_show_output(
-    keychain: seed.Keychain,
     output: CardanoTxOutput,
     signing_mode: CardanoTxSigningMode,
 ) -> bool:
     if signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
+        # In a pool registration transaction, there are no inputs belonging to the user
+        # and no spending witnesses. It is thus safe to not show the outputs.
         return False
 
     if output.address_parameters:  # is change output
-        address_policy = get_address_policy(keychain, output.address_parameters)
+        address_policy = get_address_policy(output.address_parameters)
         if address_policy == ADDRESS_POLICY_SHOW_SIMPLE:
             # we don't need to display simple address outputs
             return False
@@ -812,14 +810,11 @@ async def _show_output(
     if address_parameters := output.address_parameters:
         is_change_output = True
 
-        address_policy = get_address_policy(keychain, address_parameters)
-        assert address_policy == ADDRESS_POLICY_SHOW_SPLIT  # _should_show_output
-
         payment_credential_policy = get_change_output_payment_credential_policy(
             address_parameters
         )
         stake_credential_policy = get_change_output_stake_credential_policy(
-            keychain, address_parameters
+            address_parameters
         )
 
         await show_credential(
@@ -1099,7 +1094,7 @@ async def _fail_or_warn_path(
 
 
 def _fail_if_strict_and_unusual(
-    keychain: seed.Keychain, address_parameters: CardanoAddressParametersType
+    address_parameters: CardanoAddressParametersType,
 ) -> None:
     if not safety_checks.is_strict():
         return
@@ -1111,7 +1106,7 @@ def _fail_if_strict_and_unusual(
         raise wire.DataError("Invalid %s" % CHANGE_OUTPUT_PATH_NAME.lower())
 
     stake_credential_policy = get_change_output_stake_credential_policy(
-        keychain, address_parameters
+        address_parameters
     )
     if (stake_credential_policy & CREDENTIAL_POLICY_FAIL_OR_WARN_UNUSUAL) != 0:
         raise wire.DataError("Invalid %s" % CHANGE_OUTPUT_STAKING_PATH_NAME.lower())

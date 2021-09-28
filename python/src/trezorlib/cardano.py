@@ -55,20 +55,6 @@ INCOMPLETE_OUTPUT_ERROR_MESSAGE = "The output is missing some fields"
 INVALID_OUTPUT_TOKEN_BUNDLE_ENTRY = "The output's token_bundle entry is invalid"
 INVALID_MINT_TOKEN_BUNDLE_ENTRY = "The mint token_bundle entry is invalid"
 
-ADDRESS_TYPES = (
-    messages.CardanoAddressType.BYRON,
-    messages.CardanoAddressType.BASE,
-    messages.CardanoAddressType.BASE_SCRIPT_KEY,
-    messages.CardanoAddressType.BASE_KEY_SCRIPT,
-    messages.CardanoAddressType.BASE_SCRIPT_SCRIPT,
-    messages.CardanoAddressType.POINTER,
-    messages.CardanoAddressType.POINTER_SCRIPT,
-    messages.CardanoAddressType.ENTERPRISE,
-    messages.CardanoAddressType.ENTERPRISE_SCRIPT,
-    messages.CardanoAddressType.REWARD,
-    messages.CardanoAddressType.REWARD_SCRIPT,
-)
-
 InputWithPath = Tuple[messages.CardanoTxInput, List[int]]
 AssetGroupWithTokens = Tuple[messages.CardanoAssetGroup, List[messages.CardanoToken]]
 OutputWithAssetGroups = Tuple[messages.CardanoTxOutput, List[AssetGroupWithTokens]]
@@ -115,9 +101,6 @@ def create_address_parameters(
     script_staking_hash: bytes = None,
 ) -> messages.CardanoAddressParametersType:
     certificate_pointer = None
-
-    if address_type not in ADDRESS_TYPES:
-        raise ValueError("Unknown address type")
 
     if address_type in (
         messages.CardanoAddressType.POINTER,
