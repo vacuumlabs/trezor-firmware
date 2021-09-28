@@ -10,6 +10,7 @@ from trezor.enums import (
 from trezor.messages import CardanoAddressParametersType
 from trezor.strings import format_amount
 from trezor.ui.layouts import (
+    confirm_blob,
     confirm_metadata,
     confirm_output,
     confirm_path_warning,
@@ -174,19 +175,23 @@ async def show_script_hash(
         CardanoNativeScriptHashDisplayFormat.POLICY_ID,
     )
 
-    props: list[PropertyType] = []
     if display_format == CardanoNativeScriptHashDisplayFormat.BECH32:
-        props = [("Script hash:", format_script_hash(script_hash))]
+        await confirm_properties(
+            ctx,
+            "verify_script",
+            title="Verify script",
+            props=[("Script hash:", format_script_hash(script_hash))],
+            br_code=ButtonRequestType.Other,
+        )
     elif display_format == CardanoNativeScriptHashDisplayFormat.POLICY_ID:
-        props = [("Policy ID:", script_hash)]
-
-    await confirm_properties(
-        ctx,
-        "verify_script",
-        title="Verify script",
-        props=props,
-        br_code=ButtonRequestType.Other,
-    )
+        await confirm_blob(
+            ctx,
+            "verify_script",
+            title="Verify script",
+            data=script_hash,
+            description="Policy ID:",
+            br_code=ButtonRequestType.Other,
+        )
 
 
 async def show_transaction_signing_mode(

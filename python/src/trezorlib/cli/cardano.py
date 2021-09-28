@@ -201,7 +201,6 @@ def get_public_key(client, address):
 
 @cli.command()
 @click.argument("file", type=click.File("r"))
-@click.option("-f", "--file", "_ignore", is_flag=True, hidden=True, expose_value=False)
 @click.option(
     "-d",
     "--display-format",
@@ -210,6 +209,7 @@ def get_public_key(client, address):
 )
 @with_client
 def get_native_script_hash(client, file, display_format):
+    """Get Cardano native script hash."""
     native_script_json = json.load(file)
     native_script = cardano.parse_native_script(native_script_json)
 
