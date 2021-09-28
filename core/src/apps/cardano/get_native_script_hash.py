@@ -1,4 +1,4 @@
-from trezor import log, wire
+from trezor import wire
 from trezor.enums import CardanoNativeScriptHashDisplayFormat
 from trezor.messages import CardanoNativeScriptHash
 
@@ -15,12 +15,7 @@ async def get_native_script_hash(
 ) -> CardanoNativeScriptHash:
     native_script.validate_native_script(msg.script)
 
-    try:
-        script_hash = native_script.get_native_script_hash(keychain, msg.script)
-    except ValueError as e:
-        if __debug__:
-            log.exception(__name__, e)
-        raise wire.ProcessError("Getting native script hash failed")
+    script_hash = native_script.get_native_script_hash(keychain, msg.script)
 
     if msg.display_format != CardanoNativeScriptHashDisplayFormat.HIDE:
         await show_native_script(ctx, msg.script)

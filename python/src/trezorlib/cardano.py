@@ -96,7 +96,7 @@ SignTxResponse = Dict[str, Union[bytes, List[Witness], AuxiliaryDataSupplement]]
 
 
 def parse_optional_bytes(value: Optional[str]) -> Optional[bytes]:
-    return bytes.fromhex(value) if value else None
+    return bytes.fromhex(value) if value is not None else None
 
 
 def parse_optional_int(value) -> Optional[int]:
@@ -496,9 +496,7 @@ def parse_auxiliary_data(auxiliary_data) -> messages.CardanoTxAuxiliaryData:
     )
 
     # include all provided fields so we can test validation in FW
-    hash = None
-    if "hash" in auxiliary_data:
-        hash = bytes.fromhex(auxiliary_data["hash"])
+    hash = parse_optional_bytes(auxiliary_data.get("hash"))
 
     catalyst_registration_parameters = None
     if "catalyst_registration_parameters" in auxiliary_data:
