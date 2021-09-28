@@ -9,6 +9,7 @@ if False:
         CardanoAddressParametersType,
     )
     from trezor.ui.layouts import PropertyType
+    from typing import Literal
 
 
 class CredentialParams:
@@ -17,17 +18,21 @@ class CredentialParams:
     separately. Also contains functions which simplify displaying the credential.
     """
 
-    type: int
+    type: Literal[0, 1]
     address_type: CardanoAddressType
     path: list[int]
     key_hash: bytes | None
     script_hash: bytes | None
     pointer: CardanoBlockchainPointerType | None
 
-    TYPE_PAYMENT = 0
-    TYPE_STAKE = 1
+    TYPE_PAYMENT: Literal[0] = 0
+    TYPE_STAKE: Literal[1] = 1
 
-    def __init__(self, type: int, address_parameters: CardanoAddressParametersType):
+    def __init__(
+        self,
+        type: Literal[0, 1],
+        address_parameters: CardanoAddressParametersType,
+    ):
         self.type = type
         self.address_type = address_parameters.address_type
 
@@ -42,7 +47,7 @@ class CredentialParams:
             self.script_hash = address_parameters.script_staking_hash
             self.pointer = address_parameters.certificate_pointer
         else:
-            raise ValueError
+            raise RuntimeError
 
     def get_credential(self) -> list[int] | bytes | CardanoBlockchainPointerType | None:
         if self.path:
@@ -90,4 +95,4 @@ class CredentialParams:
         elif self.type == self.TYPE_STAKE:
             return "stake"
 
-        raise ValueError
+        raise RuntimeError

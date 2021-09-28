@@ -1,12 +1,10 @@
 from trezor.enums import CardanoAddressType
 
-from ..address import get_public_key_hash
 from .paths import CHAIN_STAKING_KEY, SCHEMA_PAYMENT, SCHEMA_STAKING
 from .utils import to_account_path
 
 if False:
     from trezor.messages import CardanoAddressParametersType
-    from ..seed import Keychain
 
 
 CREDENTIAL_POLICY_SHOW = 0
@@ -33,17 +31,13 @@ ADDRESS_POLICY_SHOW_SPLIT = 0
 ADDRESS_POLICY_SHOW_SIMPLE = 1
 
 
-def get_address_policy(
-    keychain: Keychain, address_parameters: CardanoAddressParametersType
-) -> int:
+def get_address_policy(address_parameters: CardanoAddressParametersType) -> int:
     if (
         address_parameters.address_type == CardanoAddressType.BASE
         and SCHEMA_PAYMENT.match(address_parameters.address_n)
         and _do_base_address_credentials_match(
-            keychain,
             address_parameters.address_n,
             address_parameters.address_n_staking,
-            address_parameters.staking_key_hash,
         )
     ):
         return ADDRESS_POLICY_SHOW_SIMPLE
@@ -59,9 +53,9 @@ def get_change_output_payment_credential_policy(
 
 
 def get_change_output_stake_credential_policy(
-    keychain: Keychain, address_parameters: CardanoAddressParametersType
+    address_parameters: CardanoAddressParametersType,
 ) -> int:
-    credential_policy = get_stake_credential_policy(keychain, address_parameters)
+    credential_policy = get_stake_credential_policy(address_parameters)
     return _policy_to_change_output_policy(credential_policy)
 
 
@@ -99,7 +93,7 @@ def get_payment_credential_policy(
 
 
 def get_stake_credential_policy(
-    keychain: Keychain, address_parameters: CardanoAddressParametersType
+    address_parameters: CardanoAddressParametersType,
 ) -> int:
     address_type = address_parameters.address_type
     if address_type == CardanoAddressType.BASE:
@@ -108,10 +102,8 @@ def get_stake_credential_policy(
         )
 
         if not _do_base_address_credentials_match(
-            keychain,
             address_parameters.address_n,
             address_parameters.address_n_staking,
-            address_parameters.staking_key_hash,
         ):
             return (
                 CREDENTIAL_POLICY_FAIL_OR_WARN_UNUSUAL | CREDENTIAL_POLICY_WARN_MISMATCH
@@ -163,24 +155,10 @@ def get_stake_credential_policy(
 
 
 def _do_base_address_credentials_match(
-    keychain: Keychain,
     address_n: list[int],
     address_n_staking: list[int],
-    staking_key_hash: bytes | None,
 ) -> bool:
-    assert address_n_staking or staking_key_hash is not None
-
-    spending_account_staking_path = _path_to_staking_path(address_n)
-    if address_n_staking:
-        if address_n_staking != spending_account_staking_path:
-            return False
-    else:
-        spending_account_staking_key_hash = get_public_key_hash(
-            keychain, spending_account_staking_path
-        )
-        if staking_key_hash != spending_account_staking_key_hash:
-            return False
-    return True
+    return address_n_staking == _path_to_staking_path(address_n)
 
 
 def _path_to_staking_path(path: list[int]) -> list[int]:

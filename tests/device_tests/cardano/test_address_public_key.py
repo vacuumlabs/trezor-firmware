@@ -16,7 +16,12 @@
 
 import pytest
 
-from trezorlib.cardano import create_address_parameters, get_address, get_public_key
+from trezorlib.cardano import (
+    create_address_parameters,
+    get_address,
+    get_public_key,
+    parse_optional_bytes,
+)
 from trezorlib.messages import CardanoAddressType
 from trezorlib.tools import parse_path
 
@@ -52,18 +57,16 @@ def test_cardano_get_address(client, parameters, result):
             address_n_staking=parse_path(parameters.get("staking_path"))
             if "staking_path" in parameters
             else None,
-            staking_key_hash=bytes.fromhex(parameters.get("staking_key_hash"))
-            if "staking_key_hash" in parameters
-            else None,
+            staking_key_hash=parse_optional_bytes(parameters.get("staking_key_hash")),
             block_index=parameters.get("block_index"),
             tx_index=parameters.get("tx_index"),
             certificate_index=parameters.get("certificate_index"),
-            script_payment_hash=bytes.fromhex(parameters.get("script_payment_hash"))
-            if "script_payment_hash" in parameters
-            else None,
-            script_staking_hash=bytes.fromhex(parameters.get("script_staking_hash"))
-            if "script_staking_hash" in parameters
-            else None,
+            script_payment_hash=parse_optional_bytes(
+                parameters.get("script_payment_hash")
+            ),
+            script_staking_hash=parse_optional_bytes(
+                parameters.get("script_staking_hash")
+            ),
         ),
         protocol_magic=parameters["protocol_magic"],
         network_id=parameters["network_id"],
