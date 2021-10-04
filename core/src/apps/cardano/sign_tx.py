@@ -37,8 +37,8 @@ from .address import (
     derive_address_bytes,
     derive_human_readable_address,
     get_address_bytes_unsafe,
-    validate_address_parameters,
     validate_output_address,
+    validate_output_address_parameters,
 )
 from .auxiliary_data import (
     get_auxiliary_data_hash_and_supplement,
@@ -756,7 +756,7 @@ def _validate_output(
         if signing_mode != CardanoTxSigningMode.ORDINARY_TRANSACTION:
             raise INVALID_OUTPUT
 
-        validate_address_parameters(address_parameters)
+        validate_output_address_parameters(address_parameters)
         _fail_if_strict_and_unusual(address_parameters)
     elif output.address is not None:
         validate_output_address(output.address, protocol_magic, network_id)
