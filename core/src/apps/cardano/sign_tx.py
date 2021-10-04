@@ -72,10 +72,10 @@ from .helpers import (
 from .helpers.account_path_check import AccountPathChecker
 from .helpers.address_credential_policy import (
     ADDRESS_POLICY_SHOW_SIMPLE,
-    CREDENTIAL_POLICY_FAIL_OR_WARN_UNUSUAL,
+    CredentialPolicy,
     get_address_policy,
-    get_change_output_payment_credential_policy,
-    get_change_output_stake_credential_policy,
+    get_payment_credential_policy,
+    get_stake_credential_policy,
 )
 from .helpers.credential_params import CredentialParams
 from .helpers.hash_builder_collection import HashBuilderDict, HashBuilderList
@@ -798,22 +798,20 @@ async def _show_output(
     if address_parameters := output.address_parameters:
         is_change_output = True
 
-        payment_credential_policy = get_change_output_payment_credential_policy(
-            address_parameters
-        )
-        stake_credential_policy = get_change_output_stake_credential_policy(
-            address_parameters
-        )
+        payment_credential_policy = get_payment_credential_policy(address_parameters)
+        stake_credential_policy = get_stake_credential_policy(address_parameters)
 
         await show_credential(
             ctx,
             CredentialParams(CredentialParams.TYPE_PAYMENT, address_parameters),
             payment_credential_policy,
+            is_change_output=True,
         )
         await show_credential(
             ctx,
             CredentialParams(CredentialParams.TYPE_STAKE, address_parameters),
             stake_credential_policy,
+            is_change_output=True,
         )
 
         address = derive_human_readable_address(
@@ -1063,14 +1061,14 @@ def _fail_if_strict_and_unusual(
     if not safety_checks.is_strict():
         return
 
-    payment_credential_policy = get_change_output_payment_credential_policy(
-        address_parameters
-    )
-    if (payment_credential_policy & CREDENTIAL_POLICY_FAIL_OR_WARN_UNUSUAL) != 0:
+    payment_credential_policy = get_payment_credential_policy(address_parameters)
+    if CredentialPolicy.check(
+        payment_credential_policy, CredentialPolicy.WARN_UNUSUAL_PATH
+    ):
         raise wire.DataError("Invalid %s" % CHANGE_OUTPUT_PATH_NAME.lower())
 
-    stake_credential_policy = get_change_output_stake_credential_policy(
-        address_parameters
-    )
-    if (stake_credential_policy & CREDENTIAL_POLICY_FAIL_OR_WARN_UNUSUAL) != 0:
+    stake_credential_policy = get_stake_credential_policy(address_parameters)
+    if CredentialPolicy.check(
+        stake_credential_policy, CredentialPolicy.WARN_UNUSUAL_PATH
+    ):
         raise wire.DataError("Invalid %s" % CHANGE_OUTPUT_STAKING_PATH_NAME.lower())
