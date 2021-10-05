@@ -222,8 +222,8 @@ def validate_output_address_parameters(
         CardanoAddressType.REWARD,
         CardanoAddressType.REWARD_SCRIPT,
     ):
-        # outputs with reward address and change outputs with script payment
-        # part are forbidden
+        # Change outputs with script payment part are forbidden.
+        # Reward addresses are forbidden as outputs in general, see also validate_output_address
         raise INVALID_ADDRESS_PARAMETERS
 
 
