@@ -302,7 +302,7 @@ async def _show_credential(
             )
         )
 
-    if credential_params.is_warning():
+    if credential_params.should_warn():
         icon = ui.ICON_WRONG
         icon_color = ui.RED
     else:

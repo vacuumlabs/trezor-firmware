@@ -12,6 +12,17 @@ CERTIFICATE_POINTER = CardanoBlockchainPointerType(
     certificate_index=42,
 )
 
+
+def _create_flags(
+    is_reward: bool = False,
+    is_no_staking: bool = False,
+    is_mismatch: bool = False,
+    is_unusual_path: bool = False,
+    is_other_warning: bool = False,
+) -> tuple[bool, ...]:
+    return (is_reward, is_no_staking, is_mismatch, is_unusual_path, is_other_warning)
+
+
 ADDRESS_PARAMETERS_CASES = [
     # base
     (
@@ -20,8 +31,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
         ),
-        [False, False, False, False, False],
-        [False, False, False, False, False],
+        _create_flags(),
+        _create_flags(),
     ),
     # base mismatch
     (
@@ -30,8 +41,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 1 | HARDENED, 2, 0],
         ),
-        [False, False, False, False, False],
-        [False, False, True, False, False],
+        _create_flags(),
+        _create_flags(is_mismatch=True),
     ),
     # base payment unusual
     (
@@ -40,8 +51,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
         ),
-        [False, False, False, True, False],
-        [False, False, True, False, False],
+        _create_flags(is_unusual_path=True),
+        _create_flags(is_mismatch=True),
     ),
     # base staking unusual
     (
@@ -50,8 +61,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 2, 0],
         ),
-        [False, False, False, True, False],
-        [False, False, False, True, False],
+        _create_flags(is_unusual_path=True),
+        _create_flags(is_unusual_path=True),
     ),
     # base both unusual and mismatch
     (
@@ -60,8 +71,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 102 | HARDENED, 2, 0],
         ),
-        [False, False, False, True, False],
-        [False, False, True, True, False],
+        _create_flags(is_unusual_path=True),
+        _create_flags(is_mismatch=True, is_unusual_path=True),
     ),
     # base staking key hash
     (
@@ -70,8 +81,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             staking_key_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        [False, False, False, False, False],
-        [False, False, False, False, True],
+        _create_flags(),
+        _create_flags(is_other_warning=True),
     ),
     # base key script
     (
@@ -80,8 +91,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             staking_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        [False, False, False, False, False],
-        [False, False, False, False, True],
+        _create_flags(),
+        _create_flags(is_other_warning=True),
     ),
     # base key script unusual
     (
@@ -90,8 +101,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
             staking_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        [False, False, False, True, False],
-        [False, False, False, False, True],
+        _create_flags(is_unusual_path=True),
+        _create_flags(is_other_warning=True),
     ),
     # base script key
     (
@@ -100,8 +111,8 @@ ADDRESS_PARAMETERS_CASES = [
             payment_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
         ),
-        [False, False, False, False, True],
-        [False, False, False, False, False],
+        _create_flags(is_other_warning=True),
+        _create_flags(),
     ),
     # base script key unusual
     (
@@ -110,8 +121,8 @@ ADDRESS_PARAMETERS_CASES = [
             payment_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 2, 0],
         ),
-        [False, False, False, False, True],
-        [False, False, False, True, False],
+        _create_flags(is_other_warning=True),
+        _create_flags(is_unusual_path=True),
     ),
     # base script script
     (
@@ -120,8 +131,8 @@ ADDRESS_PARAMETERS_CASES = [
             payment_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
             staking_script_hash="2bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        [False, False, False, False, True],
-        [False, False, False, False, True],
+        _create_flags(is_other_warning=True),
+        _create_flags(is_other_warning=True),
     ),
     # pointer
     (
@@ -130,8 +141,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             certificate_pointer=CERTIFICATE_POINTER,
         ),
-        [False, False, False, False, False],
-        [False, False, False, False, True],
+        _create_flags(),
+        _create_flags(is_other_warning=True),
     ),
     # pointer unusual
     (
@@ -140,8 +151,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
             certificate_pointer=CERTIFICATE_POINTER,
         ),
-        [False, False, False, True, False],
-        [False, False, False, False, True],
+        _create_flags(is_unusual_path=True),
+        _create_flags(is_other_warning=True),
     ),
     # pointer script
     (
@@ -150,8 +161,8 @@ ADDRESS_PARAMETERS_CASES = [
             payment_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
             certificate_pointer=CERTIFICATE_POINTER,
         ),
-        [False, False, False, False, True],
-        [False, False, False, False, True],
+        _create_flags(is_other_warning=True),
+        _create_flags(is_other_warning=True),
     ),
     # enterprise
     (
@@ -159,8 +170,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.ENTERPRISE,
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
         ),
-        [False, False, False, False, False],
-        [False, True, False, False, False],
+        _create_flags(),
+        _create_flags(is_no_staking=True),
     ),
     # enterprise unusual
     (
@@ -168,8 +179,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.ENTERPRISE,
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
         ),
-        [False, False, False, True, False],
-        [False, True, False, False, False],
+        _create_flags(is_unusual_path=True),
+        _create_flags(is_no_staking=True),
     ),
     # enterprise script
     (
@@ -177,8 +188,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.ENTERPRISE_SCRIPT,
             payment_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        [False, False, False, False, True],
-        [False, True, False, False, False],
+        _create_flags(is_other_warning=True),
+        _create_flags(is_no_staking=True),
     ),
     # reward
     (
@@ -186,8 +197,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.REWARD,
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
         ),
-        [True, False, False, False, False],
-        [False, False, False, False, False],
+        _create_flags(is_reward=True),
+        _create_flags(),
     ),
     # reward unusual
     (
@@ -195,8 +206,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.REWARD,
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 2, 0],
         ),
-        [True, False, False, False, False],
-        [False, False, False, True, False],
+        _create_flags(is_reward=True),
+        _create_flags(is_unusual_path=True),
     ),
     # reward script
     (
@@ -204,8 +215,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.REWARD_SCRIPT,
             staking_script_hash="2bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        [True, False, False, False, False],
-        [False, False, False, False, True],
+        _create_flags(is_reward=True),
+        _create_flags(is_other_warning=True),
     ),
     # byron
     (
@@ -213,8 +224,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.BYRON,
             address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
         ),
-        [False, False, False, False, False],
-        [False, True, False, False, False],
+        _create_flags(),
+        _create_flags(is_no_staking=True),
     ),
     # byron unusual
     (
@@ -222,20 +233,20 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.BYRON,
             address_n=[44 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
         ),
-        [False, False, False, True, False],
-        [False, True, False, False, False],
-    )
+        _create_flags(is_unusual_path=True),
+        _create_flags(is_no_staking=True),
+    ),
 ]
 
 
-def _get_flags(credential_params: CredentialParams) -> list[bool]:
-    return [
+def _get_flags(credential_params: CredentialParams) -> tuple[bool, ...]:
+    return (
         credential_params.is_reward,
         credential_params.is_no_staking,
         credential_params.is_mismatch,
         credential_params.is_unusual_path,
         credential_params.is_other_warning,
-    ]
+    )
 
 
 @unittest.skipUnless(not utils.BITCOIN_ONLY, "altcoin")

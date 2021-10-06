@@ -153,15 +153,15 @@ class CredentialParams:
 
         return credential_params
 
-    def is_warning(self) -> bool:
+    def should_warn(self) -> bool:
         return any(
-            [
+            (
                 self.is_reward,
                 self.is_no_staking,
                 self.is_mismatch,
                 self.is_unusual_path,
                 self.is_other_warning,
-            ]
+            )
         )
 
     def get_credential(self) -> list[int] | bytes | CardanoBlockchainPointerType | None:

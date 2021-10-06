@@ -454,8 +454,6 @@ if utils.BITCOIN_ONLY:
     import apps.cardano.helpers
     apps.cardano.helpers.account_path_check
     import apps.cardano.helpers.account_path_check
-    apps.cardano.helpers.address_credential_policy
-    import apps.cardano.helpers.address_credential_policy
     apps.cardano.helpers.bech32
     import apps.cardano.helpers.bech32
     apps.cardano.helpers.credential_params
