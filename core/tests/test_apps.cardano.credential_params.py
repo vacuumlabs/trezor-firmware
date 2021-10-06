@@ -1,10 +1,6 @@
 from common import *
 
-from apps.cardano.helpers.address_credential_policy import (
-    CredentialPolicy,
-    get_payment_credential_policy,
-    get_stake_credential_policy,
-)
+from apps.cardano.helpers.credential_params import CredentialParams
 from apps.common.paths import HARDENED
 from trezor.enums import CardanoAddressType
 from trezor.messages import CardanoAddressParametersType, CardanoBlockchainPointerType
@@ -24,8 +20,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
         ),
-        CredentialPolicy.NONE,
-        CredentialPolicy.NONE,
+        [False, False, False, False, False],
+        [False, False, False, False, False],
     ),
     # base mismatch
     (
@@ -34,8 +30,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 1 | HARDENED, 2, 0],
         ),
-        CredentialPolicy.NONE,
-        CredentialPolicy.WARN_MISMATCH,
+        [False, False, False, False, False],
+        [False, False, True, False, False],
     ),
     # base payment unusual
     (
@@ -44,8 +40,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
         ),
-        CredentialPolicy.WARN_UNUSUAL_PATH,
-        CredentialPolicy.WARN_MISMATCH,
+        [False, False, False, True, False],
+        [False, False, True, False, False],
     ),
     # base staking unusual
     (
@@ -54,8 +50,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 2, 0],
         ),
-        CredentialPolicy.WARN_UNUSUAL_PATH,
-        CredentialPolicy.WARN_UNUSUAL_PATH,
+        [False, False, False, True, False],
+        [False, False, False, True, False],
     ),
     # base both unusual and mismatch
     (
@@ -64,8 +60,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 102 | HARDENED, 2, 0],
         ),
-        CredentialPolicy.WARN_UNUSUAL_PATH,
-        CredentialPolicy.WARN_MISMATCH | CredentialPolicy.WARN_UNUSUAL_PATH,
+        [False, False, False, True, False],
+        [False, False, True, True, False],
     ),
     # base staking key hash
     (
@@ -74,8 +70,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             staking_key_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        CredentialPolicy.NONE,
-        CredentialPolicy.WARN,
+        [False, False, False, False, False],
+        [False, False, False, False, True],
     ),
     # base key script
     (
@@ -84,8 +80,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             staking_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        CredentialPolicy.NONE,
-        CredentialPolicy.WARN,
+        [False, False, False, False, False],
+        [False, False, False, False, True],
     ),
     # base key script unusual
     (
@@ -94,8 +90,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
             staking_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        CredentialPolicy.WARN_UNUSUAL_PATH,
-        CredentialPolicy.WARN,
+        [False, False, False, True, False],
+        [False, False, False, False, True],
     ),
     # base script key
     (
@@ -104,8 +100,8 @@ ADDRESS_PARAMETERS_CASES = [
             payment_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
         ),
-        CredentialPolicy.WARN,
-        CredentialPolicy.NONE,
+        [False, False, False, False, True],
+        [False, False, False, False, False],
     ),
     # base script key unusual
     (
@@ -114,8 +110,8 @@ ADDRESS_PARAMETERS_CASES = [
             payment_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 2, 0],
         ),
-        CredentialPolicy.WARN,
-        CredentialPolicy.WARN_UNUSUAL_PATH,
+        [False, False, False, False, True],
+        [False, False, False, True, False],
     ),
     # base script script
     (
@@ -124,8 +120,8 @@ ADDRESS_PARAMETERS_CASES = [
             payment_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
             staking_script_hash="2bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        CredentialPolicy.WARN,
-        CredentialPolicy.WARN,
+        [False, False, False, False, True],
+        [False, False, False, False, True],
     ),
     # pointer
     (
@@ -134,8 +130,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
             certificate_pointer=CERTIFICATE_POINTER,
         ),
-        CredentialPolicy.NONE,
-        CredentialPolicy.WARN,
+        [False, False, False, False, False],
+        [False, False, False, False, True],
     ),
     # pointer unusual
     (
@@ -144,8 +140,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
             certificate_pointer=CERTIFICATE_POINTER,
         ),
-        CredentialPolicy.WARN_UNUSUAL_PATH,
-        CredentialPolicy.WARN,
+        [False, False, False, True, False],
+        [False, False, False, False, True],
     ),
     # pointer script
     (
@@ -154,8 +150,8 @@ ADDRESS_PARAMETERS_CASES = [
             payment_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
             certificate_pointer=CERTIFICATE_POINTER,
         ),
-        CredentialPolicy.WARN,
-        CredentialPolicy.WARN,
+        [False, False, False, False, True],
+        [False, False, False, False, True],
     ),
     # enterprise
     (
@@ -163,8 +159,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.ENTERPRISE,
             address_n=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
         ),
-        CredentialPolicy.NONE,
-        CredentialPolicy.WARN_NO_STAKING,
+        [False, False, False, False, False],
+        [False, True, False, False, False],
     ),
     # enterprise unusual
     (
@@ -172,8 +168,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.ENTERPRISE,
             address_n=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
         ),
-        CredentialPolicy.WARN_UNUSUAL_PATH,
-        CredentialPolicy.WARN_NO_STAKING,
+        [False, False, False, True, False],
+        [False, True, False, False, False],
     ),
     # enterprise script
     (
@@ -181,8 +177,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.ENTERPRISE_SCRIPT,
             payment_script_hash="1bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        CredentialPolicy.WARN,
-        CredentialPolicy.WARN_NO_STAKING,
+        [False, False, False, False, True],
+        [False, True, False, False, False],
     ),
     # reward
     (
@@ -190,8 +186,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.REWARD,
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 2, 0],
         ),
-        CredentialPolicy.WARN_REWARD,
-        CredentialPolicy.NONE,
+        [True, False, False, False, False],
+        [False, False, False, False, False],
     ),
     # reward unusual
     (
@@ -199,8 +195,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.REWARD,
             address_n_staking=[1852 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 2, 0],
         ),
-        CredentialPolicy.WARN_REWARD,
-        CredentialPolicy.WARN_UNUSUAL_PATH,
+        [True, False, False, False, False],
+        [False, False, False, True, False],
     ),
     # reward script
     (
@@ -208,8 +204,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.REWARD_SCRIPT,
             staking_script_hash="2bc428e4720732ebd5dab4fb175324c192dc9bb76cc5da956e3c8dff",
         ),
-        CredentialPolicy.WARN_REWARD,
-        CredentialPolicy.WARN,
+        [True, False, False, False, False],
+        [False, False, False, False, True],
     ),
     # byron
     (
@@ -217,8 +213,8 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.BYRON,
             address_n=[44 | HARDENED, 1815 | HARDENED, 0 | HARDENED, 0, 0],
         ),
-        CredentialPolicy.NONE,
-        CredentialPolicy.WARN_NO_STAKING,
+        [False, False, False, False, False],
+        [False, True, False, False, False],
     ),
     # byron unusual
     (
@@ -226,24 +222,34 @@ ADDRESS_PARAMETERS_CASES = [
             address_type=CardanoAddressType.BYRON,
             address_n=[44 | HARDENED, 1815 | HARDENED, 101 | HARDENED, 0, 0],
         ),
-        CredentialPolicy.WARN_UNUSUAL_PATH,
-        CredentialPolicy.WARN_NO_STAKING,
+        [False, False, False, True, False],
+        [False, True, False, False, False],
     )
 ]
 
 
+def _get_flags(credential_params: CredentialParams) -> list[bool]:
+    return [
+        credential_params.is_reward,
+        credential_params.is_no_staking,
+        credential_params.is_mismatch,
+        credential_params.is_unusual_path,
+        credential_params.is_other_warning,
+    ]
+
+
 @unittest.skipUnless(not utils.BITCOIN_ONLY, "altcoin")
-class TestCardanoCredentialPolicy(unittest.TestCase):
-    def test_get_credential_policies(self):
+class TestCardanoCredentialParams(unittest.TestCase):
+    def test_credential_params_flags(self):
         for (
             address_parameters,
-            expected_payment_policy,
-            expected_stake_policy,
+            expected_payment_flags,
+            expected_stake_flags,
         ) in ADDRESS_PARAMETERS_CASES:
-            payment_policy = get_payment_credential_policy(address_parameters)
-            stake_policy = get_stake_credential_policy(address_parameters)
-            self.assertEqual(payment_policy, expected_payment_policy)
-            self.assertEqual(stake_policy, expected_stake_policy)
+            payment_credential = CredentialParams.payment_params(address_parameters)
+            stake_credential = CredentialParams.stake_params(address_parameters)
+            self.assertEqual(_get_flags(payment_credential), expected_payment_flags)
+            self.assertEqual(_get_flags(stake_credential), expected_stake_flags)
 
 
 if __name__ == "__main__":

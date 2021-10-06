@@ -3,14 +3,8 @@ from trezor.messages import CardanoAddress
 
 from . import seed
 from .address import derive_human_readable_address, validate_address_parameters
-from .helpers.address_credential_policy import (
-    ADDRESS_POLICY_SHOW_SPLIT,
-    get_address_policy,
-    get_payment_credential_policy,
-    get_stake_credential_policy,
-)
-from .helpers.credential_params import CredentialParams
-from .layout import show_cardano_address, show_credential
+from .helpers.credential_params import CredentialParams, should_show_address_credentials
+from .layout import show_cardano_address, show_credentials
 from .sign_tx import validate_network_info
 
 if False:
@@ -50,17 +44,11 @@ async def _display_address(
     address: str,
     protocol_magic: int,
 ) -> None:
-    address_policy = get_address_policy(address_parameters)
-    if address_policy == ADDRESS_POLICY_SHOW_SPLIT:
-        await show_credential(
+    if should_show_address_credentials(address_parameters):
+        await show_credentials(
             ctx,
-            CredentialParams(CredentialParams.TYPE_PAYMENT, address_parameters),
-            get_payment_credential_policy(address_parameters),
-        )
-        await show_credential(
-            ctx,
-            CredentialParams(CredentialParams.TYPE_STAKE, address_parameters),
-            get_stake_credential_policy(address_parameters),
+            CredentialParams.payment_params(address_parameters),
+            CredentialParams.stake_params(address_parameters),
         )
 
     await show_cardano_address(ctx, address_parameters, address, protocol_magic)

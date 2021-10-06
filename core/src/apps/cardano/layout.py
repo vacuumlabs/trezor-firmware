@@ -24,7 +24,6 @@ from apps.common.paths import address_n_to_str
 from . import seed
 from .address import derive_human_readable_address
 from .helpers import protocol_magics
-from .helpers.address_credential_policy import CredentialPolicy
 from .helpers.utils import (
     format_account_number,
     format_asset_fingerprint,
@@ -246,10 +245,19 @@ async def confirm_sending_token(
     )
 
 
-async def show_credential(
+async def show_credentials(
+    ctx: wire.Context,
+    payment_credential_params: CredentialParams,
+    stake_credential_params: CredentialParams,
+    is_change_output: bool = False,
+) -> None:
+    await _show_credential(ctx, payment_credential_params, is_change_output)
+    await _show_credential(ctx, stake_credential_params, is_change_output)
+
+
+async def _show_credential(
     ctx: wire.Context,
     credential_params: CredentialParams,
-    credential_policy: int,
     is_change_output: bool = False,
 ) -> None:
     if is_change_output:
@@ -273,19 +281,19 @@ async def show_credential(
         props.append(
             (
                 "%s %s credential is a %s:"
-                % (address_usage, credential_params.format_type(), credential_title),
+                % (address_usage, credential_params.type_name, credential_title),
                 None,
             )
         )
         props.extend(credential_params.format())
 
-    if CredentialPolicy.check(credential_policy, CredentialPolicy.WARN_UNUSUAL_PATH):
+    if credential_params.is_unusual_path:
         props.append((None, "Path is unusual."))
-    if CredentialPolicy.check(credential_policy, CredentialPolicy.WARN_MISMATCH):
+    if credential_params.is_mismatch:
         props.append((None, "Credential doesn't match payment credential."))
-    if CredentialPolicy.check(credential_policy, CredentialPolicy.WARN_REWARD):
+    if credential_params.is_reward:
         props.append(("Address is a reward address.", None))
-    if CredentialPolicy.check(credential_policy, CredentialPolicy.WARN_NO_STAKING):
+    if credential_params.is_no_staking:
         props.append(
             (
                 "%s address - no staking rewards."
@@ -294,7 +302,7 @@ async def show_credential(
             )
         )
 
-    if CredentialPolicy.check(credential_policy, CredentialPolicy.WARN):
+    if credential_params.is_warning():
         icon = ui.ICON_WRONG
         icon_color = ui.RED
     else:
