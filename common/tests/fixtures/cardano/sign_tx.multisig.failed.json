@@ -32,6 +32,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -71,6 +72,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -114,6 +116,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -148,6 +151,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -184,6 +188,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -218,6 +223,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -304,6 +310,7 @@
             ]
           }
         ],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {

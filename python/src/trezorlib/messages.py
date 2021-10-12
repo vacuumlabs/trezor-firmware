@@ -2122,6 +2122,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         12: protobuf.Field("witness_requests_count", "uint32", repeated=False, required=True),
         13: protobuf.Field("minting_asset_groups_count", "uint32", repeated=False, required=True),
         14: protobuf.Field("derivation_type", "CardanoDerivationType", repeated=False, required=True),
+        15: protobuf.Field("script_data_hash", "bytes", repeated=False, required=False),
     }
 
     def __init__(
@@ -2141,6 +2142,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         derivation_type: "CardanoDerivationType",
         ttl: Optional["int"] = None,
         validity_interval_start: Optional["int"] = None,
+        script_data_hash: Optional["bytes"] = None,
     ) -> None:
         self.signing_mode = signing_mode
         self.protocol_magic = protocol_magic
@@ -2156,6 +2158,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         self.derivation_type = derivation_type
         self.ttl = ttl
         self.validity_interval_start = validity_interval_start
+        self.script_data_hash = script_data_hash
 
 
 class CardanoTxInput(protobuf.MessageType):
@@ -2182,6 +2185,7 @@ class CardanoTxOutput(protobuf.MessageType):
         2: protobuf.Field("address_parameters", "CardanoAddressParametersType", repeated=False, required=False),
         3: protobuf.Field("amount", "uint64", repeated=False, required=True),
         4: protobuf.Field("asset_groups_count", "uint32", repeated=False, required=True),
+        5: protobuf.Field("datum_hash", "bytes", repeated=False, required=False),
     }
 
     def __init__(
@@ -2191,11 +2195,13 @@ class CardanoTxOutput(protobuf.MessageType):
         asset_groups_count: "int",
         address: Optional["str"] = None,
         address_parameters: Optional["CardanoAddressParametersType"] = None,
+        datum_hash: Optional["bytes"] = None,
     ) -> None:
         self.amount = amount
         self.asset_groups_count = asset_groups_count
         self.address = address
         self.address_parameters = address_parameters
+        self.datum_hash = datum_hash
 
 
 class CardanoAssetGroup(protobuf.MessageType):

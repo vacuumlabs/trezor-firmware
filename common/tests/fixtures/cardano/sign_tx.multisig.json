@@ -79,6 +79,7 @@
             ]
           }
         ],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -135,6 +136,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -187,6 +189,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -243,6 +246,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -304,6 +308,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -402,6 +407,7 @@
             ]
           }
         ],
+        "script_data_hash": null,
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -434,6 +440,93 @@
             "type": 1,
             "pub_key": "b75258e4f61eb7b313d8554c2fe10673cf214ca2d762bfd53ec3b7846e2ee872",
             "signature": "eb2360f126b678a1510f6b62cfe8170233343c31639958f3c7fd2d45fd49dfaf58f9f2c27420d0c817c8ca783d2b694b8a3699745be05022ecb310572fb78609",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "Multisig transaction with output datum hash",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1w9rhu54nz94k9l5v6d9rzfs47h7dv7xffcwkekuxcx3evnqpvuxu0",
+            "amount": "1",
+            "datum_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7"
+          }
+        ],
+        "mint": [],
+        "script_data_hash": null,
+        "signing_mode": "MULTISIG_TRANSACTION",
+        "additional_witness_requests": [
+          {
+            "path": "m/1854'/1815'/0'/0/0"
+          }
+        ]
+      },
+      "result": {
+        "tx_hash": "5769cc0070c12a1c8799cfd617fb658a24c2b8764dcf20034aeb183825c7e037",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "b10be5c0d11ad8292bbe69e220ca0cfbe154610b3041a8e72f9d515c226ab3b1",
+            "signature": "119fb627ef4699ed614532410670345d66b5ff2ebb1534faeca1fd1a18554dc8ab429c15585147f609fa3592267f60997ad6ca5130f4208a6f7083ed14353e07",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "Multisig transaction with script data hash",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "script_data_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+        "signing_mode": "MULTISIG_TRANSACTION",
+        "additional_witness_requests": [
+          {
+            "path": "m/1854'/1815'/0'/0/0"
+          }
+        ]
+      },
+      "result": {
+        "tx_hash": "f8dd34eb9e31f62678e6ac213f160404a70956edb714e0166cf739529dbd1413",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "b10be5c0d11ad8292bbe69e220ca0cfbe154610b3041a8e72f9d515c226ab3b1",
+            "signature": "785c691a9f53a38d458863a6236ed38ef64346d031c08a0ffaa23768d3fa863d5914dd6d5aa40182df66c8a7752b24a2b1e608ccb78c21dd2a9ca2d9bec6350a",
             "chain_code": null
           }
         ]

@@ -205,6 +205,7 @@ message CardanoSignTxInit {
     required uint32 witness_requests_count = 12;
     required uint32 minting_asset_groups_count = 13;
     required CardanoDerivationType derivation_type = 14;
+    optional bytes script_data_hash = 15;
 }
 
 /**
@@ -225,6 +226,7 @@ message CardanoTxOutput {
     optional CardanoAddressParametersType address_parameters = 2;   // parameters used to derive the address
     required uint64 amount = 3;                                     // amount to spend
     required uint32 asset_groups_count = 4;
+    optional bytes datum_hash = 5;
 }
 
 /**

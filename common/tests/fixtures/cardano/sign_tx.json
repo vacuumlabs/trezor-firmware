@@ -28,6 +28,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -72,6 +73,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -117,6 +119,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -171,6 +174,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -234,6 +238,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -280,6 +285,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -326,6 +332,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -371,6 +378,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -418,6 +426,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -462,6 +471,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -506,6 +516,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -545,6 +556,7 @@
         ],
         "outputs": [],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -594,6 +606,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -644,6 +657,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -699,6 +713,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -750,6 +765,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -797,6 +813,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -847,6 +864,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -900,6 +918,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -957,6 +976,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -1027,6 +1047,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -1067,6 +1088,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -1116,6 +1138,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -1167,6 +1190,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -1213,6 +1237,7 @@
           }
         ],
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -1350,6 +1375,7 @@
           }
         },
         "mint": [],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": []
       },
@@ -1464,6 +1490,7 @@
             ]
           }
         ],
+        "script_data_hash": null,
         "signing_mode": "ORDINARY_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -1484,6 +1511,130 @@
             "type": 1,
             "pub_key": "b75258e4f61eb7b313d8554c2fe10673cf214ca2d762bfd53ec3b7846e2ee872",
             "signature": "50f87fd9a63ae24a3d2d1e24b485a821f965759c79f39bc4e84b1d4b68d1569a8840df582b99a04f13bc566ef901cfa0f068379bb6154df314c528da6ebb1904",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "Ordinary transaction with output datum hash",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1w9rhu54nz94k9l5v6d9rzfs47h7dv7xffcwkekuxcx3evnqpvuxu0",
+            "amount": "1",
+            "datum_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7"
+          }
+        ],
+        "mint": [],
+        "script_data_hash": null,
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witness_requests": []
+      },
+      "result": {
+        "tx_hash": "5769cc0070c12a1c8799cfd617fb658a24c2b8764dcf20034aeb183825c7e037",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "3b59a4f3848273b15b86202925d0e35c5feda0db36000dfa46727053a3ae44aaaf0aad4d7c680e8d5cc19f50426f22be63f71301bb633755c690360dbed2f102",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "Ordinary transaction with output datum hash and address parameters",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "addressType": 2,
+            "path": "m/1852'/1815'/0'/0/0",
+            "scriptStakingHash": "8d7bebc7a58f1c7b5fb7c9391071ecd3b51b032695522f8c555343a9",
+            "amount": "7120787",
+            "datum_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7"
+          }
+        ],
+        "mint": [],
+        "script_data_hash": null,
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witness_requests": []
+      },
+      "result": {
+        "tx_hash": "b0122509b2cf452ffcae013ebdcd3b96296a4c97e4f07eeafc5dccc2ba9f168f",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "ee6707fd14dad742735725c3b57b3efe15d2a4d93dcca77c609be591ea86937546d78b374ece6a9c537d3c2989839c7fb0dead4146e500a3826c27bcafbe640f",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
+      "description": "Ordinary transaction with script data hash",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "script_data_hash": "d593fd793c377ac50a3169bb8378ffc257c944da31aa8f355dfa5a4f6ff89e02",
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witness_requests": []
+      },
+      "result": {
+        "tx_hash": "8e16f3048ea13f6607ed48bfd47b0ba25afdbb2af7bc9c43b441b195678902e7",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "58306a22b592de2772ad6c48a0c22db62412ae2553571daf26a9a0496274c298b46f448678f131c714779b03aeb1d4cd332c618011acb1819d3358d331501609",
             "chain_code": null
           }
         ]

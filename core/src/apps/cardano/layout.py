@@ -332,6 +332,24 @@ async def show_warning_tx_output_contains_tokens(ctx: wire.Context) -> None:
     )
 
 
+async def show_warning_tx_output_contains_datum_hash(
+    ctx: wire.Context, datum_hash: bytes
+) -> None:
+    await confirm_properties(
+        ctx,
+        "confirm_datum_hash",
+        title="Confirm transaction",
+        props=[
+            (
+                "The following transaction output contains datum hash:",
+                datum_hash,
+            ),
+            ("\nContinue?", None),
+        ],
+        br_code=ButtonRequestType.Other,
+    )
+
+
 async def confirm_witness_request(
     ctx: wire.Context,
     witness_path: list[int],
@@ -635,6 +653,16 @@ async def confirm_token_minting(
                 format_amount(token.mint_amount, 0),
             ),
         ],
+        br_code=ButtonRequestType.Other,
+    )
+
+
+async def confirm_script_data_hash(ctx: wire.Context, script_data_hash: bytes) -> None:
+    await confirm_properties(
+        ctx,
+        "confirm_script_data_hash",
+        title="Confirm transaction",
+        props=[("Script data hash:", script_data_hash)],
         br_code=ButtonRequestType.Other,
     )
 
