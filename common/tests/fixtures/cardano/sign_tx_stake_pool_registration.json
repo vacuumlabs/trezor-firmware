@@ -83,6 +83,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER",
         "additional_witness_requests": []
       },
@@ -177,6 +179,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER",
         "additional_witness_requests": []
       },
@@ -272,6 +276,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER",
         "additional_witness_requests": []
       },
@@ -333,6 +339,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER",
         "additional_witness_requests": []
       },
@@ -394,6 +402,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER",
         "additional_witness_requests": []
       },
@@ -490,6 +500,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "POOL_REGISTRATION_AS_OWNER",
         "additional_witness_requests": []
       },

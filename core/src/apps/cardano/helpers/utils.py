@@ -104,7 +104,10 @@ def validate_stake_credential(
         if not SCHEMA_STAKING_ANY_ACCOUNT.match(path):
             raise error
     elif script_hash:
-        if signing_mode != CardanoTxSigningMode.MULTISIG_TRANSACTION:
+        if signing_mode not in (
+            CardanoTxSigningMode.MULTISIG_TRANSACTION,
+            CardanoTxSigningMode.PLUTUS_TRANSACTION,
+        ):
             raise error
         if len(script_hash) != SCRIPT_HASH_SIZE:
             raise error

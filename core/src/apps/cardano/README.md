@@ -180,7 +180,7 @@ For security and in some cases UX purposes we use transaction signing mode so th
 
 #### Ordinary transaction
 
-An ordinary transaction cannot contain a pool registration certificate. Also multi-sig (1854') witnesses can't be requested.
+An ordinary transaction cannot contain a pool registration certificate or items related to Plutus script evaluation (collateral inputs and required signers). Also multi-sig (1854') witnesses can't be requested.
 
 #### Pool registration as owner
 
@@ -189,6 +189,7 @@ When signing a pool registration transaction as an owner, the transaction cannot
 - other certificates
 - withdrawals
 - token minting
+- items related to Plutus script evaluation (collateral inputs and required signers)
 
 Including inputs with a path would cause the transaction to be signed by such a path without letting the user know. Of course, we could let the user know that the transaction is being signed by the user's payment key, however, a pool owner should never be the one paying for the pool registration anyways so such a witness request doesn't make sense.
 
@@ -196,7 +197,11 @@ Just like a pool registration certificate, other certificates and withdrawals ar
 
 #### Multi-sig transaction
 
-Represents a multi-sig transaction using native scripts. Script credentials must be used in certificates and withdrawals when signing a multi-sig transaction. Ordinary (1852') witness requests are not allowed and all the witness requests are shown. Transaction cannot contain a pool registration certificate.
+Represents a multi-sig transaction using native scripts. Script credentials must be used in certificates and withdrawals when signing a multi-sig transaction. Ordinary (1852') witness requests are not allowed and all the witness requests are shown. Transaction cannot contain a pool registration certificate or items related to Plutus script evaluation (collateral inputs and required signers).
+
+#### Plutus transaction
+
+The signing mode intended for transactions containing Plutus script evaluation. Plutus scripts may access all transaction items and make decisions based on them, therefore all items must be shown to the user. Since Plutus scripts may have many unforseen use cases, we put no further limitations on transactions (except forbidding pool registration certificates). Stake credentials in certificates and withdrawals may be given as key paths, key hashes or script hashes.
 
 ### Single account model
 

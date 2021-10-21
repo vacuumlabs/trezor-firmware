@@ -80,6 +80,8 @@
           }
         ],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -137,6 +139,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -190,6 +194,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -247,6 +253,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -309,6 +317,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -390,6 +400,11 @@
                 ]
               }
             ]
+          },
+          {
+            "address": "addr1w9rhu54nz94k9l5v6d9rzfs47h7dv7xffcwkekuxcx3evnqpvuxu0",
+            "amount": "1",
+            "datum_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7"
           }
         ],
         "mint": [
@@ -407,7 +422,9 @@
             ]
           }
         ],
-        "script_data_hash": null,
+        "script_data_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -422,24 +439,24 @@
         ]
       },
       "result": {
-        "tx_hash": "1ad44235e0a25c13002ddff58dbf3f926745ccd24401f2d9fc93b1879e2afb89",
+        "tx_hash": "c3637e34529fae17dbbb90c58307df0cf3b818f4c034860fff362d1ea864cca4",
         "witnesses": [
           {
             "type": 1,
             "pub_key": "b10be5c0d11ad8292bbe69e220ca0cfbe154610b3041a8e72f9d515c226ab3b1",
-            "signature": "54d4d0bcb15053b485d3d12254563bcb517ad7c64cf9748cb40bf0110e88e004b6b85d762b54198c7a53f907a30929aeca5ecbfad02f18237fb5c3a98c2a6004",
+            "signature": "58bc9f1c39f2cd4248ad79a5f6a4733a6e751e86b09163e468b92ec1079590f6052f30f9a782812ba1b553f1c5f22cad807af97494cf8a0a26bf123bc2f60202",
             "chain_code": null
           },
           {
             "type": 1,
             "pub_key": "f2ef4ecd21ad28a8d270ca7be7e96c87f60dc821e13c0d0c5870344e9693637c",
-            "signature": "cf339241f912a244bd57ce4907ce3a0413686005ca035a9d192d5c24cc4afc10591fdfe1955be67db0e5082b2b22a18341d0349dcf7cf4569efd5608c0e3cd0a",
+            "signature": "8b3e5b1b013d7456c1b0d67a334af725e3e1d3ea9a4a8ff05889314691f797cb49fff2cc10764133bce154db5e0eb91e4c1982cf53e6578648cf1f251f37020a",
             "chain_code": null
           },
           {
             "type": 1,
             "pub_key": "b75258e4f61eb7b313d8554c2fe10673cf214ca2d762bfd53ec3b7846e2ee872",
-            "signature": "eb2360f126b678a1510f6b62cfe8170233343c31639958f3c7fd2d45fd49dfaf58f9f2c27420d0c817c8ca783d2b694b8a3699745be05022ecb310572fb78609",
+            "signature": "cb3daca29e217a9f0c7e5ad47b0d07827ce8937d252ba6e32415f4613e8e6675e1b3964d28b354d338bae623bba1c30bf47a37818b56602a6e7ba7ff081aa605",
             "chain_code": null
           }
         ]
@@ -470,6 +487,8 @@
         ],
         "mint": [],
         "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {
@@ -513,6 +532,8 @@
         ],
         "mint": [],
         "script_data_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+        "collateral_inputs": [],
+        "required_signers": [],
         "signing_mode": "MULTISIG_TRANSACTION",
         "additional_witness_requests": [
           {

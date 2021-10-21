@@ -32,6 +32,7 @@ pytestmark = [
     "cardano/sign_tx_stake_pool_registration.json",
     "cardano/sign_tx.json",
     "cardano/sign_tx.multisig.json",
+    "cardano/sign_tx.plutus.json",
     "cardano/sign_tx.slip39.json",
 )
 def test_cardano_sign_tx(client, parameters, result):
@@ -45,6 +46,12 @@ def test_cardano_sign_tx(client, parameters, result):
     auxiliary_data = cardano.parse_auxiliary_data(parameters["auxiliary_data"])
     mint = cardano.parse_mint(parameters["mint"])
     script_data_hash = cardano.parse_script_data_hash(parameters["script_data_hash"])
+    collateral_inputs = [
+        cardano.parse_collateral_input(i) for i in parameters["collateral_inputs"]
+    ]
+    required_signers = [
+        cardano.parse_required_signer(s) for s in parameters["required_signers"]
+    ]
     additional_witness_requests = [
         cardano.parse_additional_witness_request(p)
         for p in parameters["additional_witness_requests"]
@@ -73,15 +80,18 @@ def test_cardano_sign_tx(client, parameters, result):
             auxiliary_data=auxiliary_data,
             mint=mint,
             script_data_hash=script_data_hash,
+            collateral_inputs=collateral_inputs,
+            required_signers=required_signers,
             additional_witness_requests=additional_witness_requests,
         )
         assert response == _transform_expected_result(result)
 
 
 @parametrize_using_common_fixtures(
+    "cardano/sign_tx_stake_pool_registration.failed.json",
     "cardano/sign_tx.failed.json",
     "cardano/sign_tx.multisig.failed.json",
-    "cardano/sign_tx_stake_pool_registration.failed.json",
+    "cardano/sign_tx.plutus.failed.json",
 )
 def test_cardano_sign_tx_failed(client, parameters, result):
     client.init_device(new_session=True, derive_cardano=True)
@@ -94,6 +104,12 @@ def test_cardano_sign_tx_failed(client, parameters, result):
     auxiliary_data = cardano.parse_auxiliary_data(parameters["auxiliary_data"])
     mint = cardano.parse_mint(parameters["mint"])
     script_data_hash = cardano.parse_script_data_hash(parameters["script_data_hash"])
+    collateral_inputs = [
+        cardano.parse_collateral_input(i) for i in parameters["collateral_inputs"]
+    ]
+    required_signers = [
+        cardano.parse_required_signer(s) for s in parameters["required_signers"]
+    ]
     additional_witness_requests = [
         cardano.parse_additional_witness_request(p)
         for p in parameters["additional_witness_requests"]
@@ -123,6 +139,8 @@ def test_cardano_sign_tx_failed(client, parameters, result):
                 auxiliary_data=auxiliary_data,
                 mint=mint,
                 script_data_hash=script_data_hash,
+                collateral_inputs=collateral_inputs,
+                required_signers=required_signers,
                 additional_witness_requests=additional_witness_requests,
             )
 
