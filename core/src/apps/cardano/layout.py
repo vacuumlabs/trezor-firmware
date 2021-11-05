@@ -459,18 +459,10 @@ async def confirm_certificate(
 
     props: list[PropertyType] = [
         ("Confirm:", CERTIFICATE_TYPE_NAMES[certificate.type]),
+        _format_stake_credential(
+            certificate.path, certificate.script_hash, certificate.key_hash
+        ),
     ]
-
-    if certificate.path:
-        props.append(
-            (
-                f"for account {format_account_number(certificate.path)}:",
-                address_n_to_str(to_account_path(certificate.path)),
-            ),
-        )
-    else:
-        assert certificate.script_hash is not None  # validate_certificate
-        props.append(("for script:", format_script_hash(certificate.script_hash)))
 
     if certificate.type == CardanoCertificateType.STAKE_DELEGATION:
         assert certificate.pool is not None  # validate_certificate
@@ -615,20 +607,11 @@ async def confirm_withdrawal(
 ) -> None:
     props: list[PropertyType] = [
         ("Confirm withdrawal", None),
+        _format_stake_credential(
+            withdrawal.path, withdrawal.script_hash, withdrawal.key_hash
+        ),
+        ("Amount:", format_coin_amount(withdrawal.amount)),
     ]
-
-    if withdrawal.path:
-        props.append(
-            (
-                f"for account {format_account_number(withdrawal.path)}:",
-                address_n_to_str(to_account_path(withdrawal.path)),
-            )
-        )
-    else:
-        assert withdrawal.script_hash is not None  # validate_withdrawal
-        props.append(("for script:", format_script_hash(withdrawal.script_hash)))
-
-    props.append(("Amount:", format_coin_amount(withdrawal.amount)))
 
     await confirm_properties(
         ctx,
@@ -637,6 +620,23 @@ async def confirm_withdrawal(
         props=props,
         br_code=ButtonRequestType.Other,
     )
+
+
+def _format_stake_credential(
+    path: list[int], script_hash: bytes | None, key_hash: bytes | None
+) -> tuple[str, str]:
+    if path:
+        return (
+            f"for account {format_account_number(path)}:",
+            address_n_to_str(to_account_path(path)),
+        )
+    elif key_hash:
+        return ("for key hash:", format_key_hash(key_hash, False))
+    elif script_hash:
+        return ("for script:", format_script_hash(script_hash))
+    else:
+        # should be unreachable unless there's a bug in validation
+        raise ValueError
 
 
 async def confirm_catalyst_registration(

@@ -92,14 +92,18 @@ def derive_public_key(
 def validate_stake_credential(
     path: list[int],
     script_hash: bytes | None,
+    key_hash: bytes | None,
     signing_mode: CardanoTxSigningMode,
     error: wire.ProcessError,
 ) -> None:
-    if path and script_hash:
+    if sum(bool(k) for k in (path, script_hash, key_hash)) != 1:
         raise error
 
     if path:
-        if signing_mode != CardanoTxSigningMode.ORDINARY_TRANSACTION:
+        if signing_mode not in (
+            CardanoTxSigningMode.ORDINARY_TRANSACTION,
+            CardanoTxSigningMode.PLUTUS_TRANSACTION,
+        ):
             raise error
         if not SCHEMA_STAKING_ANY_ACCOUNT.match(path):
             raise error
@@ -110,6 +114,11 @@ def validate_stake_credential(
         ):
             raise error
         if len(script_hash) != SCRIPT_HASH_SIZE:
+            raise error
+    elif key_hash:
+        if signing_mode != CardanoTxSigningMode.PLUTUS_TRANSACTION:
+            raise error
+        if len(key_hash) != ADDRESS_KEY_HASH_SIZE:
             raise error
     else:
         raise error
