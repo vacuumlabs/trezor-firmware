@@ -23,6 +23,7 @@ class Credential:
     """
 
     type_name: str
+    is_stake_credential: bool
     address_type: CardanoAddressType
     path: list[int]
     key_hash: bytes | None
@@ -38,6 +39,7 @@ class Credential:
     def __init__(
         self,
         type_name: str,
+        is_stake_credential: bool,
         address_type: CardanoAddressType,
         path: list[int],
         key_hash: bytes | None,
@@ -45,6 +47,7 @@ class Credential:
         pointer: CardanoBlockchainPointerType | None,
     ):
         self.type_name = type_name
+        self.is_stake_credential = is_stake_credential
         self.address_type = address_type
         self.path = path
         self.key_hash = key_hash
@@ -57,12 +60,13 @@ class Credential:
     ) -> "Credential":
         address_type = address_params.address_type
         credential = cls(
-            "payment",
-            address_type,
-            address_params.address_n,
-            None,
-            address_params.script_payment_hash,
-            None,
+            type_name="payment",
+            is_stake_credential=False,
+            address_type=address_type,
+            path=address_params.address_n,
+            key_hash=None,
+            script_hash=address_params.script_payment_hash,
+            pointer=None,
         )
 
         if address_type in (
@@ -100,12 +104,13 @@ class Credential:
     ) -> "Credential":
         address_type = address_params.address_type
         credential = cls(
-            "stake",
-            address_type,
-            address_params.address_n_staking,
-            address_params.staking_key_hash,
-            address_params.script_staking_hash,
-            address_params.certificate_pointer,
+            type_name="stake",
+            is_stake_credential=True,
+            address_type=address_type,
+            path=address_params.address_n_staking,
+            key_hash=address_params.staking_key_hash,
+            script_hash=address_params.script_staking_hash,
+            pointer=address_params.certificate_pointer,
         )
 
         if address_type == CardanoAddressType.BASE:
@@ -185,7 +190,12 @@ class Credential:
         if self.path:
             return [(None, address_n_to_str(self.path))]
         elif self.key_hash:
-            return [(None, format_key_hash(self.key_hash, False))]
+            formatted_key_hash = format_key_hash(
+                self.key_hash,
+                is_shared_key=False,
+                is_stake_key=self.is_stake_credential,
+            )
+            return [(None, formatted_key_hash)]
         elif self.script_hash:
             return [(None, format_script_hash(self.script_hash))]
         elif self.pointer:
