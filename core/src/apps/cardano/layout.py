@@ -123,7 +123,10 @@ async def show_native_script(
     if script.type == CardanoNativeScriptType.PUB_KEY:
         assert script.key_hash is not None or script.key_path  # validate_script
         if script.key_hash:
-            props.append((None, format_key_hash(script.key_hash, True)))
+            formatted_key_hash = format_key_hash(
+                script.key_hash, is_shared_key=True, is_stake_key=False
+            )
+            props.append((None, formatted_key_hash))
         elif script.key_path:
             props.append((address_n_to_str(script.key_path), None))
     elif script.type == CardanoNativeScriptType.N_OF_K:
@@ -631,7 +634,10 @@ def _format_stake_credential(
             address_n_to_str(to_account_path(path)),
         )
     elif key_hash:
-        return ("for key hash:", format_key_hash(key_hash, False))
+        return (
+            "for key hash:",
+            format_key_hash(key_hash, is_shared_key=False, is_stake_key=True),
+        )
     elif script_hash:
         return ("for script:", format_script_hash(script_hash))
     else:
@@ -733,7 +739,12 @@ async def confirm_required_signer(
         required_signer.key_hash is not None or required_signer.key_path
     )  # _validate_required_signer
     if required_signer.key_hash:
-        prop = ("Required signer", format_key_hash(required_signer.key_hash, False))
+        prop = (
+            "Required signer",
+            format_key_hash(
+                required_signer.key_hash, is_shared_key=False, is_stake_key=False
+            ),
+        )
     elif required_signer.key_path:
         prop = ("Required signer", address_n_to_str(required_signer.key_path))
 

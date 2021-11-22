@@ -71,8 +71,13 @@ def format_script_hash(script_hash: bytes) -> str:
     return bech32.encode(bech32.HRP_SCRIPT_HASH, script_hash)
 
 
-def format_key_hash(key_hash: bytes, is_shared_key: bool) -> str:
-    hrp = bech32.HRP_SHARED_KEY_HASH if is_shared_key else bech32.HRP_KEY_HASH
+def format_key_hash(key_hash: bytes, is_shared_key: bool, is_stake_key: bool) -> str:
+    hrp = {
+        (False, False): bech32.HRP_KEY_HASH,
+        (True, False): bech32.HRP_SHARED_KEY_HASH,
+        (False, True): bech32.HRP_STAKE_KEY_HASH,
+        (True, True): bech32.HRP_SHARED_STAKE_KEY_HASH,
+    }[(is_shared_key, is_stake_key)]
     return bech32.encode(hrp, key_hash)
 
 

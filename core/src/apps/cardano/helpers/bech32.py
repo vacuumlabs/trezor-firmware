@@ -12,6 +12,8 @@ HRP_JORMUN_PUBLIC_KEY = "ed25519_pk"
 HRP_SCRIPT_HASH = "script"
 HRP_KEY_HASH = "addr_vkh"
 HRP_SHARED_KEY_HASH = "addr_shared_vkh"
+HRP_STAKE_KEY_HASH = "stake_vkh"
+HRP_SHARED_STAKE_KEY_HASH = "stake_shared_vkh"
 
 
 def encode(hrp: str, data: bytes) -> str:
