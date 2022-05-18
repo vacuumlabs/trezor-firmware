@@ -1,8 +1,7 @@
 from typing import Type
 
-from trezor import log, wire
+from trezor import log, messages, wire
 from trezor.enums import CardanoTxSigningMode
-from trezor.messages import CardanoSignTxFinished, CardanoSignTxInit
 
 from .. import seed
 from .multisig_signer import MultisigSigner
@@ -14,8 +13,8 @@ from .signer import Signer
 
 @seed.with_keychain
 async def sign_tx(
-    ctx: wire.Context, msg: CardanoSignTxInit, keychain: seed.Keychain
-) -> CardanoSignTxFinished:
+    ctx: wire.Context, msg: messages.CardanoSignTxInit, keychain: seed.Keychain
+) -> messages.CardanoSignTxFinished:
     signer_types: dict[CardanoTxSigningMode, Type[Signer]] = {
         CardanoTxSigningMode.ORDINARY_TRANSACTION: OrdinarySigner,
         CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER: PoolOwnerSigner,
@@ -33,4 +32,4 @@ async def sign_tx(
             log.exception(__name__, e)
         raise wire.ProcessError("Signing failed")
 
-    return CardanoSignTxFinished()
+    return messages.CardanoSignTxFinished()
