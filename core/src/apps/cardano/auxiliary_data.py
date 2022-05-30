@@ -8,13 +8,8 @@ from trezor.messages import CardanoTxAuxiliaryDataSupplement
 
 from apps.common import cbor
 
-from .address import (
-    derive_address_bytes,
-    derive_human_readable_address,
-    validate_address_parameters,
-)
+from . import addresses
 from .helpers import bech32
-from .helpers.bech32 import HRP_JORMUN_PUBLIC_KEY
 from .helpers.paths import SCHEMA_STAKING_ANY_ACCOUNT
 from .helpers.utils import derive_public_key
 from .layout import confirm_catalyst_registration, show_auxiliary_data_hash
@@ -80,7 +75,7 @@ def _validate_catalyst_registration_parameters(
     if address_parameters.address_type == CardanoAddressType.BYRON:
         raise wire.ProcessError("Invalid auxiliary data")
 
-    validate_address_parameters(address_parameters)
+    addresses.validate_address_parameters(address_parameters)
 
 
 async def show_auxiliary_data(
@@ -111,9 +106,9 @@ async def _show_catalyst_registration(
     network_id: int,
 ) -> None:
     public_key = catalyst_registration_parameters.voting_public_key
-    encoded_public_key = bech32.encode(HRP_JORMUN_PUBLIC_KEY, public_key)
+    encoded_public_key = bech32.encode(bech32.HRP_JORMUN_PUBLIC_KEY, public_key)
     staking_path = catalyst_registration_parameters.staking_path
-    reward_address = derive_human_readable_address(
+    reward_address = addresses.derive_human_readable_address(
         keychain,
         catalyst_registration_parameters.reward_address_parameters,
         protocol_magic,
@@ -193,7 +188,7 @@ def _get_signed_catalyst_registration_payload(
     payload: CatalystRegistrationPayload = {
         1: catalyst_registration_parameters.voting_public_key,
         2: staking_key,
-        3: derive_address_bytes(
+        3: addresses.derive_address_bytes(
             keychain,
             catalyst_registration_parameters.reward_address_parameters,
             protocol_magic,
