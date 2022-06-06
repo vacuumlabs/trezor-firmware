@@ -5,6 +5,8 @@ from trezor.enums import ButtonRequestType
 
 import trezorui2
 
+from ...components.tt.button import ButtonContent
+from ...components.tt.confirm import Confirm
 from ...constants.tt import MONO_ADDR_PER_LINE
 from ..common import button_request, interact
 
@@ -331,6 +333,8 @@ async def should_show_more(
     br_code: ButtonRequestType = ButtonRequestType.Other,
     icon: str = ui.ICON_DEFAULT,
     icon_color: int = ui.ORANGE_ICON,
+    confirm: ButtonContent = Confirm.DEFAULT_CONFIRM,
+    major_confirm: bool = False,
 ) -> bool:
     raise NotImplementedError
 

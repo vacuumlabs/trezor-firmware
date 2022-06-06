@@ -131,6 +131,9 @@ class Signer:
             tx_dict_items_count, wire.ProcessError("Invalid tx signing request")
         )
 
+        self.should_show_details = False
+        self.signing_mode_title = None
+
     async def sign(self) -> None:
         hash_fn = hashlib.blake2b(outlen=32)
         self.tx_dict.start(hash_fn)
@@ -243,6 +246,11 @@ class Signer:
         validate_network_info(self.msg.network_id, self.msg.protocol_magic)
 
     async def _show_tx_init(self) -> None:
+        assert self.signing_mode_title is not None
+        self.should_show_details = await layout.show_tx_init(
+            self.ctx, self.signing_mode_title
+        )
+
         if not self._is_network_id_verifiable():
             await layout.warn_tx_network_unverifiable(self.ctx)
 
