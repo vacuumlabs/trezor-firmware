@@ -25,6 +25,8 @@ class OrdinarySigner(Signer):
     ) -> None:
         super().__init__(ctx, msg, keychain)
 
+        self.signing_mode_title = "Confirming a transaction."
+
     def _validate_tx_init(self) -> None:
         super()._validate_tx_init()
         self._assert_tx_init_cond(self.msg.collateral_inputs_count == 0)

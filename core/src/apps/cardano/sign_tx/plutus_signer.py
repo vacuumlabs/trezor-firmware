@@ -21,8 +21,9 @@ class PlutusSigner(Signer):
     ) -> None:
         super().__init__(ctx, msg, keychain)
 
+        self.signing_mode_title = "Confirming a Plutus transaction."
+
     async def _show_tx_init(self) -> None:
-        await layout.show_plutus_tx(self.ctx)
         await super()._show_tx_init()
 
         # These items should be present if a Plutus script is to be executed.
