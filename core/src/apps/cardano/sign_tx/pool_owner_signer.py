@@ -33,6 +33,9 @@ class PoolOwnerSigner(Signer):
             self.msg.certificates_count != 1
             or self.msg.withdrawals_count != 0
             or self.msg.minting_asset_groups_count != 0
+            or self.msg.has_collateral_return
+            or self.msg.total_collateral is not None
+            or self.msg.reference_inputs_count > 0
         ):
             raise wire.ProcessError(
                 "Stakepool registration transaction cannot contain other certificates, withdrawals or minting"
@@ -56,7 +59,12 @@ class PoolOwnerSigner(Signer):
 
     def _validate_output(self, output: messages.CardanoTxOutput) -> None:
         super()._validate_output(output)
-        if output.address_parameters is not None or output.datum_hash is not None:
+        if (
+            output.address_parameters is not None
+            or output.datum_hash is not None
+            or output.inline_datum_size is not None
+            or output.reference_script_size is not None
+        ):
             raise wire.ProcessError("Invalid output")
 
     def _should_show_output(self, output: messages.CardanoTxOutput) -> bool:

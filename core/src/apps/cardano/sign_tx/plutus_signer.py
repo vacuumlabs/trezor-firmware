@@ -24,28 +24,21 @@ class PlutusSigner(Signer):
     async def _show_tx_init(self) -> None:
         await layout.show_plutus_tx(self.ctx)
         await super()._show_tx_init()
+
         # These items should be present if a Plutus script is to be executed.
         if self.msg.script_data_hash is None:
             await layout.warn_no_script_data_hash(self.ctx)
         if self.msg.collateral_inputs_count == 0:
             await layout.warn_no_collateral_inputs(self.ctx)
 
-    async def _confirm_tx(self, tx_hash: bytes) -> None:
+        if self.msg.total_collateral is None:
+            await layout.warn_unknown_total_collateral(self.ctx)
+
+    def _should_show_tx_hash(self) -> bool:
         # super() omitted intentionally
-        # We display tx hash so that experienced users can compare it to the tx hash
-        # computed by a trusted device (in case the tx contains many items which are
-        # tedious to check one by one on the Trezor screen).
-        is_network_id_verifiable = self._is_network_id_verifiable()
-        await layout.confirm_tx(
-            self.ctx,
-            self.msg.fee,
-            self.msg.network_id,
-            self.msg.protocol_magic,
-            self.msg.ttl,
-            self.msg.validity_interval_start,
-            is_network_id_verifiable,
-            tx_hash,
-        )
+        # Plutus txs tend to contain a lot of opaque data, some users might
+        # want to verify only the tx hash.
+        return True
 
     async def _show_input(self, input: messages.CardanoTxInput) -> None:
         # super() omitted intentionally

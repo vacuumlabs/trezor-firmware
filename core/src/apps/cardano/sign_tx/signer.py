@@ -7,6 +7,7 @@ from trezor.crypto.curve import ed25519
 from trezor.enums import (
     CardanoAddressType,
     CardanoCertificateType,
+    CardanoTxOutputSerializationFormat,
     CardanoTxWitnessType,
 )
 
@@ -22,7 +23,11 @@ from ..helpers import (
 )
 from ..helpers.account_path_check import AccountPathChecker
 from ..helpers.credential import Credential, should_show_credentials
-from ..helpers.hash_builder_collection import HashBuilderDict, HashBuilderList
+from ..helpers.hash_builder_collection import (
+    HashBuilderDict,
+    HashBuilderEmbeddedCBOR,
+    HashBuilderList,
+)
 from ..helpers.paths import (
     CERTIFICATE_PATH_NAME,
     CHANGE_OUTPUT_PATH_NAME,
@@ -61,8 +66,18 @@ TX_BODY_KEY_SCRIPT_DATA_HASH = const(11)
 TX_BODY_KEY_COLLATERAL_INPUTS = const(13)
 TX_BODY_KEY_REQUIRED_SIGNERS = const(14)
 TX_BODY_KEY_NETWORK_ID = const(15)
+TX_BODY_KEY_COLLATERAL_RETURN = const(16)
+TX_BODY_KEY_TOTAL_COLLATERAL = const(17)
+TX_BODY_KEY_REFERENCE_INPUTS = const(18)
+
+POST_ALONZO_OUTPUT_KEY_ADDRESS = const(0)
+POST_ALONZO_OUTPUT_KEY_AMOUNT = const(1)
+POST_ALONZO_OUTPUT_KEY_DATUM = const(2)
+POST_ALONZO_OUTPUT_KEY_REFERENCE_SCRIPT = const(3)
 
 POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT = 10
+
+MAX_CHUNK_SIZE = 256
 
 
 class Signer:
@@ -84,6 +99,11 @@ class Signer:
         self.msg = msg
         self.keychain = keychain
 
+        # Some data (e.g. output inline datum) are too long to verify manually.
+        # We track their presence and eventually display the tx hash when
+        # confirming the tx.
+        self.has_hidden_data = False
+
         self.account_path_checker = AccountPathChecker()
 
         # Inputs, outputs and fee are mandatory, count the number of optional fields present.
@@ -99,6 +119,9 @@ class Signer:
                 msg.script_data_hash is not None,
                 msg.collateral_inputs_count > 0,
                 msg.required_signers_count > 0,
+                msg.has_collateral_return,
+                msg.total_collateral is not None,
+                msg.reference_inputs_count > 0,
             )
         )
         self.tx_dict: HashBuilderDict[int, Any] = HashBuilderDict(
@@ -193,9 +216,27 @@ class Signer:
         if self.msg.include_network_id:
             self.tx_dict.add(TX_BODY_KEY_NETWORK_ID, self.msg.network_id)
 
+        if self.msg.has_collateral_return:
+            await self._process_collateral_return()
+
+        if self.msg.total_collateral is not None:
+            self.tx_dict.add(TX_BODY_KEY_TOTAL_COLLATERAL, self.msg.total_collateral)
+
+        if self.msg.reference_inputs_count > 0:
+            reference_inputs_list: HashBuilderList[tuple[bytes, int]] = HashBuilderList(
+                self.msg.reference_inputs_count
+            )
+            with self.tx_dict.add(TX_BODY_KEY_REFERENCE_INPUTS, reference_inputs_list):
+                await self._process_reference_inputs(reference_inputs_list)
+
     def _validate_tx_init(self) -> None:
         if self.msg.fee > LOVELACE_MAX_SUPPLY:
             raise wire.ProcessError("Fee is out of range!")
+        if (
+            self.msg.total_collateral is not None
+            and self.msg.total_collateral > LOVELACE_MAX_SUPPLY
+        ):
+            raise wire.ProcessError("Total collateral is out of range!")
         validate_network_info(self.msg.network_id, self.msg.protocol_magic)
 
     async def _show_tx_init(self) -> None:
@@ -211,9 +252,14 @@ class Signer:
             self.msg.protocol_magic,
             self.msg.ttl,
             self.msg.validity_interval_start,
+            self.msg.total_collateral,
             is_network_id_verifiable,
-            tx_hash=None,
+            tx_hash=tx_hash if self._should_show_tx_hash() else None,
         )
+
+    def _should_show_tx_hash(self) -> bool:
+        # By default, we display tx hash only if some data wasn't shown.
+        return self.has_hidden_data
 
     # inputs
 
@@ -244,42 +290,40 @@ class Signer:
             output: messages.CardanoTxOutput = await self.ctx.call(
                 messages.CardanoTxItemAck(), messages.CardanoTxOutput
             )
-            self._validate_output(output)
-            await self._show_output(output)
-
-            output_address = self._get_output_address(output)
-
-            has_datum_hash = output.datum_hash is not None
-            output_list: HashBuilderList = HashBuilderList(2 + int(has_datum_hash))
-            with outputs_list.append(output_list):
-                output_list.append(output_address)
-                if output.asset_groups_count == 0:
-                    # output structure is: [address, amount, datum_hash?]
-                    output_list.append(output.amount)
-                else:
-                    # output structure is: [address, [amount, asset_groups], datum_hash?]
-                    output_value_list: HashBuilderList = HashBuilderList(2)
-                    with output_list.append(output_value_list):
-                        output_value_list.append(output.amount)
-                        asset_groups_dict: HashBuilderDict[
-                            bytes, HashBuilderDict[bytes, int]
-                        ] = HashBuilderDict(
-                            output.asset_groups_count,
-                            wire.ProcessError("Invalid token bundle in output"),
-                        )
-                        with output_value_list.append(asset_groups_dict):
-                            await self._process_asset_groups(
-                                asset_groups_dict,
-                                output.asset_groups_count,
-                                self._should_show_output(output),
-                            )
-                if has_datum_hash:
-                    output_list.append(output.datum_hash)
+            await self._process_output(outputs_list, output)
 
             total_amount += output.amount
 
         if total_amount > LOVELACE_MAX_SUPPLY:
             raise wire.ProcessError("Total transaction amount is out of range!")
+
+    async def _process_output(
+        self, outputs_list: HashBuilderList, output: messages.CardanoTxOutput
+    ) -> None:
+        self._validate_output(output)
+        should_show = self._should_show_output(output)
+        if should_show:
+            await self._show_output_init(output)
+
+        output_items_count = 2 + sum(
+            (
+                output.datum_hash is not None,
+                output.inline_datum_size > 0,
+                output.reference_script_size > 0,
+            )
+        )
+        if output.format == CardanoTxOutputSerializationFormat.LEGACY:
+            output_list: HashBuilderList = HashBuilderList(output_items_count)
+            with outputs_list.append(output_list):
+                await self._process_legacy_output(output_list, output, should_show)
+        elif output.format == CardanoTxOutputSerializationFormat.POST_ALONZO:
+            output_dict: HashBuilderDict[int, Any] = HashBuilderDict(
+                output_items_count, wire.ProcessError("Invalid output")
+            )
+            with outputs_list.append(output_dict):
+                await self._process_post_alonzo_output(output_dict, output, should_show)
+        else:
+            raise RuntimeError  # should be unreachable
 
     def _validate_output(self, output: messages.CardanoTxOutput) -> None:
         if output.address_parameters is not None and output.address is not None:
@@ -295,28 +339,36 @@ class Signer:
         else:
             raise wire.ProcessError("Invalid output")
 
+        address_type = self._get_output_address_type(output)
+
+        # datum hash
         if output.datum_hash is not None:
             if len(output.datum_hash) != OUTPUT_DATUM_HASH_SIZE:
                 raise wire.ProcessError("Invalid output datum hash")
-            address_type = self._get_output_address_type(output)
             if address_type not in addresses.ADDRESS_TYPES_PAYMENT_SCRIPT:
                 raise wire.ProcessError("Invalid output")
 
+        # inline datum and reference script
+        if output.inline_datum_size > 0 or output.reference_script_size > 0:
+            if output.format != CardanoTxOutputSerializationFormat.POST_ALONZO:
+                raise wire.ProcessError("Invalid output")
+            if address_type not in addresses.ADDRESS_TYPES_PAYMENT_SCRIPT:
+                raise wire.ProcessError("Invalid output")
+
+        # datum hash and inline datum are mutually exclusive
+        if output.datum_hash is not None and output.inline_datum_size > 0:
+            raise wire.ProcessError("Invalid output")
+
         self.account_path_checker.add_output(output)
 
-    async def _show_output(self, output: messages.CardanoTxOutput) -> None:
-        if not self._should_show_output(output):
-            return
-
-        if output.datum_hash is not None:
-            await layout.warn_tx_output_contains_datum_hash(self.ctx, output.datum_hash)
-
+    async def _show_output_init(self, output: messages.CardanoTxOutput) -> None:
         address_type = self._get_output_address_type(output)
         if (
             output.datum_hash is None
+            and output.inline_datum_size == 0
             and address_type in addresses.ADDRESS_TYPES_PAYMENT_SCRIPT
         ):
-            await layout.warn_tx_output_no_datum_hash(self.ctx)
+            await layout.warn_tx_output_no_datum(self.ctx)
 
         if output.asset_groups_count > 0:
             await layout.warn_tx_output_contains_tokens(self.ctx)
@@ -333,11 +385,15 @@ class Signer:
             assert output.address is not None  # _validate_output
             address = output.address
 
+        if self._is_change_output(output):
+            output_message = "Change amount"
+        else:
+            output_message = "Confirm sending"
         await layout.confirm_sending(
             self.ctx,
             output.amount,
             address,
-            self._is_change_output(output),
+            output_message,
             self.msg.network_id,
         )
 
@@ -352,20 +408,25 @@ class Signer:
 
     def _should_show_output(self, output: messages.CardanoTxOutput) -> bool:
         """
-        Determines whether the output should be shown. Extracted from _show_output because
-        of readability and because the same decision is made when displaying output tokens.
+        Determines whether the output should be shown. Extracted from _show_output
+        because of readability.
         """
-        if output.datum_hash is not None:
-            # The `return False` case below should not be reachable when datum hash is
-            # present, but let's make it explicit.
+        if (
+            output.datum_hash is not None
+            or output.inline_datum_size > 0
+            or output.reference_script_size > 0
+        ):
+            # The `return False` case below should not be reachable in this case, but
+            # let's make it explicit.
             return True
 
         address_type = self._get_output_address_type(output)
         if (
             output.datum_hash is None
+            and output.inline_datum_size == 0
             and address_type in addresses.ADDRESS_TYPES_PAYMENT_SCRIPT
         ):
-            # Plutus script address without a datum hash is unspendable, we must show a warning.
+            # Plutus script address without a datum is unspendable, we must show a warning.
             return True
 
         if output.address_parameters is not None:  # change output
@@ -378,6 +439,95 @@ class Signer:
     def _is_change_output(self, output: messages.CardanoTxOutput) -> bool:
         """Used only to determine what message to show to the user when confirming sending."""
         return output.address_parameters is not None
+
+    async def _process_legacy_output(
+        self,
+        output_list: HashBuilderList,
+        output: messages.CardanoTxOutput,
+        should_show: bool,
+    ) -> None:
+        address = self._get_output_address(output)
+        output_list.append(address)
+
+        if output.asset_groups_count == 0:
+            # Output structure is: [address, amount, datum_hash?]
+            output_list.append(output.amount)
+        else:
+            # Output structure is: [address, [amount, asset_groups], datum_hash?]
+            output_value_list: HashBuilderList = HashBuilderList(2)
+            with output_list.append(output_value_list):
+                await self._process_output_value(output_value_list, output, should_show)
+
+        if output.datum_hash is not None:
+            if should_show:
+                await layout.confirm_datum_hash(self.ctx, output.datum_hash)
+            output_list.append(output.datum_hash)
+
+    async def _process_post_alonzo_output(
+        self,
+        output_dict: HashBuilderDict[int, Any],
+        output: messages.CardanoTxOutput,
+        should_show: bool,
+    ) -> None:
+        address = self._get_output_address(output)
+        output_dict.add(POST_ALONZO_OUTPUT_KEY_ADDRESS, address)
+
+        if output.asset_groups_count == 0:
+            # Only amount is added to the dict.
+            output_dict.add(POST_ALONZO_OUTPUT_KEY_AMOUNT, output.amount)
+        else:
+            # [amount, asset_groups] is added to the dict.
+            output_value_list: HashBuilderList = HashBuilderList(2)
+            with output_dict.add(POST_ALONZO_OUTPUT_KEY_AMOUNT, output_value_list):
+                await self._process_output_value(output_value_list, output, should_show)
+
+        if output.datum_hash is not None:
+            if should_show:
+                await layout.confirm_datum_hash(self.ctx, output.datum_hash)
+            output_dict.add(POST_ALONZO_OUTPUT_KEY_DATUM, output.datum_hash)
+        elif output.inline_datum_size > 0:
+            inline_datum_cbor: HashBuilderEmbeddedCBOR = HashBuilderEmbeddedCBOR(
+                output.inline_datum_size
+            )
+            with output_dict.add(POST_ALONZO_OUTPUT_KEY_DATUM, inline_datum_cbor):
+                await self._process_inline_datum(
+                    inline_datum_cbor, output.inline_datum_size, should_show
+                )
+
+        if output.reference_script_size > 0:
+            reference_script_cbor: HashBuilderEmbeddedCBOR = HashBuilderEmbeddedCBOR(
+                output.reference_script_size
+            )
+            with output_dict.add(
+                POST_ALONZO_OUTPUT_KEY_REFERENCE_SCRIPT, reference_script_cbor
+            ):
+                await self._process_reference_script(
+                    reference_script_cbor, output.reference_script_size, should_show
+                )
+
+    async def _process_output_value(
+        self,
+        output_value_list: HashBuilderList,
+        output: messages.CardanoTxOutput,
+        should_show_tokens: bool,
+    ) -> None:
+        """Should be used only when the output contains tokens."""
+        assert output.asset_groups_count > 0
+
+        output_value_list.append(output.amount)
+
+        asset_groups_dict: HashBuilderDict[
+            bytes, HashBuilderDict[bytes, int]
+        ] = HashBuilderDict(
+            output.asset_groups_count,
+            wire.ProcessError("Invalid token bundle in output"),
+        )
+        with output_value_list.append(asset_groups_dict):
+            await self._process_asset_groups(
+                asset_groups_dict,
+                output.asset_groups_count,
+                should_show_tokens,
+            )
 
     # asset groups
 
@@ -457,6 +607,66 @@ class Signer:
 
         if len(token.asset_name_bytes) > MAX_ASSET_NAME_LENGTH:
             raise INVALID_TOKEN_BUNDLE
+
+    # inline datum
+
+    async def _process_inline_datum(
+        self,
+        inline_datum_cbor: HashBuilderEmbeddedCBOR,
+        inline_datum_size: int,
+        should_show: bool,
+    ) -> None:
+        assert inline_datum_size > 0
+        self.has_hidden_data = True
+
+        chunks_count = self._get_chunks_count(inline_datum_size)
+        for i in range(chunks_count):
+            chunk: messages.CardanoTxInlineDatumChunk = await self.ctx.call(
+                messages.CardanoTxItemAck(), messages.CardanoTxInlineDatumChunk
+            )
+            self._validate_chunk(
+                chunk.data,
+                i,
+                chunks_count,
+                wire.ProcessError("Invalid inline datum chunk"),
+            )
+
+            if i == 0 and should_show:
+                await layout.confirm_inline_datum(
+                    self.ctx, chunk.data, inline_datum_size
+                )
+
+            inline_datum_cbor.add(chunk.data)
+
+    # reference script
+
+    async def _process_reference_script(
+        self,
+        reference_script_cbor: HashBuilderEmbeddedCBOR,
+        reference_script_size: int,
+        should_show: bool,
+    ) -> None:
+        assert reference_script_size > 0
+        self.has_hidden_data = True
+
+        chunks_count = self._get_chunks_count(reference_script_size)
+        for i in range(chunks_count):
+            chunk: messages.CardanoTxReferenceScriptChunk = await self.ctx.call(
+                messages.CardanoTxItemAck(), messages.CardanoTxReferenceScriptChunk
+            )
+            self._validate_chunk(
+                chunk.data,
+                i,
+                chunks_count,
+                wire.ProcessError("Invalid reference script chunk"),
+            )
+
+            if i == 0 and should_show:
+                await layout.confirm_reference_script(
+                    self.ctx, chunk.data, reference_script_size
+                )
+
+            reference_script_cbor.add(chunk.data)
 
     # certificates
 
@@ -749,6 +959,118 @@ class Signer:
         else:
             raise INVALID_REQUIRED_SIGNER
 
+    # collateral return
+
+    async def _process_collateral_return(self) -> None:
+        output: messages.CardanoTxOutput = await self.ctx.call(
+            messages.CardanoTxItemAck(), messages.CardanoTxOutput
+        )
+        self._validate_collateral_return(output)
+        should_show_init = self._should_show_collateral_return_init(output)
+        should_show_tokens = self._should_show_collateral_return_tokens(output)
+        if should_show_init:
+            await self._show_collateral_return_init(output)
+
+        # We allow only collateral return outputs controlled by a key, see
+        # _validate_collateral_return. This implies no datum or reference script.
+        output_items_count = 2
+        if output.format == CardanoTxOutputSerializationFormat.LEGACY:
+            output_list: HashBuilderList = HashBuilderList(output_items_count)
+            with self.tx_dict.add(TX_BODY_KEY_COLLATERAL_RETURN, output_list):
+                await self._process_legacy_output(
+                    output_list, output, should_show_tokens
+                )
+        elif output.format == CardanoTxOutputSerializationFormat.POST_ALONZO:
+            output_dict: HashBuilderDict[int, Any] = HashBuilderDict(
+                output_items_count, wire.ProcessError("Invalid collateral return")
+            )
+            with self.tx_dict.add(TX_BODY_KEY_COLLATERAL_RETURN, output_dict):
+                await self._process_post_alonzo_output(
+                    output_dict, output, should_show_tokens
+                )
+        else:
+            raise RuntimeError  # should be unreachable
+
+    def _validate_collateral_return(self, output: messages.CardanoTxOutput) -> None:
+        self._validate_output(output)
+
+        address_type = self._get_output_address_type(output)
+        if address_type not in addresses.ADDRESS_TYPES_PAYMENT_KEY:
+            wire.ProcessError("Invalid collateral return")
+
+    async def _show_collateral_return_init(
+        self, output: messages.CardanoTxOutput
+    ) -> None:
+        # We don't display missing datum warning since only non-script addresses
+        # are allowed.
+
+        if output.asset_groups_count > 0:
+            await layout.warn_tx_output_contains_tokens(self.ctx)
+
+        if output.address_parameters is not None:
+            address = addresses.derive_human_readable(
+                self.keychain,
+                output.address_parameters,
+                self.msg.protocol_magic,
+                self.msg.network_id,
+            )
+            await self._show_output_credentials(
+                output.address_parameters,
+            )
+        else:
+            assert output.address is not None  # _validate_output
+            address = output.address
+
+        await layout.confirm_sending(
+            self.ctx,
+            output.amount,
+            address,
+            "Collateral return",
+            self.msg.network_id,
+        )
+
+    def _should_show_collateral_return_init(
+        self, output: messages.CardanoTxOutput
+    ) -> bool:
+        if self.msg.total_collateral is None:
+            return True
+
+        if output.address_parameters is not None:  # change output
+            if not should_show_credentials(output.address_parameters):
+                return False
+
+        return True
+
+    def _should_show_collateral_return_tokens(
+        self, output: messages.CardanoTxOutput
+    ) -> bool:
+        if output.address_parameters is not None:  # change output
+            if not should_show_credentials(output.address_parameters):
+                return False
+
+        return True
+
+    # reference inputs
+
+    async def _process_reference_inputs(
+        self, reference_inputs_list: HashBuilderList[tuple[bytes, int]]
+    ) -> None:
+        for _ in range(self.msg.reference_inputs_count):
+            reference_input: messages.CardanoTxReferenceInput = await self.ctx.call(
+                messages.CardanoTxItemAck(), messages.CardanoTxReferenceInput
+            )
+            self._validate_reference_input(reference_input)
+            await layout.confirm_reference_input(self.ctx, reference_input)
+            reference_inputs_list.append(
+                (reference_input.prev_hash, reference_input.prev_index)
+            )
+
+    def _validate_reference_input(
+        self, reference_input: messages.CardanoTxReferenceInput
+    ) -> None:
+        if len(reference_input.prev_hash) != INPUT_PREV_HASH_SIZE:
+            raise wire.ProcessError("Invalid reference input")
+
     # witness requests
 
     async def _process_witness_requests(self, tx_hash: bytes) -> CardanoTxResponseType:
@@ -836,6 +1158,22 @@ class Signer:
             self.msg.protocol_magic,
             self.msg.network_id,
         )
+
+    def _validate_chunk(
+        self,
+        chunk_data: bytes,
+        chunk_number: int,
+        chunks_count: int,
+        error: wire.ProcessError,
+    ) -> None:
+        if chunk_number < chunks_count - 1 and len(chunk_data) != MAX_CHUNK_SIZE:
+            raise error
+        if chunk_number == chunks_count - 1 and len(chunk_data) > MAX_CHUNK_SIZE:
+            raise error
+
+    def _get_chunks_count(self, data_size: int) -> int:
+        assert data_size > 0
+        return (data_size - 1) // MAX_CHUNK_SIZE + 1
 
     def _get_byron_witness(
         self, path: list[int], tx_hash: bytes

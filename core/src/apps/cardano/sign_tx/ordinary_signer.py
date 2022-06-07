@@ -30,6 +30,9 @@ class OrdinarySigner(Signer):
         if (
             self.msg.collateral_inputs_count != 0
             or self.msg.required_signers_count != 0
+            or self.msg.has_collateral_return
+            or self.msg.total_collateral is not None
+            or self.msg.reference_inputs_count > 0
         ):
             raise wire.ProcessError("Invalid tx signing request")
 
