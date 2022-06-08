@@ -1,5 +1,5 @@
 from micropython import const
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Awaitable
 
 from trezor import messages, wire
 from trezor.crypto import hashlib
@@ -102,11 +102,6 @@ class Signer:
         self.msg = msg
         self.keychain = keychain
 
-        # Some data (e.g. output inline datum) are too long to verify manually.
-        # We track their presence and eventually display the tx hash when
-        # confirming the tx.
-        self.has_hidden_data = False
-
         self.account_path_checker = AccountPathChecker()
 
         # Inputs, outputs and fee are mandatory, count the number of optional fields present.
@@ -131,7 +126,7 @@ class Signer:
             tx_dict_items_count, wire.ProcessError("Invalid tx signing request")
         )
 
-        self.should_show_details = False
+        self.is_expert_view = False
         self.signing_mode_title = None
 
     async def sign(self) -> None:
@@ -247,9 +242,12 @@ class Signer:
 
     async def _show_tx_init(self) -> None:
         assert self.signing_mode_title is not None
-        self.should_show_details = await layout.show_tx_init(
-            self.ctx, self.signing_mode_title
-        )
+
+        is_expert_view_allowed = self._is_expert_view_allowed()
+        if self._should_show_tx_init() or is_expert_view_allowed:
+            self.is_expert_view = await layout.show_tx_init(
+                self.ctx, self.signing_mode_title, is_expert_view_allowed
+            )
 
         if not self._is_network_id_verifiable():
             await layout.warn_tx_network_unverifiable(self.ctx)
@@ -269,8 +267,8 @@ class Signer:
         )
 
     def _should_show_tx_hash(self) -> bool:
-        # By default, we display tx hash only if some data wasn't shown.
-        return self.has_hidden_data
+        # By default we always display tx hash only in expert view
+        return self.is_expert_view
 
     # inputs
 
@@ -417,6 +415,11 @@ class Signer:
             Credential.stake_credential(address_parameters),
         )
 
+    def _is_simple_change_output(self, output: messages.CardanoTxOutput) -> bool:
+        return output.address_parameters is not None and not should_show_credentials(
+            output.address_parameters
+        )
+
     def _should_show_output(self, output: messages.CardanoTxOutput) -> bool:
         """
         Determines whether the output should be shown. Extracted from _show_output
@@ -440,10 +443,9 @@ class Signer:
             # Plutus script address without a datum is unspendable, we must show a warning.
             return True
 
-        if output.address_parameters is not None:  # change output
-            if not should_show_credentials(output.address_parameters):
-                # We don't need to display simple address outputs.
-                return False
+        if self._is_simple_change_output(output):
+            # We don't need to display simple address outputs.
+            return False
 
         return True
 
@@ -471,7 +473,9 @@ class Signer:
 
         if output.datum_hash is not None:
             if should_show:
-                await layout.confirm_datum_hash(self.ctx, output.datum_hash)
+                await self._show_if_expert_view(
+                    layout.confirm_datum_hash(self.ctx, output.datum_hash)
+                )
             output_list.append(output.datum_hash)
 
     async def _process_post_alonzo_output(
@@ -494,7 +498,9 @@ class Signer:
 
         if output.datum_hash is not None:
             if should_show:
-                await layout.confirm_datum_hash(self.ctx, output.datum_hash)
+                await self._show_if_expert_view(
+                    layout.confirm_datum_hash(self.ctx, output.datum_hash)
+                )
             output_dict.add(
                 POST_ALONZO_OUTPUT_KEY_DATUM_OPTION,
                 (DATUM_OPTION_KEY_HASH, output.datum_hash),
@@ -636,7 +642,6 @@ class Signer:
         should_show: bool,
     ) -> None:
         assert inline_datum_size > 0
-        self.has_hidden_data = True
 
         chunks_count = self._get_chunks_count(inline_datum_size)
         for chunk_number in range(chunks_count):
@@ -650,8 +655,8 @@ class Signer:
                 wire.ProcessError("Invalid inline datum chunk"),
             )
             if chunk_number == 0 and should_show:
-                await layout.confirm_inline_datum(
-                    self.ctx, chunk.data, inline_datum_size
+                await self._show_if_expert_view(
+                    layout.confirm_inline_datum(self.ctx, chunk.data, inline_datum_size)
                 )
             inline_datum_cbor.add(chunk.data)
 
@@ -664,7 +669,6 @@ class Signer:
         should_show: bool,
     ) -> None:
         assert reference_script_size > 0
-        self.has_hidden_data = True
 
         chunks_count = self._get_chunks_count(reference_script_size)
         for chunk_number in range(chunks_count):
@@ -678,8 +682,10 @@ class Signer:
                 wire.ProcessError("Invalid reference script chunk"),
             )
             if chunk_number == 0 and should_show:
-                await layout.confirm_reference_script(
-                    self.ctx, chunk.data, reference_script_size
+                await self._show_if_expert_view(
+                    layout.confirm_reference_script(
+                        self.ctx, chunk.data, reference_script_size
+                    )
                 )
             reference_script_cbor.add(chunk.data)
 
@@ -813,8 +819,10 @@ class Signer:
             )
             self._validate_withdrawal(withdrawal)
             address_bytes = self._derive_withdrawal_address_bytes(withdrawal)
-            await layout.confirm_withdrawal(
-                self.ctx, withdrawal, address_bytes, self.msg.network_id
+            await self._show_if_expert_view(
+                layout.confirm_withdrawal(
+                    self.ctx, withdrawal, address_bytes, self.msg.network_id
+                )
             )
             withdrawals_dict.add(address_bytes, withdrawal.amount)
 
@@ -852,6 +860,7 @@ class Signer:
             data.catalyst_registration_parameters,
             self.msg.protocol_magic,
             self.msg.network_id,
+            self.is_expert_view,
         )
         self.tx_dict.add(TX_BODY_KEY_AUXILIARY_DATA, auxiliary_data_hash)
 
@@ -907,7 +916,9 @@ class Signer:
     async def _process_script_data_hash(self) -> None:
         assert self.msg.script_data_hash is not None
         self._validate_script_data_hash()
-        await layout.confirm_script_data_hash(self.ctx, self.msg.script_data_hash)
+        await self._show_if_expert_view(
+            layout.confirm_script_data_hash(self.ctx, self.msg.script_data_hash)
+        )
         self.tx_dict.add(TX_BODY_KEY_SCRIPT_DATA_HASH, self.msg.script_data_hash)
 
     def _validate_script_data_hash(self) -> None:
@@ -940,7 +951,9 @@ class Signer:
         self, collateral_input: messages.CardanoTxCollateralInput
     ) -> None:
         if self.msg.total_collateral is None:
-            await layout.confirm_collateral_input(self.ctx, collateral_input)
+            await self._show_if_expert_view(
+                layout.confirm_collateral_input(self.ctx, collateral_input)
+            )
 
     # required signers
 
@@ -952,7 +965,9 @@ class Signer:
                 messages.CardanoTxItemAck(), messages.CardanoTxRequiredSigner
             )
             self._validate_required_signer(required_signer)
-            await layout.confirm_required_signer(self.ctx, required_signer)
+            await self._show_if_expert_view(
+                layout.confirm_required_signer(self.ctx, required_signer)
+            )
 
             key_hash = required_signer.key_hash or get_public_key_hash(
                 self.keychain, required_signer.key_path
@@ -1056,20 +1071,15 @@ class Signer:
         if self.msg.total_collateral is None:
             return True
 
-        if output.address_parameters is not None:  # change output
-            if not should_show_credentials(output.address_parameters):
-                return False
+        if self._is_simple_change_output(output):
+            return False
 
         return True
 
     def _should_show_collateral_return_tokens(
         self, output: messages.CardanoTxOutput
     ) -> bool:
-        if output.address_parameters is not None:  # change output
-            if not should_show_credentials(output.address_parameters):
-                return False
-
-        return True
+        return not self._is_simple_change_output(output) and self.is_expert_view
 
     # reference inputs
 
@@ -1081,7 +1091,9 @@ class Signer:
                 messages.CardanoTxItemAck(), messages.CardanoTxReferenceInput
             )
             self._validate_reference_input(reference_input)
-            await layout.confirm_reference_input(self.ctx, reference_input)
+            await self._show_if_expert_view(
+                layout.confirm_reference_input(self.ctx, reference_input)
+            )
             reference_inputs_list.append(
                 (reference_input.prev_hash, reference_input.prev_index)
             )
@@ -1249,3 +1261,7 @@ class Signer:
 
         if Credential.stake_credential(address_parameters).is_unusual_path:
             raise wire.DataError(f"Invalid {CHANGE_OUTPUT_STAKING_PATH_NAME.lower()}")
+
+    async def _show_if_expert_view(self, layout_fn: Awaitable) -> None:
+        if self.is_expert_view:
+            await layout_fn
