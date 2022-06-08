@@ -72,8 +72,11 @@ TX_BODY_KEY_REFERENCE_INPUTS = const(18)
 
 POST_ALONZO_OUTPUT_KEY_ADDRESS = const(0)
 POST_ALONZO_OUTPUT_KEY_AMOUNT = const(1)
-POST_ALONZO_OUTPUT_KEY_DATUM = const(2)
+POST_ALONZO_OUTPUT_KEY_DATUM_OPTION = const(2)
 POST_ALONZO_OUTPUT_KEY_REFERENCE_SCRIPT = const(3)
+
+DATUM_OPTION_KEY_HASH = const(0)
+DATUM_OPTION_KEY_INLINE = const(1)
 
 POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT = 10
 
@@ -484,15 +487,23 @@ class Signer:
         if output.datum_hash is not None:
             if should_show:
                 await layout.confirm_datum_hash(self.ctx, output.datum_hash)
-            output_dict.add(POST_ALONZO_OUTPUT_KEY_DATUM, output.datum_hash)
-        elif output.inline_datum_size > 0:
-            inline_datum_cbor: HashBuilderEmbeddedCBOR = HashBuilderEmbeddedCBOR(
-                output.inline_datum_size
+            output_dict.add(
+                POST_ALONZO_OUTPUT_KEY_DATUM_OPTION,
+                (DATUM_OPTION_KEY_HASH, output.datum_hash),
             )
-            with output_dict.add(POST_ALONZO_OUTPUT_KEY_DATUM, inline_datum_cbor):
-                await self._process_inline_datum(
-                    inline_datum_cbor, output.inline_datum_size, should_show
+        elif output.inline_datum_size > 0:
+            inline_datum_list: HashBuilderList = HashBuilderList(2)
+            with output_dict.add(
+                POST_ALONZO_OUTPUT_KEY_DATUM_OPTION, inline_datum_list
+            ):
+                inline_datum_list.append(DATUM_OPTION_KEY_INLINE)
+                inline_datum_cbor: HashBuilderEmbeddedCBOR = HashBuilderEmbeddedCBOR(
+                    output.inline_datum_size
                 )
+                with inline_datum_list.append(inline_datum_cbor):
+                    await self._process_inline_datum(
+                        inline_datum_cbor, output.inline_datum_size, should_show
+                    )
 
         if output.reference_script_size > 0:
             reference_script_cbor: HashBuilderEmbeddedCBOR = HashBuilderEmbeddedCBOR(
@@ -620,22 +631,20 @@ class Signer:
         self.has_hidden_data = True
 
         chunks_count = self._get_chunks_count(inline_datum_size)
-        for i in range(chunks_count):
+        for chunk_number in range(chunks_count):
             chunk: messages.CardanoTxInlineDatumChunk = await self.ctx.call(
                 messages.CardanoTxItemAck(), messages.CardanoTxInlineDatumChunk
             )
             self._validate_chunk(
                 chunk.data,
-                i,
+                chunk_number,
                 chunks_count,
                 wire.ProcessError("Invalid inline datum chunk"),
             )
-
-            if i == 0 and should_show:
+            if chunk_number == 0 and should_show:
                 await layout.confirm_inline_datum(
                     self.ctx, chunk.data, inline_datum_size
                 )
-
             inline_datum_cbor.add(chunk.data)
 
     # reference script
@@ -650,22 +659,20 @@ class Signer:
         self.has_hidden_data = True
 
         chunks_count = self._get_chunks_count(reference_script_size)
-        for i in range(chunks_count):
+        for chunk_number in range(chunks_count):
             chunk: messages.CardanoTxReferenceScriptChunk = await self.ctx.call(
                 messages.CardanoTxItemAck(), messages.CardanoTxReferenceScriptChunk
             )
             self._validate_chunk(
                 chunk.data,
-                i,
+                chunk_number,
                 chunks_count,
                 wire.ProcessError("Invalid reference script chunk"),
             )
-
-            if i == 0 and should_show:
+            if chunk_number == 0 and should_show:
                 await layout.confirm_reference_script(
                     self.ctx, chunk.data, reference_script_size
                 )
-
             reference_script_cbor.add(chunk.data)
 
     # certificates
@@ -910,7 +917,7 @@ class Signer:
                 messages.CardanoTxItemAck(), messages.CardanoTxCollateralInput
             )
             self._validate_collateral_input(collateral_input)
-            await layout.confirm_collateral_input(self.ctx, collateral_input)
+            await self._show_collateral_input(collateral_input)
             collateral_inputs_list.append(
                 (collateral_input.prev_hash, collateral_input.prev_index)
             )
@@ -920,6 +927,12 @@ class Signer:
     ) -> None:
         if len(collateral_input.prev_hash) != INPUT_PREV_HASH_SIZE:
             raise wire.ProcessError("Invalid collateral input")
+
+    async def _show_collateral_input(
+        self, collateral_input: messages.CardanoTxCollateralInput
+    ) -> None:
+        if self.msg.total_collateral is None:
+            await layout.confirm_collateral_input(self.ctx, collateral_input)
 
     # required signers
 
@@ -1102,6 +1115,10 @@ class Signer:
         await layout.confirm_witness_request(self.ctx, witness_path)
 
     # helpers
+
+    def _assert_tx_init_cond(self, condition: bool) -> None:
+        if not condition:
+            raise wire.ProcessError("Invalid tx signing request")
 
     def _is_network_id_verifiable(self) -> bool:
         """
