@@ -859,6 +859,16 @@ def sign_tx(
             witness_requests_count=len(witness_requests),
             derivation_type=derivation_type,
             include_network_id=include_network_id,
+            has_output_details=any(
+                [
+                    (
+                        output.datum_hash is not None
+                        or output.inline_datum_size > 0
+                        or output.reference_script_size > 0
+                    )
+                    for (output, _, _, _) in outputs
+                ]
+            ),
         )
     )
     if not isinstance(response, messages.CardanoTxItemAck):

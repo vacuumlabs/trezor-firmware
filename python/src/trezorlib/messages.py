@@ -2268,6 +2268,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         19: protobuf.Field("has_collateral_return", "bool", repeated=False, required=True),
         20: protobuf.Field("total_collateral", "uint64", repeated=False, required=False),
         21: protobuf.Field("reference_inputs_count", "uint32", repeated=False, required=True),
+        22: protobuf.Field("has_output_details", "bool", repeated=False, required=True),
     }
 
     def __init__(
@@ -2289,6 +2290,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         required_signers_count: "int",
         has_collateral_return: "bool",
         reference_inputs_count: "int",
+        has_output_details: "bool",
         ttl: Optional["int"] = None,
         validity_interval_start: Optional["int"] = None,
         include_network_id: Optional["bool"] = False,
@@ -2311,6 +2313,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         self.required_signers_count = required_signers_count
         self.has_collateral_return = has_collateral_return
         self.reference_inputs_count = reference_inputs_count
+        self.has_output_details = has_output_details
         self.ttl = ttl
         self.validity_interval_start = validity_interval_start
         self.include_network_id = include_network_id

@@ -41,6 +41,12 @@ class PoolOwnerSigner(Signer):
         self._assert_tx_init_cond(self.msg.total_collateral is None)
         self._assert_tx_init_cond(self.msg.reference_inputs_count == 0)
 
+    def _should_show_tx_init(self) -> bool:
+        return False
+
+    def _is_expert_view_allowed(self) -> bool:
+        return False
+
     async def _confirm_tx(self, tx_hash: bytes) -> None:
         # super() omitted intentionally
         await layout.confirm_stake_pool_registration_final(

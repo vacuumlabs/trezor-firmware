@@ -240,6 +240,12 @@ class Signer:
             raise wire.ProcessError("Total collateral is out of range!")
         validate_network_info(self.msg.network_id, self.msg.protocol_magic)
 
+    def _should_show_tx_init(self) -> bool:
+        return True
+
+    def _is_expert_view_allowed(self) -> bool:
+        return True
+
     async def _show_tx_init(self) -> None:
         assert self.signing_mode_title is not None
 
@@ -352,6 +358,8 @@ class Signer:
 
         # datum hash
         if output.datum_hash is not None:
+            if not self.msg.has_output_details:
+                raise wire.ProcessError("Invalid output")
             if len(output.datum_hash) != OUTPUT_DATUM_HASH_SIZE:
                 raise wire.ProcessError("Invalid output datum hash")
             if address_type not in addresses.ADDRESS_TYPES_PAYMENT_SCRIPT:
@@ -359,6 +367,8 @@ class Signer:
 
         # inline datum and reference script
         if output.inline_datum_size > 0 or output.reference_script_size > 0:
+            if not self.msg.has_output_details:
+                raise wire.ProcessError("Invalid output")
             if output.format != CardanoTxOutputSerializationFormat.POST_ALONZO:
                 raise wire.ProcessError("Invalid output")
             if address_type not in addresses.ADDRESS_TYPES_PAYMENT_SCRIPT:

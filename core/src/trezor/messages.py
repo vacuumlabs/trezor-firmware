@@ -1340,6 +1340,7 @@ if TYPE_CHECKING:
         has_collateral_return: "bool"
         total_collateral: "int | None"
         reference_inputs_count: "int"
+        has_output_details: "bool"
 
         def __init__(
             self,
@@ -1360,6 +1361,7 @@ if TYPE_CHECKING:
             required_signers_count: "int",
             has_collateral_return: "bool",
             reference_inputs_count: "int",
+            has_output_details: "bool",
             ttl: "int | None" = None,
             validity_interval_start: "int | None" = None,
             include_network_id: "bool | None" = None,

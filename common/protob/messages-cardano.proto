@@ -218,6 +218,7 @@ message CardanoSignTxInit {
     required bool has_collateral_return = 19;
     optional uint64 total_collateral = 20;
     required uint32 reference_inputs_count = 21;
+    required bool has_output_details = 22;                      // used to hide initial screen for ordinary transactions if possible
 }
 
 /**

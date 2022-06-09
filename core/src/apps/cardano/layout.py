@@ -178,24 +178,37 @@ async def show_script_hash(
         )
 
 
-async def show_tx_init(ctx: wire.Context, title: str) -> bool:
-    should_show_details = await should_show_more(
-        ctx,
-        "Confirm transaction",
-        (
+async def show_tx_init(
+    ctx: wire.Context, title: str, is_expert_view_allowed: bool
+) -> bool:
+    if is_expert_view_allowed:
+        should_show_details = await should_show_more(
+            ctx,
+            "Confirm transaction",
             (
-                ui.BOLD,
-                title,
+                (
+                    ui.BOLD,
+                    title,
+                ),
             ),
-        ),
-        button_text="Expert view",
-        icon=ui.ICON_SEND,
-        icon_color=ui.GREEN,
-        confirm="Basic view",
-        major_confirm=True,
-    )
+            button_text="Expert view",
+            icon=ui.ICON_SEND,
+            icon_color=ui.GREEN,
+            confirm="Basic view",
+            major_confirm=True,
+        )
 
-    return should_show_details
+        return should_show_details
+    else:
+        await confirm_metadata(
+            ctx,
+            "confirm_signing_mode",
+            title="Confirm transaction",
+            content=title,
+            larger_vspace=True,
+            br_code=ButtonRequestType.Other,
+        )
+        return False
 
 
 async def confirm_input(ctx: wire.Context, input: messages.CardanoTxInput) -> None:

@@ -29,6 +29,17 @@ class MultisigSigner(Signer):
         self._assert_tx_init_cond(self.msg.total_collateral is None)
         self._assert_tx_init_cond(self.msg.reference_inputs_count == 0)
 
+    def _should_show_tx_init(self) -> bool:
+        return True
+
+    def _is_expert_view_allowed(self) -> bool:
+        return (
+            self.msg.has_output_details
+            or self.msg.withdrawals_count > 0
+            or self.msg.script_data_hash is not None
+            or self.msg.required_signers_count > 0
+        )
+
     def _validate_output(self, output: messages.CardanoTxOutput) -> None:
         super()._validate_output(output)
         if output.address_parameters is not None:
