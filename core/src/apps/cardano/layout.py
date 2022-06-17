@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from trezor import messages, ui
 from trezor.enums import (
@@ -215,15 +215,24 @@ async def confirm_sending(
     ctx: wire.Context,
     ada_amount: int,
     to: str,
-    output_message: str,
+    output_type: Literal["change", "third-party", "collateral-return"],
     network_id: int,
 ) -> None:
+    if output_type == "change":
+        message = "Change amount"
+    elif output_type == "third-party":
+        message = "Confirm sending"
+    elif output_type == "collateral-return":
+        message = "Collateral return"
+    else:
+        raise RuntimeError  # should be unreachable
+
     await confirm_output(
         ctx,
         to,
         format_coin_amount(ada_amount, network_id),
         title="Confirm transaction",
-        subtitle=f"{output_message}:",
+        subtitle=f"{message}:",
         font_amount=ui.BOLD,
         width_paginated=17,
         to_str="\nto\n",
@@ -270,33 +279,14 @@ async def confirm_datum_hash(ctx: wire.Context, datum_hash: bytes) -> None:
     )
 
 
-async def confirm_inline_datum(
-    ctx: wire.Context, first_chunk: bytes, inline_datum_size: int
+async def confirm_chunk(
+    ctx: wire.Context,
+    chunk_type: Literal["inline-datum", "reference-script"],
+    first_chunk: bytes,
+    data_size: int,
 ) -> None:
-    await _confirm_data_chunk(
-        ctx,
-        "confirm_inline_datum",
-        "Inline datum",
-        first_chunk,
-        inline_datum_size,
-    )
+    title = "Inline datum" if chunk_type == "inline-datum" else "Reference script"
 
-
-async def confirm_reference_script(
-    ctx: wire.Context, first_chunk: bytes, reference_script_size: int
-) -> None:
-    await _confirm_data_chunk(
-        ctx,
-        "confirm_reference_script",
-        "Reference script",
-        first_chunk,
-        reference_script_size,
-    )
-
-
-async def _confirm_data_chunk(
-    ctx: wire.Context, br_type: str, title: str, first_chunk: bytes, data_size: int
-) -> None:
     MAX_DISPLAYED_SIZE = 56
     displayed_bytes = first_chunk[:MAX_DISPLAYED_SIZE]
     bytes_optional_plural = "byte" if data_size == 1 else "bytes"
@@ -310,7 +300,9 @@ async def _confirm_data_chunk(
         props.append(("...", None))
     await confirm_properties(
         ctx,
-        br_type,
+        br_type="confirm_inline_datum"
+        if chunk_type == "inline-datum"
+        else "confirm_reference_script",
         title="Confirm transaction",
         props=props,
         br_code=ButtonRequestType.Other,

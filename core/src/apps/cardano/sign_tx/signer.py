@@ -1,5 +1,5 @@
 from micropython import const
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from trezor import messages, wire
 from trezor.crypto import hashlib
@@ -387,15 +387,11 @@ class Signer:
             assert output.address is not None  # _validate_output
             address = output.address
 
-        if self._is_change_output(output):
-            output_message = "Change amount"
-        else:
-            output_message = "Confirm sending"
         await layout.confirm_sending(
             self.ctx,
             output.amount,
             address,
-            output_message,
+            "change" if self._is_change_output(output) else "third-party",
             self.msg.network_id,
         )
 
@@ -616,8 +612,30 @@ class Signer:
         if len(token.asset_name_bytes) > MAX_ASSET_NAME_LENGTH:
             raise INVALID_TOKEN_BUNDLE
 
-    # inline datum
+    async def _process_chunks(
+        self,
+        data_cbor: HashBuilderEmbeddedCBOR,
+        data_size: int,
+        should_show: bool,
+        chunk_type: Literal["inline-datum", "reference-script"],
+        error: wire.ProcessError,
+    ) -> None:
+        chunks_count = self._get_chunks_count(data_size)
+        for chunk_number in range(chunks_count):
+            message_type = (
+                messages.CardanoTxInlineDatumChunk
+                if chunk_type == "inline-datum"
+                else messages.CardanoTxReferenceScriptChunk
+            )
+            chunk: message_type = await self.ctx.call(
+                messages.CardanoTxItemAck(), message_type
+            )
+            self._validate_chunk(chunk.data, chunk_number, chunks_count, error)
+            if chunk_number == 0 and should_show:
+                await layout.confirm_chunk(self.ctx, chunk_type, chunk.data, data_size)
+            data_cbor.add(chunk.data)
 
+    # inline datum
     async def _process_inline_datum(
         self,
         inline_datum_cbor: HashBuilderEmbeddedCBOR,
@@ -627,22 +645,13 @@ class Signer:
         assert inline_datum_size > 0
         self.has_hidden_data = True
 
-        chunks_count = self._get_chunks_count(inline_datum_size)
-        for chunk_number in range(chunks_count):
-            chunk: messages.CardanoTxInlineDatumChunk = await self.ctx.call(
-                messages.CardanoTxItemAck(), messages.CardanoTxInlineDatumChunk
-            )
-            self._validate_chunk(
-                chunk.data,
-                chunk_number,
-                chunks_count,
-                wire.ProcessError("Invalid inline datum chunk"),
-            )
-            if chunk_number == 0 and should_show:
-                await layout.confirm_inline_datum(
-                    self.ctx, chunk.data, inline_datum_size
-                )
-            inline_datum_cbor.add(chunk.data)
+        await self._process_chunks(
+            inline_datum_cbor,
+            inline_datum_size,
+            should_show,
+            "inline-datum",
+            wire.ProcessError("Invalid inline datum chunk"),
+        )
 
     # reference script
 
@@ -655,22 +664,13 @@ class Signer:
         assert reference_script_size > 0
         self.has_hidden_data = True
 
-        chunks_count = self._get_chunks_count(reference_script_size)
-        for chunk_number in range(chunks_count):
-            chunk: messages.CardanoTxReferenceScriptChunk = await self.ctx.call(
-                messages.CardanoTxItemAck(), messages.CardanoTxReferenceScriptChunk
-            )
-            self._validate_chunk(
-                chunk.data,
-                chunk_number,
-                chunks_count,
-                wire.ProcessError("Invalid reference script chunk"),
-            )
-            if chunk_number == 0 and should_show:
-                await layout.confirm_reference_script(
-                    self.ctx, chunk.data, reference_script_size
-                )
-            reference_script_cbor.add(chunk.data)
+        await self._process_chunks(
+            reference_script_cbor,
+            reference_script_size,
+            should_show,
+            "reference-script",
+            wire.ProcessError("Invalid reference script chunk"),
+        )
 
     # certificates
 
@@ -1042,7 +1042,7 @@ class Signer:
             self.ctx,
             output.amount,
             address,
-            "Collateral return",
+            "collateral-return",
             self.msg.network_id,
         )
 
