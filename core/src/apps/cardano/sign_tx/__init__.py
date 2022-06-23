@@ -4,10 +4,6 @@ from trezor import log, messages, wire
 from trezor.enums import CardanoTxSigningMode
 
 from .. import seed
-from .multisig_signer import MultisigSigner
-from .ordinary_signer import OrdinarySigner
-from .plutus_signer import PlutusSigner
-from .pool_owner_signer import PoolOwnerSigner
 from .signer import Signer
 
 
@@ -15,13 +11,25 @@ from .signer import Signer
 async def sign_tx(
     ctx: wire.Context, msg: messages.CardanoSignTxInit, keychain: seed.Keychain
 ) -> messages.CardanoSignTxFinished:
-    signer_types: dict[CardanoTxSigningMode, Type[Signer]] = {
-        CardanoTxSigningMode.ORDINARY_TRANSACTION: OrdinarySigner,
-        CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER: PoolOwnerSigner,
-        CardanoTxSigningMode.MULTISIG_TRANSACTION: MultisigSigner,
-        CardanoTxSigningMode.PLUTUS_TRANSACTION: PlutusSigner,
-    }
-    signer_type = signer_types[msg.signing_mode]
+    signer_type: Type[Signer]
+    if msg.signing_mode == CardanoTxSigningMode.ORDINARY_TRANSACTION:
+        from .ordinary_signer import OrdinarySigner
+
+        signer_type = OrdinarySigner
+    elif msg.signing_mode == CardanoTxSigningMode.POOL_REGISTRATION_AS_OWNER:
+        from .pool_owner_signer import PoolOwnerSigner
+
+        signer_type = PoolOwnerSigner
+    elif msg.signing_mode == CardanoTxSigningMode.MULTISIG_TRANSACTION:
+        from .multisig_signer import MultisigSigner
+
+        signer_type = MultisigSigner
+    elif msg.signing_mode == CardanoTxSigningMode.PLUTUS_TRANSACTION:
+        from .plutus_signer import PlutusSigner
+
+        signer_type = PlutusSigner
+    else:
+        raise RuntimeError  # should be unreachable
 
     signer = signer_type(ctx, msg, keychain)
 
