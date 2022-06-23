@@ -203,17 +203,8 @@ class Signer:
             await layout.warn_tx_network_unverifiable(self.ctx)
 
     async def _confirm_tx(self, tx_hash: bytes) -> None:
-        is_network_id_verifiable = self._is_network_id_verifiable()
-        await layout.confirm_tx(
-            self.ctx,
-            self.msg.fee,
-            self.msg.network_id,
-            self.msg.protocol_magic,
-            self.msg.ttl,
-            self.msg.validity_interval_start,
-            is_network_id_verifiable,
-            tx_hash=None,
-        )
+        # Final signing confirmation is handled separately in each signing mode.
+        raise NotImplementedError
 
     # inputs
 

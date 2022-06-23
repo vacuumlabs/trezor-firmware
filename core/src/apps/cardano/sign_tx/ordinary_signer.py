@@ -33,6 +33,20 @@ class OrdinarySigner(Signer):
         ):
             raise wire.ProcessError("Invalid tx signing request")
 
+    async def _confirm_tx(self, tx_hash: bytes) -> None:
+        # super() omitted intentionally
+        is_network_id_verifiable = self._is_network_id_verifiable()
+        await layout.confirm_tx(
+            self.ctx,
+            self.msg.fee,
+            self.msg.network_id,
+            self.msg.protocol_magic,
+            self.msg.ttl,
+            self.msg.validity_interval_start,
+            is_network_id_verifiable,
+            tx_hash=None,
+        )
+
     def _validate_certificate(self, certificate: messages.CardanoTxCertificate) -> None:
         super()._validate_certificate(certificate)
         if certificate.type == CardanoCertificateType.STAKE_POOL_REGISTRATION:

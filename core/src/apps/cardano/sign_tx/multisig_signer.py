@@ -31,6 +31,20 @@ class MultisigSigner(Signer):
         await layout.show_multisig_tx(self.ctx)
         await super()._show_tx_init()
 
+    async def _confirm_tx(self, tx_hash: bytes) -> None:
+        # super() omitted intentionally
+        is_network_id_verifiable = self._is_network_id_verifiable()
+        await layout.confirm_tx(
+            self.ctx,
+            self.msg.fee,
+            self.msg.network_id,
+            self.msg.protocol_magic,
+            self.msg.ttl,
+            self.msg.validity_interval_start,
+            is_network_id_verifiable,
+            tx_hash=None,
+        )
+
     def _validate_output(self, output: messages.CardanoTxOutput) -> None:
         super()._validate_output(output)
         if output.address_parameters is not None:
