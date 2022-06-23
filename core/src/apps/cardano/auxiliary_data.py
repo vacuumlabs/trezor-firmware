@@ -1,10 +1,9 @@
 from typing import TYPE_CHECKING
 
-from trezor import wire
+from trezor import messages, wire
 from trezor.crypto import hashlib
 from trezor.crypto.curve import ed25519
 from trezor.enums import CardanoAddressType, CardanoTxAuxiliaryDataSupplementType
-from trezor.messages import CardanoTxAuxiliaryDataSupplement
 
 from apps.common import cbor
 
@@ -15,11 +14,6 @@ from .helpers.utils import derive_public_key
 from .layout import confirm_catalyst_registration, show_auxiliary_data_hash
 
 if TYPE_CHECKING:
-    from trezor.messages import (
-        CardanoCatalystRegistrationParametersType,
-        CardanoTxAuxiliaryData,
-    )
-
     CatalystRegistrationPayload = dict[int, bytes | int]
     SignedCatalystRegistrationPayload = tuple[CatalystRegistrationPayload, bytes]
     CatalystRegistrationSignature = dict[int, bytes]
@@ -37,7 +31,7 @@ METADATA_KEY_CATALYST_REGISTRATION = 61284
 METADATA_KEY_CATALYST_REGISTRATION_SIGNATURE = 61285
 
 
-def validate(auxiliary_data: CardanoTxAuxiliaryData) -> None:
+def validate(auxiliary_data: messages.CardanoTxAuxiliaryData) -> None:
     fields_provided = 0
     if auxiliary_data.hash:
         fields_provided += 1
@@ -58,7 +52,7 @@ def _validate_hash(auxiliary_data_hash: bytes) -> None:
 
 
 def _validate_catalyst_registration_parameters(
-    catalyst_registration_parameters: CardanoCatalystRegistrationParametersType,
+    catalyst_registration_parameters: messages.CardanoCatalystRegistrationParametersType,
 ) -> None:
     if (
         len(catalyst_registration_parameters.voting_public_key)
@@ -82,7 +76,8 @@ async def show(
     ctx: wire.Context,
     keychain: seed.Keychain,
     auxiliary_data_hash: bytes,
-    catalyst_registration_parameters: CardanoCatalystRegistrationParametersType | None,
+    catalyst_registration_parameters: messages.CardanoCatalystRegistrationParametersType
+    | None,
     protocol_magic: int,
     network_id: int,
 ) -> None:
@@ -101,7 +96,7 @@ async def show(
 async def _show_catalyst_registration(
     ctx: wire.Context,
     keychain: seed.Keychain,
-    catalyst_registration_parameters: CardanoCatalystRegistrationParametersType,
+    catalyst_registration_parameters: messages.CardanoCatalystRegistrationParametersType,
     protocol_magic: int,
     network_id: int,
 ) -> None:
@@ -123,10 +118,10 @@ async def _show_catalyst_registration(
 
 def get_hash_and_supplement(
     keychain: seed.Keychain,
-    auxiliary_data: CardanoTxAuxiliaryData,
+    auxiliary_data: messages.CardanoTxAuxiliaryData,
     protocol_magic: int,
     network_id: int,
-) -> tuple[bytes, CardanoTxAuxiliaryDataSupplement]:
+) -> tuple[bytes, messages.CardanoTxAuxiliaryDataSupplement]:
     if parameters := auxiliary_data.catalyst_registration_parameters:
         (
             catalyst_registration_payload,
@@ -137,7 +132,7 @@ def get_hash_and_supplement(
         auxiliary_data_hash = _get_catalyst_registration_hash(
             catalyst_registration_payload, catalyst_signature
         )
-        auxiliary_data_supplement = CardanoTxAuxiliaryDataSupplement(
+        auxiliary_data_supplement = messages.CardanoTxAuxiliaryDataSupplement(
             type=CardanoTxAuxiliaryDataSupplementType.CATALYST_REGISTRATION_SIGNATURE,
             auxiliary_data_hash=auxiliary_data_hash,
             catalyst_signature=catalyst_signature,
@@ -145,7 +140,7 @@ def get_hash_and_supplement(
         return auxiliary_data_hash, auxiliary_data_supplement
     else:
         assert auxiliary_data.hash is not None  # validate_auxiliary_data
-        return auxiliary_data.hash, CardanoTxAuxiliaryDataSupplement(
+        return auxiliary_data.hash, messages.CardanoTxAuxiliaryDataSupplement(
             type=CardanoTxAuxiliaryDataSupplementType.NONE
         )
 
@@ -175,7 +170,7 @@ def _cborize_catalyst_registration(
 
 def _get_signed_catalyst_registration_payload(
     keychain: seed.Keychain,
-    catalyst_registration_parameters: CardanoCatalystRegistrationParametersType,
+    catalyst_registration_parameters: messages.CardanoCatalystRegistrationParametersType,
     protocol_magic: int,
     network_id: int,
 ) -> SignedCatalystRegistrationPayload:

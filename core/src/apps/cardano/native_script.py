@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from trezor import wire
+from trezor import messages, wire
 from trezor.crypto import hashlib
 from trezor.enums import CardanoNativeScriptType
 
@@ -14,12 +14,10 @@ from .helpers.utils import get_public_key_hash
 if TYPE_CHECKING:
     from typing import Any
 
-    from trezor.messages import CardanoNativeScript
-
     from apps.common.cbor import CborSequence
 
 
-def validate_native_script(script: CardanoNativeScript | None) -> None:
+def validate_native_script(script: messages.CardanoNativeScript | None) -> None:
     INVALID_NATIVE_SCRIPT = wire.ProcessError("Invalid native script")
 
     if not script:
@@ -60,7 +58,7 @@ def validate_native_script(script: CardanoNativeScript | None) -> None:
             raise INVALID_NATIVE_SCRIPT
 
 
-def _validate_native_script_structure(script: CardanoNativeScript) -> None:
+def _validate_native_script_structure(script: messages.CardanoNativeScript) -> None:
     key_hash = script.key_hash
     key_path = script.key_path
     scripts = script.scripts
@@ -114,7 +112,7 @@ def _validate_native_script_structure(script: CardanoNativeScript) -> None:
 
 
 def get_native_script_hash(
-    keychain: seed.Keychain, script: CardanoNativeScript
+    keychain: seed.Keychain, script: messages.CardanoNativeScript
 ) -> bytes:
     script_cbor = cbor.encode(cborize_native_script(keychain, script))
     prefixed_script_cbor = b"\00" + script_cbor
@@ -122,7 +120,7 @@ def get_native_script_hash(
 
 
 def cborize_native_script(
-    keychain: seed.Keychain, script: CardanoNativeScript
+    keychain: seed.Keychain, script: messages.CardanoNativeScript
 ) -> CborSequence:
     script_content: CborSequence
     if script.type == CardanoNativeScriptType.PUB_KEY:
