@@ -215,9 +215,9 @@ message CardanoSignTxInit {
     optional bytes script_data_hash = 16;
     required uint32 collateral_inputs_count = 17;
     required uint32 required_signers_count = 18;
-    required bool has_collateral_return = 19;
+    optional bool has_collateral_return = 19 [default=false];
     optional uint64 total_collateral = 20;
-    required uint32 reference_inputs_count = 21;
+    optional uint32 reference_inputs_count = 21 [default=0];
 }
 
 /**
@@ -234,14 +234,14 @@ message CardanoTxInput {
  * @next CardanoTxItemAck
  */
 message CardanoTxOutput {
-    optional string address = 1;                                    // target coin address in bech32 or base58
-    optional CardanoAddressParametersType address_parameters = 2;   // parameters used to derive the address
-    required uint64 amount = 3;                                     // amount to spend
+    optional string address = 1;                                                    // target coin address in bech32 or base58
+    optional CardanoAddressParametersType address_parameters = 2;                   // parameters used to derive the address
+    required uint64 amount = 3;                                                     // amount to spend
     required uint32 asset_groups_count = 4;
     optional bytes datum_hash = 5;
-    required CardanoTxOutputSerializationFormat format = 6;
-    required uint32 inline_datum_size = 7;                          // 0 means no inline datum
-    required uint32 reference_script_size = 8;                      // 0 means no reference script
+    optional CardanoTxOutputSerializationFormat format = 6 [default=ARRAY_LEGACY];
+    optional uint32 inline_datum_size = 7 [default=0];                              // 0 means no inline datum
+    optional uint32 reference_script_size = 8 [default=0];                          // 0 means no reference script
 }
 
 /**

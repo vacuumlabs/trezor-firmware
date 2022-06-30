@@ -1358,13 +1358,13 @@ if TYPE_CHECKING:
             derivation_type: "CardanoDerivationType",
             collateral_inputs_count: "int",
             required_signers_count: "int",
-            has_collateral_return: "bool",
-            reference_inputs_count: "int",
             ttl: "int | None" = None,
             validity_interval_start: "int | None" = None,
             include_network_id: "bool | None" = None,
             script_data_hash: "bytes | None" = None,
+            has_collateral_return: "bool | None" = None,
             total_collateral: "int | None" = None,
+            reference_inputs_count: "int | None" = None,
         ) -> None:
             pass
 
@@ -1403,12 +1403,12 @@ if TYPE_CHECKING:
             *,
             amount: "int",
             asset_groups_count: "int",
-            format: "CardanoTxOutputSerializationFormat",
-            inline_datum_size: "int",
-            reference_script_size: "int",
             address: "str | None" = None,
             address_parameters: "CardanoAddressParametersType | None" = None,
             datum_hash: "bytes | None" = None,
+            format: "CardanoTxOutputSerializationFormat | None" = None,
+            inline_datum_size: "int | None" = None,
+            reference_script_size: "int | None" = None,
         ) -> None:
             pass
 

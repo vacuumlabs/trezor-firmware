@@ -2265,9 +2265,9 @@ class CardanoSignTxInit(protobuf.MessageType):
         16: protobuf.Field("script_data_hash", "bytes", repeated=False, required=False),
         17: protobuf.Field("collateral_inputs_count", "uint32", repeated=False, required=True),
         18: protobuf.Field("required_signers_count", "uint32", repeated=False, required=True),
-        19: protobuf.Field("has_collateral_return", "bool", repeated=False, required=True),
+        19: protobuf.Field("has_collateral_return", "bool", repeated=False, required=False),
         20: protobuf.Field("total_collateral", "uint64", repeated=False, required=False),
-        21: protobuf.Field("reference_inputs_count", "uint32", repeated=False, required=True),
+        21: protobuf.Field("reference_inputs_count", "uint32", repeated=False, required=False),
     }
 
     def __init__(
@@ -2287,13 +2287,13 @@ class CardanoSignTxInit(protobuf.MessageType):
         derivation_type: "CardanoDerivationType",
         collateral_inputs_count: "int",
         required_signers_count: "int",
-        has_collateral_return: "bool",
-        reference_inputs_count: "int",
         ttl: Optional["int"] = None,
         validity_interval_start: Optional["int"] = None,
         include_network_id: Optional["bool"] = False,
         script_data_hash: Optional["bytes"] = None,
+        has_collateral_return: Optional["bool"] = False,
         total_collateral: Optional["int"] = None,
+        reference_inputs_count: Optional["int"] = 0,
     ) -> None:
         self.signing_mode = signing_mode
         self.protocol_magic = protocol_magic
@@ -2309,13 +2309,13 @@ class CardanoSignTxInit(protobuf.MessageType):
         self.derivation_type = derivation_type
         self.collateral_inputs_count = collateral_inputs_count
         self.required_signers_count = required_signers_count
-        self.has_collateral_return = has_collateral_return
-        self.reference_inputs_count = reference_inputs_count
         self.ttl = ttl
         self.validity_interval_start = validity_interval_start
         self.include_network_id = include_network_id
         self.script_data_hash = script_data_hash
+        self.has_collateral_return = has_collateral_return
         self.total_collateral = total_collateral
+        self.reference_inputs_count = reference_inputs_count
 
 
 class CardanoTxInput(protobuf.MessageType):
@@ -2343,9 +2343,9 @@ class CardanoTxOutput(protobuf.MessageType):
         3: protobuf.Field("amount", "uint64", repeated=False, required=True),
         4: protobuf.Field("asset_groups_count", "uint32", repeated=False, required=True),
         5: protobuf.Field("datum_hash", "bytes", repeated=False, required=False),
-        6: protobuf.Field("format", "CardanoTxOutputSerializationFormat", repeated=False, required=True),
-        7: protobuf.Field("inline_datum_size", "uint32", repeated=False, required=True),
-        8: protobuf.Field("reference_script_size", "uint32", repeated=False, required=True),
+        6: protobuf.Field("format", "CardanoTxOutputSerializationFormat", repeated=False, required=False),
+        7: protobuf.Field("inline_datum_size", "uint32", repeated=False, required=False),
+        8: protobuf.Field("reference_script_size", "uint32", repeated=False, required=False),
     }
 
     def __init__(
@@ -2353,21 +2353,21 @@ class CardanoTxOutput(protobuf.MessageType):
         *,
         amount: "int",
         asset_groups_count: "int",
-        format: "CardanoTxOutputSerializationFormat",
-        inline_datum_size: "int",
-        reference_script_size: "int",
         address: Optional["str"] = None,
         address_parameters: Optional["CardanoAddressParametersType"] = None,
         datum_hash: Optional["bytes"] = None,
+        format: Optional["CardanoTxOutputSerializationFormat"] = CardanoTxOutputSerializationFormat.ARRAY_LEGACY,
+        inline_datum_size: Optional["int"] = 0,
+        reference_script_size: Optional["int"] = 0,
     ) -> None:
         self.amount = amount
         self.asset_groups_count = asset_groups_count
-        self.format = format
-        self.inline_datum_size = inline_datum_size
-        self.reference_script_size = reference_script_size
         self.address = address
         self.address_parameters = address_parameters
         self.datum_hash = datum_hash
+        self.format = format
+        self.inline_datum_size = inline_datum_size
+        self.reference_script_size = reference_script_size
 
 
 class CardanoAssetGroup(protobuf.MessageType):
