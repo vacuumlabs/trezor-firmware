@@ -1533,6 +1533,83 @@
           }
         ]
       }
+    },
+    {
+      "description": "Plutus Babbage transaction shared with Ledger",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "validity_interval_start": 47,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q97tqh7wzy8mnx0sr2a57c4ug40zzl222877jz06nt49g4zr43fuq3k0dfpqjh3uvqcsl2qzwuwsvuhclck3scgn3vys6wkj5d",
+            "amount": "2000000",
+            "token_bundle": [
+              {
+                "policy_id": "0d63e8d2c5a00cbcffbdf9112487c443466e1ea7d8c834df5ac5c425",
+                "tokens": [
+                  {
+                    "asset_name_bytes": "74657374436f696e",
+                    "amount": "7878754"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "address": "addr1w9rhu54nz94k9l5v6d9rzfs47h7dv7xffcwkekuxcx3evnqpvuxu0",
+            "amount": "1",
+            "datum_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7"
+          }
+        ],
+        "mint": [],
+        "script_data_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+        "collateral_inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "required_signers": [],
+        "collateral_return": {
+          "address": "addr1q97tqh7wzy8mnx0sr2a57c4ug40zzl222877jz06nt49g4zr43fuq3k0dfpqjh3uvqcsl2qzwuwsvuhclck3scgn3vys6wkj5d",
+          "amount": "1"
+        },
+        "total_collateral": 10,
+        "reference_inputs": [
+          {
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "signing_mode": "PLUTUS_TRANSACTION",
+        "additional_witness_requests": [],
+        "include_network_id": true
+      },
+      "result": {
+        "tx_hash": "3e0c44577b78d0b9628167ca03bfe56d2730e3291b0992d0316e6eebabf0685e",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "b2d0b719fc35b48761c6c3d6877cd57b017fde161a126aa6ae4a0cd3f4ce2d62933172280feb91a3f8087086b17ed6c56e43f1de97ad111800f474c182fba900",
+            "chain_code": null
+          }
+        ]
+      }
     }
   ]
 }
