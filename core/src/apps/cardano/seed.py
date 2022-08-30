@@ -31,8 +31,8 @@ if TYPE_CHECKING:
 
 class Keychain:
     """
-    Cardano keychain hard-coded to 44 (Byron), 1852 (Shelley), 1854 (multi-sig) and 1855 (token minting)
-    seed namespaces.
+    Cardano keychain hard-coded to 44 (Byron), 1852 (Shelley), 1854 (multi-sig), 1855 (token minting)
+    and 1694 (governance voting) seed namespaces.
     """
 
     def __init__(self, root: bip32.HDNode) -> None:
@@ -40,6 +40,9 @@ class Keychain:
         self.shelley_root = self._derive_path(root, paths.SHELLEY_ROOT)
         self.multisig_root = self._derive_path(root, paths.MULTISIG_ROOT)
         self.minting_root = self._derive_path(root, paths.MINTING_ROOT)
+        self.governance_voting_root = self._derive_path(
+            root, paths.GOVERNANCE_VOTING_ROOT
+        )
         root.__del__()
 
     @staticmethod
@@ -62,6 +65,8 @@ class Keychain:
             return self.multisig_root
         elif is_minting_path(path):
             return self.minting_root
+        elif is_governance_voting_path(path):
+            return self.governance_voting_root
         else:
             raise wire.DataError("Forbidden key path")
 
@@ -71,6 +76,7 @@ class Keychain:
             or is_shelley_path(path)
             or is_multisig_path(path)
             or is_minting_path(path)
+            or is_governance_voting_path(path)
         )
 
     def derive(self, node_path: Bip32Path) -> bip32.HDNode:
@@ -82,6 +88,7 @@ class Keychain:
             len(paths.BYRON_ROOT) == len(paths.SHELLEY_ROOT)
             and len(paths.MULTISIG_ROOT) == len(paths.SHELLEY_ROOT)
             and len(paths.MINTING_ROOT) == len(paths.SHELLEY_ROOT)
+            and len(paths.GOVERNANCE_VOTING_ROOT) == len(paths.SHELLEY_ROOT)
         )
         suffix = node_path[len(paths.SHELLEY_ROOT) :]
 
@@ -107,6 +114,10 @@ def is_multisig_path(path: Bip32Path) -> bool:
 
 def is_minting_path(path: Bip32Path) -> bool:
     return path[: len(paths.MINTING_ROOT)] == paths.MINTING_ROOT
+
+
+def is_governance_voting_path(path: Bip32Path) -> bool:
+    return path[: len(paths.GOVERNANCE_VOTING_ROOT)] == paths.GOVERNANCE_VOTING_ROOT
 
 
 def derive_and_store_secrets(passphrase: str) -> None:

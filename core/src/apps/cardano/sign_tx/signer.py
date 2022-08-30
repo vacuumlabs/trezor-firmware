@@ -972,6 +972,7 @@ class Signer:
                 seed.is_shelley_path(required_signer.key_path)
                 or seed.is_multisig_path(required_signer.key_path)
                 or seed.is_minting_path(required_signer.key_path)
+                or seed.is_governance_voting_path(required_signer.key_path)
             ):
                 raise INVALID_REQUIRED_SIGNER
         else:

@@ -31,7 +31,11 @@ class AccountPathChecker:
 
     def _add(self, path: list[int], error: wire.ProcessError) -> None:
         # multi-sig and minting paths are always shown and thus don't need to be checked
-        if seed.is_multisig_path(path) or seed.is_minting_path(path):
+        if (
+            seed.is_multisig_path(path)
+            or seed.is_minting_path(path)
+            or seed.is_governance_voting_path(path)
+        ):
             return
 
         account_path = to_account_path(path)

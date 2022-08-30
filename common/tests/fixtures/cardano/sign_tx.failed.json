@@ -725,6 +725,50 @@
       }
     },
     {
+      "description": "Certificate has governance voting path",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "validity_interval_start": null,
+        "certificates": [
+          {
+            "type": 0,
+            "path": "m/1694'/1815'/0'/0/0"
+          }
+        ],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "Ae2tdPwUPEZCanmBz5g2GEwFqKTKpNJcGYPKfDxoNeKZ8bRHr8366kseiK2",
+            "amount": "3003112"
+          }
+        ],
+        "mint": [],
+        "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
+        "collateral_return": null,
+        "total_collateral": null,
+        "reference_inputs": [],
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witness_requests": [],
+        "include_network_id": false
+      },
+      "result": {
+        "error_message": "Invalid certificate"
+      }
+    },
+    {
       "description": "Certificate has script hash",
       "parameters": {
         "protocol_magic": 764824073,
@@ -1003,6 +1047,50 @@
         "withdrawals": [
           {
             "path": "m/1854'/1815'/0'/0/0",
+            "amount": "1000"
+          }
+        ],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "Ae2tdPwUPEZCanmBz5g2GEwFqKTKpNJcGYPKfDxoNeKZ8bRHr8366kseiK2",
+            "amount": "3003112"
+          }
+        ],
+        "mint": [],
+        "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [],
+        "collateral_return": null,
+        "total_collateral": null,
+        "reference_inputs": [],
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witness_requests": [],
+        "include_network_id": false
+      },
+      "result": {
+        "error_message": "Invalid withdrawal"
+      }
+    },
+    {
+      "description": "Withdrawal has governance voting path",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "validity_interval_start": null,
+        "certificates": [],
+        "withdrawals": [
+          {
+            "path": "m/1694'/1815'/0'/0/0",
             "amount": "1000"
           }
         ],

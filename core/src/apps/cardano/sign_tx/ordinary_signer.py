@@ -3,6 +3,7 @@ from trezor.enums import CardanoCertificateType
 
 from .. import layout, seed
 from ..helpers.paths import (
+    SCHEMA_GOVERNANCE_VOTING,
     SCHEMA_MINT,
     SCHEMA_PAYMENT,
     SCHEMA_STAKING,
@@ -64,6 +65,7 @@ class OrdinarySigner(Signer):
             seed.is_byron_path(witness_request.path)
             or seed.is_shelley_path(witness_request.path)
             or (is_minting and tx_has_token_minting)
+            or seed.is_governance_voting_path(witness_request.path)
         ):
             raise wire.ProcessError("Invalid witness request")
 
@@ -76,8 +78,9 @@ class OrdinarySigner(Signer):
         is_payment = SCHEMA_PAYMENT.match(witness_path)
         is_staking = SCHEMA_STAKING.match(witness_path)
         is_minting = SCHEMA_MINT.match(witness_path)
+        is_governance = SCHEMA_GOVERNANCE_VOTING.match(witness_path)
 
-        if is_minting:
+        if is_minting or is_governance:
             await layout.confirm_witness_request(self.ctx, witness_path)
         elif not is_payment and not is_staking:
             await self._fail_or_warn_path(witness_path, WITNESS_PATH_NAME)

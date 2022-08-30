@@ -2053,6 +2053,63 @@
       }
     },
     {
+      "description": "Ordinary transaction with a 1694 required signer",
+      "parameters": {
+        "protocol_magic": 764824073,
+        "network_id": 1,
+        "fee": 42,
+        "ttl": 10,
+        "validity_interval_start": null,
+        "certificates": [],
+        "withdrawals": [],
+        "auxiliary_data": null,
+        "inputs": [
+          {
+            "path": "m/1852'/1815'/0'/0/0",
+            "prev_hash": "3b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b7",
+            "prev_index": 0
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr1q84sh2j72ux0l03fxndjnhctdg7hcppsaejafsa84vh7lwgmcs5wgus8qt4atk45lvt4xfxpjtwfhdmvchdf2m3u3hlsd5tq5r",
+            "amount": "1"
+          }
+        ],
+        "mint": [],
+        "script_data_hash": null,
+        "collateral_inputs": [],
+        "required_signers": [
+          {
+            "key_path": "m/1694'/1815'/0'/0/0"
+          }
+        ],
+        "collateral_return": null,
+        "total_collateral": null,
+        "reference_inputs": [],
+        "signing_mode": "ORDINARY_TRANSACTION",
+        "additional_witness_requests": [],
+        "include_network_id": false
+      },
+      "result": {
+        "tx_hash": "cd29900ac1da89f273df710f21687c158b9730cb7b865891ee799082c8d3bbfc",
+        "witnesses": [
+          {
+            "type": 1,
+            "pub_key": "db0f7be6d234c22d4285a434e577ae68b1026cf7695094869c6d702160f56651",
+            "signature": "9a8d26514e63f676aef702d8d1e172c73bf44de4cf08736a0528c08e0f7b3913d5546edfd19a1e95b1f25a06e89efd52418226cea20acd826bb076727cd4070d",
+            "chain_code": null
+          },
+          {
+            "type": 1,
+            "pub_key": "5d010cf16fdeff40955633d6c565f3844a288a24967cf6b76acbeb271b4f13c1",
+            "signature": "d00d31ddbadebe65e547dd9effe66bc7383c32afede95f5744685d4602de21ba0208d5111bed4c55758bf180a4a9e53a7f5f98bc070966dfaf7fd5482986270a",
+            "chain_code": null
+          }
+        ]
+      }
+    },
+    {
       "description": "Ordinary transaction with both output formats",
       "parameters": {
         "protocol_magic": 764824073,

@@ -8,6 +8,7 @@ BYRON_ROOT = [44 | HARDENED, SLIP44_ID | HARDENED]
 SHELLEY_ROOT = [1852 | HARDENED, SLIP44_ID | HARDENED]
 MULTISIG_ROOT = [1854 | HARDENED, SLIP44_ID | HARDENED]
 MINTING_ROOT = [1855 | HARDENED, SLIP44_ID | HARDENED]
+GOVERNANCE_VOTING_ROOT = [1694 | HARDENED, SLIP44_ID | HARDENED]
 
 # fmt: off
 SCHEMA_PUBKEY = PathSchema.parse("m/[44,1852,1854]'/coin_type'/account'/*", SLIP44_ID)
@@ -17,6 +18,7 @@ SCHEMA_PAYMENT = PathSchema.parse("m/[44,1852]'/coin_type'/account'/[0,1]/addres
 # staking is only allowed on Shelley paths with suffix /2/0
 SCHEMA_STAKING = PathSchema.parse("m/1852'/coin_type'/account'/2/0", SLIP44_ID)
 SCHEMA_STAKING_ANY_ACCOUNT = PathSchema.parse(f"m/1852'/coin_type'/[0-{HARDENED - 1}]'/2/0", SLIP44_ID)
+SCHEMA_GOVERNANCE_VOTING = PathSchema.parse("m/1694'/coin_type'/account'/0/address_index", SLIP44_ID)
 # fmt: on
 
 ACCOUNT_PATH_INDEX = const(2)

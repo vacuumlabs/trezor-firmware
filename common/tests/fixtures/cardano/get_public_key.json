@@ -129,6 +129,42 @@
         "public_key": "b404bb5bf674a38ebd6141416df8e1aea9ed04c2ebea659c29145d24db7e67db",
         "chain_code": "2dc07d8eda29c2a806295ee42dc1f3bf63814d0c9ee978a24827575dcb5a53bb"
       }
+    },
+    {
+      "parameters": {
+        "path": "m/1694'/1815'/0'"
+      },
+      "result": {
+        "public_key": "c5cdadb08356c5a54247902145018b61bca44dbe33fd90dd66966564890acd39",
+        "chain_code": "4b74324d256953ead3deb8a751db80f30bd3328f3724868cc6cea367ce807b52"
+      }
+    },
+    {
+      "parameters": {
+        "path": "m/1694'/1815'/1'"
+      },
+      "result": {
+        "public_key": "d1b0845aa419c2b692e8b7b3424eb7ab7ab58333401f2e73edbdbf5ab42a7e28",
+        "chain_code": "9f3f942aaeae7a291578ebe46eeef69d00a365f2807eaf7c19e30fd4912f76a7"
+      }
+    },
+    {
+      "parameters": {
+        "path": "m/1694'/1815'/2'"
+      },
+      "result": {
+        "public_key": "e808f2210892bbc345d1b97c16d340b8249e3063c27b5cb3eb59ab2e567fe8e2",
+        "chain_code": "682d46f34d23a9dd5d494463415a7742d214b8422e3d0e6996a5900eeab22fb3"
+      }
+    },
+    {
+      "parameters": {
+        "path": "m/1694'/1815'/3'"
+      },
+      "result": {
+        "public_key": "f24a150b4cf8ff05e8f1bf547d1e6e9799c2437fdc4d8a754e35fc5a3111c695",
+        "chain_code": "7fed54480c82435bcd328d0b53b89b502d45b115c8e080763bf18450c0e77974"
+      }
     }
   ]
 }
