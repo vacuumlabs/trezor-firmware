@@ -43,6 +43,8 @@ NETWORK_IDS = {"mainnet": 1, "testnet": 0}
 
 MAX_CHUNK_SIZE = 1024
 
+DEFAULT_VOTING_PURPOSE = 0
+
 REQUIRED_FIELDS_TRANSACTION = ("inputs", "outputs")
 REQUIRED_FIELDS_INPUT = ("prev_hash", "prev_index")
 REQUIRED_FIELDS_CERTIFICATE = ("type",)
@@ -57,11 +59,11 @@ REQUIRED_FIELDS_POOL_PARAMETERS = (
 )
 REQUIRED_FIELDS_TOKEN_GROUP = ("policy_id", "tokens")
 REQUIRED_FIELDS_CATALYST_REGISTRATION = (
-    "voting_public_key",
     "staking_path",
     "nonce",
     "reward_address_parameters",
 )
+REQUIRED_FIELDS_CATALYST_DELEGATION = ("voting_public_key", "proportion")
 
 INCOMPLETE_OUTPUT_ERROR_MESSAGE = "The output is missing some fields"
 
@@ -566,10 +568,31 @@ def parse_auxiliary_data(
         ):
             raise AUXILIARY_DATA_MISSING_FIELDS_ERROR
 
+        serialization_format = messages.CardanoCatalystRegistrationFormat.CIP15
+        if "format" in catalyst_registration:
+            serialization_format = catalyst_registration["format"]
+
+        delegations = []
+        for delegation in catalyst_registration.get("delegations", []):
+            if not all(k in delegation for k in REQUIRED_FIELDS_CATALYST_DELEGATION):
+                raise AUXILIARY_DATA_MISSING_FIELDS_ERROR
+            delegations.append(
+                messages.CardanoCatalystRegistrationDelegation(
+                    voting_public_key=bytes.fromhex(delegation["voting_public_key"]),
+                    proportion=int(delegation["proportion"]),
+                )
+            )
+
+        voting_purpose = None
+        if serialization_format == messages.CardanoCatalystRegistrationFormat.CIP36:
+            voting_purpose = DEFAULT_VOTING_PURPOSE
+            if "voting_purpose" in catalyst_registration:
+                voting_purpose = catalyst_registration["voting_purpose"]
+
         catalyst_registration_parameters = (
             messages.CardanoCatalystRegistrationParametersType(
-                voting_public_key=bytes.fromhex(
-                    catalyst_registration["voting_public_key"]
+                voting_public_key=parse_optional_bytes(
+                    catalyst_registration.get("voting_public_key")
                 ),
                 staking_path=tools.parse_path(catalyst_registration["staking_path"]),
                 nonce=catalyst_registration["nonce"],
@@ -577,6 +600,9 @@ def parse_auxiliary_data(
                     catalyst_registration["reward_address_parameters"],
                     str(AUXILIARY_DATA_MISSING_FIELDS_ERROR),
                 ),
+                format=serialization_format,
+                delegations=delegations,
+                voting_purpose=voting_purpose,
             )
         )
 
