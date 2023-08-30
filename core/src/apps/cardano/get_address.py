@@ -34,7 +34,9 @@ async def get_address(
 
     if msg.show_display:
         # _display_address
-        if should_show_credentials(address_parameters):
+        if should_show_credentials(
+            address_parameters, require_recommended_address_index=True
+        ):
             await show_credentials(
                 Credential.payment_credential(address_parameters),
                 Credential.stake_credential(address_parameters),

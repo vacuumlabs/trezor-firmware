@@ -122,6 +122,7 @@ class Credential:
                 if not _do_base_address_credentials_match(
                     address_params.address_n,
                     address_n_staking,
+                    require_recommended_address_index=True,
                 ):
                     credential.is_mismatch = True
 
@@ -202,6 +203,7 @@ class Credential:
 
 def should_show_credentials(
     address_parameters: messages.CardanoAddressParametersType,
+    require_recommended_address_index: bool,
 ) -> bool:
     return not (
         address_parameters.address_type == CardanoAddressType.BASE
@@ -209,6 +211,7 @@ def should_show_credentials(
         and _do_base_address_credentials_match(
             address_parameters.address_n,
             address_parameters.address_n_staking,
+            require_recommended_address_index,
         )
     )
 
@@ -216,11 +219,23 @@ def should_show_credentials(
 def _do_base_address_credentials_match(
     address_n: list[int],
     address_n_staking: list[int],
+    require_recommended_address_index: bool,
 ) -> bool:
-    from .paths import CHAIN_STAKING_KEY
+    from .paths import (
+        ADDRESS_INDEX_PATH_INDEX,
+        CHAIN_STAKING_KEY,
+        RECOMMENDED_ADDRESS_INDEX,
+    )
     from .utils import to_account_path
 
-    # Note: This checks that the account matches and the staking path address_index is 0.
-    # (Even though other values are allowed, we want to display them to the user.)
-    path_to_staking_path = to_account_path(address_n) + [CHAIN_STAKING_KEY, 0]
+    staking_address_index = (
+        RECOMMENDED_ADDRESS_INDEX
+        if require_recommended_address_index
+        else address_n_staking[ADDRESS_INDEX_PATH_INDEX]
+    )
+
+    path_to_staking_path = to_account_path(address_n) + [
+        CHAIN_STAKING_KEY,
+        staking_address_index,
+    ]
     return address_n_staking == path_to_staking_path

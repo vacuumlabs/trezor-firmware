@@ -61,7 +61,9 @@ class PlutusSigner(Signer):
         # In ordinary txs, change outputs with matching payment and staking paths can be
         # hidden, but we need to show them in Plutus txs because of the script
         # evaluation. We at least hide the staking path if it matches the payment path.
-        show_both_credentials = should_show_credentials(address_parameters)
+        show_both_credentials = should_show_credentials(
+            address_parameters, require_recommended_address_index=True
+        )
         await layout.show_device_owned_output_credentials(
             Credential.payment_credential(address_parameters),
             Credential.stake_credential(address_parameters),

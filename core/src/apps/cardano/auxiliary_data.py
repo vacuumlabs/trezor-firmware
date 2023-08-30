@@ -170,7 +170,9 @@ async def _show_cvote_registration(
     else:
         address_parameters = parameters.payment_address_parameters
         assert address_parameters  # _validate_cvote_registration_parameters
-        show_both_credentials = should_show_credentials(address_parameters)
+        show_both_credentials = should_show_credentials(
+            address_parameters, require_recommended_address_index=should_show_details
+        )
         show_payment_warning = _should_show_payment_warning(
             address_parameters.address_type
         )

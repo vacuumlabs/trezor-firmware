@@ -414,7 +414,8 @@ class Signer:
         from ..helpers.credential import should_show_credentials
 
         return output.address_parameters is not None and not should_show_credentials(
-            output.address_parameters
+            output.address_parameters,
+            require_recommended_address_index=self.should_show_details,
         )
 
     async def _process_legacy_output(
