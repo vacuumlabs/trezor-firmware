@@ -12,31 +12,60 @@
           "010001",
           "#number of accounts",
           "03",
-            "#accounts",
-            "00d1699dcb1811b50bb0055f13044463128242e37a463b52f6c97a1f6eef88ad",
-            "8f41927b2e58cbc31ed3aa5163a7b8ca4eb5590e8dc1dc682426cd2895aa9c0a",
-            "0000000000000000000000000000000000000000000000000000000000000000",
+          "#accounts",
+          "00d1699dcb1811b50bb0055f13044463128242e37a463b52f6c97a1f6eef88ad",
+          "8f41927b2e58cbc31ed3aa5163a7b8ca4eb5590e8dc1dc682426cd2895aa9c0a",
+          "0000000000000000000000000000000000000000000000000000000000000000",
           "#blockhash",
           "1aea57c9906a7cad656ff61b3893abda63f4b6b210c939855e7ab6e54049213d",
           "#instructions",
           "#num_of_instructions",
-            "01",
-            "#instruction",
-              "#program id index (system)",
-              "02",
-              "#number of accounts",
-              "02",
-              "#accounts (from, to)",
-              "00", "01",
-              "#data",
-                "#data length",
-                "0c",
-                "#instruction id (transfer)",
-                "02000000",
-                "#data (lamports amount) (20000000)",
-                "002d310100000000"
-
+          "01",
+          "#instruction",
+          "#program id index (system)",
+          "02",
+          "#number of accounts",
+          "02",
+          "#accounts (from, to)",
+          "00",
+          "01",
+          "#data",
+          "#data length",
+          "0c",
+          "#instruction id (transfer)",
+          "02000000",
+          "#data (lamports amount) (20000000)",
+          "002d310100000000"
         ],
+        "construct": {
+          "transaction": { "versioned": false },
+          "header": {
+            "signers": 1,
+            "readonly_signers": 0,
+            "readonly_non_signers": 1
+          },
+          "accounts": [
+            "14CCvQzQzHCVgZM3j9soPnXuJXh1RmCfwLVUcdfbZVBS",
+            "AeDJ1BqA7ruBbd6mEcS1QNxFbT8FQbiBVuN9NqK94Taq",
+            "11111111111111111111111111111111"
+          ],
+          "blockhash": "2p4rYZAaFfV5Uk5ugdG5KPNty9Uda9B3b4gWB8qnNqak",
+          "instructions": [
+            {
+              "program_id": "11111111111111111111111111111111",
+              "instruction_accounts": {
+                "funding_account": "14CCvQzQzHCVgZM3j9soPnXuJXh1RmCfwLVUcdfbZVBS",
+                "recipient_account": "AeDJ1BqA7ruBbd6mEcS1QNxFbT8FQbiBVuN9NqK94Taq"
+              },
+              "data": {
+                "instruction_id": 2,
+                "parameters": {
+                  "lamports": 20000000
+                }
+              }
+            }
+          ]
+        },
         "serialized_tx": "0100010300d1699dcb1811b50bb0055f13044463128242e37a463b52f6c97a1f6eef88ad8f41927b2e58cbc31ed3aa5163a7b8ca4eb5590e8dc1dc682426cd2895aa9c0a00000000000000000000000000000000000000000000000000000000000000001aea57c9906a7cad656ff61b3893abda63f4b6b210c939855e7ab6e54049213d01020200010c02000000002d310100000000"
       },
       "result": {

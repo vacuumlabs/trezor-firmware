@@ -20,6 +20,8 @@ from trezorlib.debuglink import TrezorClientDebugLink as Client
 from trezorlib.solana import sign_tx
 from trezorlib.tools import parse_path
 
+from tests.device_tests.solana.construct.tx_construct import _MESSAGE
+
 from ...common import parametrize_using_common_fixtures
 
 pytestmark = [
@@ -35,6 +37,9 @@ pytestmark = [
 def test_solana_sign_tx(client: Client, parameters, result):
     client.init_device(new_session=True)
 
+    tx = _MESSAGE.build(parameters["construct"])
+    print(tx.hex())
+
     # make sure the annotated transaction matches the original one
     assert parameters["serialized_tx"] == "".join(
         [i for i in parameters["annotated_serialized_tx"] if "#" not in i]
@@ -47,3 +52,4 @@ def test_solana_sign_tx(client: Client, parameters, result):
     )
 
     assert actual_result.signature == bytes.fromhex(result["expected_signature"])
+    assert tx.hex() == parameters["serialized_tx"]
