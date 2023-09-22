@@ -16,12 +16,6 @@ async def sign_tx(
 ) -> SolanaTxSignature:
     from trezor.crypto.curve import ed25519
     from trezor.messages import SolanaTxSignature
-    from apps.common import seed
-    from .parser_poc import parser
-    from .parser_poc import builder
-    from .parsing.parse import parse
-    from .instructions import handle_instructions
-    from trezor.utils import BufferReader
 
     address_n = msg.address_n
     serialized_tx = msg.serialized_tx
@@ -29,30 +23,5 @@ async def sign_tx(
     node = keychain.derive(address_n)
 
     signature = ed25519.sign(node.private_key(), serialized_tx)
-    # signer_pub_key = seed.remove_ed25519_prefix(node.public_key())
-
-    # parsed_msg = parser.parse_message(BufferReader(serialized_tx))
-    # print(parsed_msg)
-
-    # await builder.show_parsed_message(parsed_msg)
 
     return SolanaTxSignature(signature=signature)
-
-    # TODO Gabo's original code
-
-    # address_n = msg.address_n
-    # serialized_tx = msg.serialized_tx
-
-    # node = keychain.derive(address_n)
-
-    # signature = ed25519.sign(node.private_key(), serialized_tx)
-
-    # _, _, instructions = parse(BufferReader(serialized_tx))
-
-    # signer_pub_key = seed.remove_ed25519_prefix(node.public_key())
-    # await handle_instructions(instructions, signer_pub_key)
-
-    # # TODO SOL: final confirmation screen, include blockhash
-
-    # # TODO SOL: only one signature per request?
-    # return SolanaTxSignature(signature=signature)
