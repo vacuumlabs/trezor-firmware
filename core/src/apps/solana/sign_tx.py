@@ -29,10 +29,10 @@ async def sign_tx(
     node = keychain.derive(address_n)
 
     signature = ed25519.sign(node.private_key(), serialized_tx)
-    signer_pub_key = seed.remove_ed25519_prefix(node.public_key())
+    # signer_pub_key = seed.remove_ed25519_prefix(node.public_key())
 
-    parsed_msg = parser.parse_message(BufferReader(serialized_tx))
-    print(parsed_msg)
+    # parsed_msg = parser.parse_message(BufferReader(serialized_tx))
+    # print(parsed_msg)
 
     # await builder.show_parsed_message(parsed_msg)
 

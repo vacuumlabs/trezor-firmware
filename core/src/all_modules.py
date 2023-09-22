@@ -381,6 +381,8 @@ apps.solana.instructions.system_program
 import apps.solana.instructions.system_program
 apps.solana.parser_poc
 import apps.solana.parser_poc
+apps.solana.parser_poc.builder
+import apps.solana.parser_poc.builder
 apps.solana.parser_poc.parser
 import apps.solana.parser_poc.parser
 apps.solana.parser_poc.template
