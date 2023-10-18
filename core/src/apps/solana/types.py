@@ -23,25 +23,41 @@ class InstructionIdFormat:
 
 class PropertyTemplate:
     name: str
-    ui_name: str
     type: str
     optional: bool
 
-    def __init__(self, name: str, ui_name: str, type: str, optional: bool):
+    def __init__(self, name: str, type: str, optional: bool):
         self.name = name
-        self.ui_name = ui_name
         self.type = type
         self.optional = optional
 
 
 class AccountTemplate:
     name: str
-    ui_name: str
-    is_authority: bool
     optional: bool
 
-    def __init__(self, name: str, ui_name: str, is_authority: bool, optional: bool):
+    def __init__(self, name: str, optional: bool):
         self.name = name
-        self.ui_name = ui_name
-        self.is_authority = is_authority
         self.optional = optional
+
+
+class UIProperty:
+    parameter: str | None
+    account: str | None
+    display_name: str
+    format: str | None
+    is_authority: bool
+
+    def __init__(
+        self,
+        parameter: str | None,
+        account: str | None,
+        display_name: str,
+        format: str | None,
+        is_authority: bool,
+    ) -> None:
+        self.parameter = parameter
+        self.account = account
+        self.display_name = display_name
+        self.format = format
+        self.is_authority = is_authority

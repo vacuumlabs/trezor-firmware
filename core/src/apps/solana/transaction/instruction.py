@@ -8,7 +8,7 @@ from .parse import parse_property
 if TYPE_CHECKING:
     from typing import Any, TypeGuard
 
-    from ..types import Account, AccountTemplate, PropertyTemplate
+    from ..types import Account, AccountTemplate, PropertyTemplate, UIProperty
 
 
 class Instruction:
@@ -26,6 +26,8 @@ class Instruction:
     ui_parameter_list: list[str] | None = None
     ui_account_list: list[tuple[str, Account]] | None = None
 
+    ui_properties: list[UIProperty]
+
     parsed_data: dict[str, Any] | None = None
     parsed_accounts: dict[str, Account] | None = None
 
@@ -37,6 +39,8 @@ class Instruction:
     is_multisig: bool = False
     multisig_signers: list[Account] | None = None
 
+    is_deprecated_warning: str | None = None
+
     def __init__(
         self,
         instruction_data: bytes,
@@ -45,12 +49,12 @@ class Instruction:
         instruction_id: int,
         property_templates: list[PropertyTemplate],
         accounts_template: list[AccountTemplate],
-        ui_parameter_list: list[str],
-        ui_account_list: list[str],
+        ui_properties: list[UIProperty],
         ui_name: str,
         is_program_supported: bool = True,
         is_instruction_supported: bool = True,
         supports_multisig: bool = False,
+        is_deprecated_warning: str | None = None,
     ) -> None:
         self.program_id = program_id
         self.instruction_id = instruction_id
@@ -60,8 +64,7 @@ class Instruction:
 
         self.ui_name = ui_name
 
-        self.ui_parameter_list = []
-        self.ui_account_list = []
+        self.ui_properties = ui_properties
 
         self.parsed_data = {}
         self.parsed_accounts = {}
@@ -69,7 +72,7 @@ class Instruction:
         self.is_program_supported = is_program_supported
         self.is_instruction_supported = is_instruction_supported
 
-        # self.is_multisig = is_multisig
+        self.is_deprecated_warning = is_deprecated_warning
 
         reader = BufferReader(instruction_data)
 
@@ -95,19 +98,6 @@ class Instruction:
         if supports_multisig and len(accounts) > len(accounts_template):
             self.is_multisig = True
             self.multisig_signers = accounts[len(accounts_template) :]
-
-        for parameter in ui_parameter_list:
-            self.ui_parameter_list.append(parameter)
-
-        for account in ui_account_list:
-            account_index, account_template = self.get_account_template(account)
-            if account_index >= len(accounts):
-                if account_template.optional:
-                    continue
-                else:
-                    raise ValueError(f"Account {account_template.name} is missing")
-
-            self.ui_account_list.append((account, accounts[account_index]))
 
         if reader.remaining_count() != 0:
             raise ProcessError("Invalid transaction")

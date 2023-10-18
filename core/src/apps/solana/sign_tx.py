@@ -108,11 +108,13 @@ def calculate_fee(transaction: Transaction) -> int:
         SOLANA_BASE_FEE_LAMPORTS,
         SOLANA_COMPUTE_UNIT_LIMIT,
     )
-    from .transaction.instructions import (
-        COMPUTE_BUDGET_PROGRAM_ID,
-        COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_LIMIT,
-        COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_PRICE,
-    )
+
+    # COMMENTED OUT BECAUSE WE THE PROGRAM HAS BEEN REMOVED FROM THIS PoC BRANCH AND REFERENCES COULDN'T BE RESOLVED
+    # from .transaction.instructions import (
+    #     COMPUTE_BUDGET_PROGRAM_ID,
+    #     COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_LIMIT,
+    #     COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_PRICE,
+    # )
 
     number_of_signers = 0
     for address in transaction.addresses:
@@ -121,23 +123,26 @@ def calculate_fee(transaction: Transaction) -> int:
 
     base_fee = SOLANA_BASE_FEE_LAMPORTS * number_of_signers
 
-    unit_price: int | None = None
-    unit_limit: int = SOLANA_COMPUTE_UNIT_LIMIT
+    # unit_price: int | None = None
+    # unit_limit: int = SOLANA_COMPUTE_UNIT_LIMIT
 
-    for instruction in transaction.instructions:
-        if instruction.program_id == COMPUTE_BUDGET_PROGRAM_ID:
-            if (
-                instruction.instruction_id
-                == COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_LIMIT
-            ):
-                unit_limit = instruction.units
-            elif (
-                instruction.instruction_id
-                == COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_PRICE
-            ):
-                unit_price = instruction.lamports
+    # COMMENTED OUT BECAUSE WE THE PROGRAM HAS BEEN REMOVED FROM THIS PoC BRANCH AND REFERENCES COULDN'T BE RESOLVED
 
-    if unit_price is None:
-        return base_fee
+    # for instruction in transaction.instructions:
+    #     if instruction.program_id == COMPUTE_BUDGET_PROGRAM_ID:
+    #         if (
+    #             instruction.instruction_id
+    #             == COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_LIMIT
+    #         ):
+    #             unit_limit = instruction.units
+    #         elif (
+    #             instruction.instruction_id
+    #             == COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_PRICE
+    #         ):
+    #             unit_price = instruction.lamports
 
-    return int(base_fee + unit_price * unit_limit / 1000000)
+    # if unit_price is None:
+    #     return base_fee
+
+    # return int(base_fee + unit_price * unit_limit / 1000000)
+    return base_fee

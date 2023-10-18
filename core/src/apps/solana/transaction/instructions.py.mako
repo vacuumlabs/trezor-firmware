@@ -44,7 +44,7 @@ int\
 </%def>\
 from typing import TYPE_CHECKING
 
-from ..types import AccountTemplate, InstructionIdFormat, PropertyTemplate
+from ..types import AccountTemplate, InstructionIdFormat, PropertyTemplate, UIProperty
 from .instruction import Instruction
 
 if TYPE_CHECKING:
@@ -117,6 +117,13 @@ def get_instruction_id_length(program_id: str) -> InstructionIdFormat:
     return InstructionIdFormat(0, False)
 
 
+<%def name="getUIPropertyOptionalString(ui_property, string)">\
+% if string in ui_property:
+"${ui_property[string]}"\
+%else:
+None\
+% endif
+</%def>\
 
 def get_instruction(
     program_id: str, instruction_id: int, instruction_accounts: list[Account], instruction_data: bytes
@@ -135,7 +142,6 @@ def get_instruction(
                 % for parameter in instruction["parameters"]:
                     PropertyTemplate(
                         "${parameter["name"]}",
-                        "${parameter["ui_name"]}",
                         "${parameter["type"]}",
                         ${parameter["optional"]},
                     ),
@@ -145,18 +151,26 @@ def get_instruction(
                 % for reference in instruction["references"]:
                     AccountTemplate(
                         "${reference["name"]}",
-                        "${reference["ui_name"]}",
-                        ${reference["is_authority"]},
                         ${reference["optional"]},
                     ),
                 % endfor
                 ],
-                ${instruction["ui"]["elements"]["parameters"]},
-                ${instruction["ui"]["elements"]["accounts"]},
+                [
+                % for ui_property in instruction["ui_properties"]:
+                    UIProperty(
+                        ${getUIPropertyOptionalString(ui_property, "parameter")},
+                        ${getUIPropertyOptionalString(ui_property, "account")},
+                        "${ui_property["display_name"]}",
+                        ${getUIPropertyOptionalString(ui_property, "format")},
+                        ${ui_property["is_authority"] if "is_authority" in ui_property else False},
+                    ),
+                % endfor
+                ],
                 "${program["name"]}: ${instruction["name"]}",
                 True,
                 True,
-                ${instruction["is_multisig"]}
+                ${instruction["is_multisig"]},
+                "${instruction["is_deprecated_warning"] if "is_deprecated_warning" in instruction else None}"
             )
     % endfor
         return Instruction(
@@ -164,7 +178,6 @@ def get_instruction(
             program_id,
             instruction_accounts,
             instruction_id,
-            [],
             [],
             [],
             [],
@@ -180,7 +193,6 @@ def get_instruction(
         program_id,
         instruction_accounts,
         0,
-        [],
         [],
         [],
         [],

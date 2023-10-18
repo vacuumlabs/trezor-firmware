@@ -16,10 +16,13 @@ if TYPE_CHECKING:
     from typing import Any
 
 
-def format_property(value: Any, type: str) -> str | bytes | None:
+def format_property(value: Any, type: str, format: str | None) -> str | bytes | None:
     if type in ("pubkey", "authority"):
         return base58.encode(value)
     elif isinstance(value, int):
+        if format == "SOL":
+            return f"{value / 10 ** 9} SOL"
+
         return str(value)
 
     return value
@@ -38,54 +41,70 @@ async def show_confirm(
     # assertions for pyright
     assert instruction.parsed_data is not None
     assert instruction.parsed_accounts is not None
-    assert instruction.ui_parameter_list is not None
-    assert instruction.ui_account_list is not None
+    assert instruction.ui_properties is not None
 
-    datas = []
-    for property in instruction.ui_parameter_list:
-        property_template = instruction.get_property_template(property)
-        ui_name = property_template.ui_name
-        value = instruction.parsed_data[property]
-        _type = property_template.type
-        if _type == "authority":
-            if signer_public_key == value:
-                continue
+    instruction_title = (
+        f"{instruction_index}/{instructions_count}: {instruction.ui_name}"
+    )
 
-        datas.append((ui_name, format_property(value, _type)))
-
-    if len(datas) > 0:
-        await confirm_properties(
-            "confirm_instruction",
-            f"{instruction_index}/{instructions_count}: {instruction.ui_name}",
-            datas,
+    if instruction.is_deprecated_warning is not None:
+        await confirm_metadata(
+            "confirm_deprecated_warning",
+            instruction_title,
+            instruction.is_deprecated_warning,
+            br_code=ButtonRequestType.Other,
         )
 
-    for account in instruction.ui_account_list:
-        account_template = instruction.get_account_template(account[0])[1]
-        ui_name = account_template.ui_name
-        is_authority = account_template.is_authority
-        account_value = instruction.parsed_accounts[account[0]]
+    for ui_property in instruction.ui_properties:
+        if ui_property.parameter is not None:
+            property_template = instruction.get_property_template(ui_property.parameter)
+            value = instruction.parsed_data[ui_property.parameter]
+            _type = property_template.type
 
-        if is_authority and account_value[0] == signer_public_key:
-            continue
+            if ui_property.is_authority:
+                if signer_public_key == value:
+                    continue
 
-        account_data = []
-        if len(account_value) == 2:
-            account_data.append((ui_name, base58.encode(account_value[0])))
-        elif len(account_value) == 3:
-            account_data.append((f"{ui_name} is provided via a lookup table.", ""))
-            account_data.append(
-                ("Lookup table address:", base58.encode(account_value[0]))
+            await confirm_properties(
+                "confirm_instruction",
+                f"{instruction_index}/{instructions_count}: {instruction.ui_name}",
+                [
+                    (
+                        ui_property.display_name,
+                        format_property(value, _type, ui_property.format),
+                    )
+                ],
             )
-            account_data.append(("Account index:", f"{account_value[1]}"))
-        else:
-            raise ValueError("Invalid account value")
+        elif ui_property.account is not None:
+            account_value = instruction.parsed_accounts[ui_property.account]
 
-        await confirm_properties(
-            "confirm_instruction",
-            f"{instruction_index}/{instructions_count}: {instruction.ui_name}",
-            account_data,
-        )
+            if ui_property.is_authority:
+                if signer_public_key == account_value[0]:
+                    continue
+
+            account_data = []
+            if len(account_value) == 2:
+                account_data.append(
+                    (ui_property.display_name, base58.encode(account_value[0]))
+                )
+            elif len(account_value) == 3:
+                account_data.append(
+                    (f"{ui_property.display_name} is provided via a lookup table.", "")
+                )
+                account_data.append(
+                    ("Lookup table address:", base58.encode(account_value[0]))
+                )
+                account_data.append(("Account index:", f"{account_value[1]}"))
+            else:
+                raise ValueError("Invalid account value")
+
+            await confirm_properties(
+                "confirm_instruction",
+                f"{instruction_index}/{instructions_count}: {instruction.ui_name}",
+                account_data,
+            )
+        else:
+            raise ValueError("Invalid ui property")
 
     if instruction.is_multisig:
         await confirm_metadata(
