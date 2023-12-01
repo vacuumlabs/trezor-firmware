@@ -991,6 +991,16 @@ async def confirm_total(
     )
 
 
+async def confirm_summary(
+    items: Iterable[tuple[str, str]],
+    title: str = "SUMMARY",
+    info_items: Iterable[tuple[str, str]] | None = None,
+    br_type: str = "confirm_total",
+    br_code: ButtonRequestType = ButtonRequestType.SignTx,
+) -> None:
+    await confirm_properties(br_type, title.upper(), items, True, br_code)
+
+
 async def confirm_ethereum_tx(
     recipient: str,
     total_amount: str,
