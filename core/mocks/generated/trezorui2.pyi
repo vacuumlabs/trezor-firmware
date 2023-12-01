@@ -589,7 +589,7 @@ def confirm_value(
 def confirm_total(
     *,
     title: str,
-    items: list[tuple[str, str]],
+    items: Iterable[tuple[str, str]],
     info_button: bool = False,
     cancel_arrow: bool = False,
 ) -> object:
