@@ -935,6 +935,7 @@ def confirm_value(
     *,
     verb: str | None = None,
     hold: bool = False,
+    info_items: Iterable[tuple[str, str]] | None = None,
 ) -> Awaitable[None]:
     """General confirmation dialog, used by many other confirm_* functions."""
 
