@@ -936,7 +936,7 @@ async def confirm_value(
     verb: str | None = None,
     hold: bool = False,
     info_items: Iterable[tuple[str, str]] | None = None,
-) -> Awaitable[None]:
+) -> None:
     """General confirmation dialog, used by many other confirm_* functions."""
 
     if not verb and not hold:
@@ -962,7 +962,8 @@ async def confirm_value(
             )
         )
     else:
-        if len(info_items) > 1:
+        info_items_list = list(info_items)
+        if len(info_items_list) > 1:
             raise NotImplementedError("Only one info item is supported")
 
         while True:
@@ -975,12 +976,12 @@ async def confirm_value(
             )
 
             if not should_show_info:
-                break
+                return
 
             try:
-                info_title, info_value = info_items[0]
+                info_title, info_value = info_items_list[0]
                 await confirm_action(
-                    br_type=BR_TYPE_OTHER,
+                    br_type="confirm_value_info",
                     title=info_title,
                     action=info_value,
                     verb="BACK",
