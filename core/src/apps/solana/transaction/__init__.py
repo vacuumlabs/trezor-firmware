@@ -202,3 +202,6 @@ class Transaction:
             ):
                 self.blind_signing = True
                 break
+
+    def get_visible_instructions(self) -> list[Instruction]:
+        return [instruction for instruction in self.instructions if not instruction.is_hidden]
