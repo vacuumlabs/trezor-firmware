@@ -56,7 +56,8 @@ if TYPE_CHECKING:
 
     T = TypeVar("T")
 
-    def _list_of_type(lst: list[Any], typ: type[T]) -> TypeGuard[list[T]]: ...
+    def _list_of_type(lst: list[Any], typ: type[T]) -> TypeGuard[list[T]]:
+        ...
 
 
 _HASH_KEY_CLSAG_ROUND = b"CLSAG_round\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"

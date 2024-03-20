@@ -917,9 +917,9 @@ def sign_tx(
             auxiliary_data_supplement.type
             != messages.CardanoTxAuxiliaryDataSupplementType.NONE
         ):
-            sign_tx_response["auxiliary_data_supplement"] = (
-                auxiliary_data_supplement.__dict__
-            )
+            sign_tx_response[
+                "auxiliary_data_supplement"
+            ] = auxiliary_data_supplement.__dict__
 
         response = client.call(messages.CardanoTxHostAck())
         if not isinstance(response, messages.CardanoTxItemAck):

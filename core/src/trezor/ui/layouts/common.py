@@ -15,7 +15,8 @@ if TYPE_CHECKING:
     ExceptionType = BaseException | type[BaseException]
 
     class ProgressLayout(Protocol):
-        def report(self, value: int, description: str | None = None) -> None: ...
+        def report(self, value: int, description: str | None = None) -> None:
+            ...
 
 
 async def button_request(

@@ -565,10 +565,12 @@ class DebugLink:
     # they will always return `LayoutContent` and we do not need to assert `is not None`.
 
     @overload
-    def click(self, click: Tuple[int, int]) -> None: ...
+    def click(self, click: Tuple[int, int]) -> None:
+        ...
 
     @overload
-    def click(self, click: Tuple[int, int], wait: Literal[True]) -> LayoutContent: ...
+    def click(self, click: Tuple[int, int], wait: Literal[True]) -> LayoutContent:
+        ...
 
     def click(
         self, click: Tuple[int, int], wait: bool = False
@@ -600,28 +602,34 @@ class DebugLink:
         return self.input(swipe=messages.DebugSwipeDirection.DOWN, wait=wait)
 
     @overload
-    def swipe_right(self) -> None: ...
+    def swipe_right(self) -> None:
+        ...
 
     @overload
-    def swipe_right(self, wait: Literal[True]) -> LayoutContent: ...
+    def swipe_right(self, wait: Literal[True]) -> LayoutContent:
+        ...
 
     def swipe_right(self, wait: bool = False) -> Union[LayoutContent, None]:
         return self.input(swipe=messages.DebugSwipeDirection.RIGHT, wait=wait)
 
     @overload
-    def swipe_left(self) -> None: ...
+    def swipe_left(self) -> None:
+        ...
 
     @overload
-    def swipe_left(self, wait: Literal[True]) -> LayoutContent: ...
+    def swipe_left(self, wait: Literal[True]) -> LayoutContent:
+        ...
 
     def swipe_left(self, wait: bool = False) -> Union[LayoutContent, None]:
         return self.input(swipe=messages.DebugSwipeDirection.LEFT, wait=wait)
 
     @overload
-    def press_left(self) -> None: ...
+    def press_left(self) -> None:
+        ...
 
     @overload
-    def press_left(self, wait: Literal[True]) -> LayoutContent: ...
+    def press_left(self, wait: Literal[True]) -> LayoutContent:
+        ...
 
     def press_left(self, wait: bool = False) -> Optional[LayoutContent]:
         return self.input(
@@ -629,10 +637,12 @@ class DebugLink:
         )
 
     @overload
-    def press_middle(self) -> None: ...
+    def press_middle(self) -> None:
+        ...
 
     @overload
-    def press_middle(self, wait: Literal[True]) -> LayoutContent: ...
+    def press_middle(self, wait: Literal[True]) -> LayoutContent:
+        ...
 
     def press_middle(self, wait: bool = False) -> Optional[LayoutContent]:
         return self.input(
@@ -649,10 +659,12 @@ class DebugLink:
         )
 
     @overload
-    def press_right(self) -> None: ...
+    def press_right(self) -> None:
+        ...
 
     @overload
-    def press_right(self, wait: Literal[True]) -> LayoutContent: ...
+    def press_right(self, wait: Literal[True]) -> LayoutContent:
+        ...
 
     def press_right(self, wait: bool = False) -> Optional[LayoutContent]:
         return self.input(
