@@ -55,6 +55,7 @@ message SolanaTxTokenAccountInfo {
  */
 message SolanaTxAdditionalInfo {
     repeated SolanaTxTokenAccountInfo token_accounts_infos = 1;
+    optional uint64 rent_fees = 2;
 }
 
 /**
