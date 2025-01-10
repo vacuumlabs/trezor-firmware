@@ -200,7 +200,7 @@ def sign_tx(
     data: Optional[bytes] = None,
     chain_id: Optional[int] = None,
     tx_type: Optional[int] = None,
-    definitions: Optional[messages.EthereumDefinitions] = None,
+    definitions: Optional[messages.Definitions] = None,
     chunkify: bool = False,
 ) -> Tuple[int, bytes, bytes]:
     if chain_id is None:
@@ -261,7 +261,7 @@ def sign_tx_eip1559(
     max_gas_fee: int,
     max_priority_fee: int,
     access_list: Optional[List[messages.EthereumAccessList]] = None,
-    definitions: Optional[messages.EthereumDefinitions] = None,
+    definitions: Optional[messages.Definitions] = None,
     chunkify: bool = False,
 ) -> Tuple[int, bytes, bytes]:
     length = len(data)
@@ -322,7 +322,7 @@ def sign_typed_data(
     data: Dict[str, Any],
     *,
     metamask_v4_compat: bool = True,
-    definitions: Optional[messages.EthereumDefinitions] = None,
+    definitions: Optional[messages.Definitions] = None,
 ) -> "MessageType":
     data = sanitize_typed_data(data)
     types = data["types"]

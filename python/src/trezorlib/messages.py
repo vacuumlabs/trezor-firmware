@@ -321,9 +321,10 @@ class DebugWaitType(IntEnum):
     CURRENT_LAYOUT = 2
 
 
-class EthereumDefinitionType(IntEnum):
-    NETWORK = 0
-    TOKEN = 1
+class DefinitionType(IntEnum):
+    ETHEREUM_NETWORK = 0
+    ETHEREUM_TOKEN = 1
+    SOLANA_TOKEN = 2
 
 
 class EthereumDataType(IntEnum):
@@ -362,6 +363,11 @@ class NEMModificationType(IntEnum):
 class NEMImportanceTransferMode(IntEnum):
     ImportanceTransfer_Activate = 1
     ImportanceTransfer_Deactivate = 2
+
+
+class SolanaTokenStandard(IntEnum):
+    SPL = 0
+    TOKEN22 = 1
 
 
 class StellarAssetType(IntEnum):
@@ -4281,6 +4287,26 @@ class DebugLinkOptigaSetSecMax(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 9008
 
 
+class Definitions(protobuf.MessageType):
+    MESSAGE_WIRE_TYPE = None
+    FIELDS = {
+        1: protobuf.Field("encoded_ethereum_network", "bytes", repeated=False, required=False, default=None),
+        2: protobuf.Field("encoded_ethereum_token", "bytes", repeated=False, required=False, default=None),
+        3: protobuf.Field("encoded_solana_token", "bytes", repeated=False, required=False, default=None),
+    }
+
+    def __init__(
+        self,
+        *,
+        encoded_ethereum_network: Optional["bytes"] = None,
+        encoded_ethereum_token: Optional["bytes"] = None,
+        encoded_solana_token: Optional["bytes"] = None,
+    ) -> None:
+        self.encoded_ethereum_network = encoded_ethereum_network
+        self.encoded_ethereum_token = encoded_ethereum_token
+        self.encoded_solana_token = encoded_solana_token
+
+
 class EosGetPublicKey(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 600
     FIELDS = {
@@ -4926,30 +4952,13 @@ class EthereumTokenInfo(protobuf.MessageType):
         self.name = name
 
 
-class EthereumDefinitions(protobuf.MessageType):
-    MESSAGE_WIRE_TYPE = None
-    FIELDS = {
-        1: protobuf.Field("encoded_network", "bytes", repeated=False, required=False, default=None),
-        2: protobuf.Field("encoded_token", "bytes", repeated=False, required=False, default=None),
-    }
-
-    def __init__(
-        self,
-        *,
-        encoded_network: Optional["bytes"] = None,
-        encoded_token: Optional["bytes"] = None,
-    ) -> None:
-        self.encoded_network = encoded_network
-        self.encoded_token = encoded_token
-
-
 class EthereumSignTypedData(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 464
     FIELDS = {
         1: protobuf.Field("address_n", "uint32", repeated=True, required=False, default=None),
         2: protobuf.Field("primary_type", "string", repeated=False, required=True),
         3: protobuf.Field("metamask_v4_compat", "bool", repeated=False, required=False, default=True),
-        4: protobuf.Field("definitions", "EthereumDefinitions", repeated=False, required=False, default=None),
+        4: protobuf.Field("definitions", "Definitions", repeated=False, required=False, default=None),
     }
 
     def __init__(
@@ -4958,7 +4967,7 @@ class EthereumSignTypedData(protobuf.MessageType):
         primary_type: "str",
         address_n: Optional[Sequence["int"]] = None,
         metamask_v4_compat: Optional["bool"] = True,
-        definitions: Optional["EthereumDefinitions"] = None,
+        definitions: Optional["Definitions"] = None,
     ) -> None:
         self.address_n: Sequence["int"] = address_n if address_n is not None else []
         self.primary_type = primary_type
@@ -5149,7 +5158,7 @@ class EthereumSignTx(protobuf.MessageType):
         8: protobuf.Field("data_length", "uint32", repeated=False, required=False, default=0),
         9: protobuf.Field("chain_id", "uint64", repeated=False, required=True),
         10: protobuf.Field("tx_type", "uint32", repeated=False, required=False, default=None),
-        12: protobuf.Field("definitions", "EthereumDefinitions", repeated=False, required=False, default=None),
+        12: protobuf.Field("definitions", "Definitions", repeated=False, required=False, default=None),
         13: protobuf.Field("chunkify", "bool", repeated=False, required=False, default=None),
     }
 
@@ -5166,7 +5175,7 @@ class EthereumSignTx(protobuf.MessageType):
         data_initial_chunk: Optional["bytes"] = b'',
         data_length: Optional["int"] = 0,
         tx_type: Optional["int"] = None,
-        definitions: Optional["EthereumDefinitions"] = None,
+        definitions: Optional["Definitions"] = None,
         chunkify: Optional["bool"] = None,
     ) -> None:
         self.address_n: Sequence["int"] = address_n if address_n is not None else []
@@ -5197,7 +5206,7 @@ class EthereumSignTxEIP1559(protobuf.MessageType):
         9: protobuf.Field("data_length", "uint32", repeated=False, required=True),
         10: protobuf.Field("chain_id", "uint64", repeated=False, required=True),
         11: protobuf.Field("access_list", "EthereumAccessList", repeated=True, required=False, default=None),
-        12: protobuf.Field("definitions", "EthereumDefinitions", repeated=False, required=False, default=None),
+        12: protobuf.Field("definitions", "Definitions", repeated=False, required=False, default=None),
         13: protobuf.Field("chunkify", "bool", repeated=False, required=False, default=None),
     }
 
@@ -5215,7 +5224,7 @@ class EthereumSignTxEIP1559(protobuf.MessageType):
         access_list: Optional[Sequence["EthereumAccessList"]] = None,
         to: Optional["str"] = '',
         data_initial_chunk: Optional["bytes"] = b'',
-        definitions: Optional["EthereumDefinitions"] = None,
+        definitions: Optional["Definitions"] = None,
         chunkify: Optional["bool"] = None,
     ) -> None:
         self.address_n: Sequence["int"] = address_n if address_n is not None else []
@@ -6831,6 +6840,32 @@ class RipplePayment(protobuf.MessageType):
         self.destination_tag = destination_tag
 
 
+class SolanaTokenInfo(protobuf.MessageType):
+    MESSAGE_WIRE_TYPE = None
+    FIELDS = {
+        1: protobuf.Field("name", "string", repeated=False, required=False, default=None),
+        2: protobuf.Field("ticker", "string", repeated=False, required=True),
+        3: protobuf.Field("address", "bytes", repeated=False, required=True),
+        4: protobuf.Field("standard", "SolanaTokenStandard", repeated=False, required=True),
+        5: protobuf.Field("decimals", "uint32", repeated=False, required=True),
+    }
+
+    def __init__(
+        self,
+        *,
+        ticker: "str",
+        address: "bytes",
+        standard: "SolanaTokenStandard",
+        decimals: "int",
+        name: Optional["str"] = None,
+    ) -> None:
+        self.ticker = ticker
+        self.address = address
+        self.standard = standard
+        self.decimals = decimals
+        self.name = name
+
+
 class SolanaGetPublicKey(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 900
     FIELDS = {
@@ -6939,6 +6974,7 @@ class SolanaSignTx(protobuf.MessageType):
         1: protobuf.Field("address_n", "uint32", repeated=True, required=False, default=None),
         2: protobuf.Field("serialized_tx", "bytes", repeated=False, required=True),
         3: protobuf.Field("additional_info", "SolanaTxAdditionalInfo", repeated=False, required=False, default=None),
+        4: protobuf.Field("definitions", "Definitions", repeated=False, required=False, default=None),
     }
 
     def __init__(
@@ -6947,10 +6983,12 @@ class SolanaSignTx(protobuf.MessageType):
         serialized_tx: "bytes",
         address_n: Optional[Sequence["int"]] = None,
         additional_info: Optional["SolanaTxAdditionalInfo"] = None,
+        definitions: Optional["Definitions"] = None,
     ) -> None:
         self.address_n: Sequence["int"] = address_n if address_n is not None else []
         self.serialized_tx = serialized_tx
         self.additional_info = additional_info
+        self.definitions = definitions
 
 
 class SolanaTxSignature(protobuf.MessageType):

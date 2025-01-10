@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, NoReturn, Optional, TextIO, c
 import click
 
 from .. import _rlp, definitions, ethereum, tools
-from ..messages import EthereumDefinitions
+from ..messages import Definitions
 from . import with_client
 
 if TYPE_CHECKING:
@@ -437,9 +437,9 @@ def sign_tx(
     assert gas_limit is not None
     assert nonce is not None
 
-    defs = EthereumDefinitions(
-        encoded_network=encoded_network,
-        encoded_token=encoded_token,
+    defs = Definitions(
+        encoded_ethereum_network=encoded_network,
+        encoded_ethereum_token=encoded_token,
     )
 
     if is_eip1559:
@@ -562,7 +562,7 @@ def sign_typed_data(
     """
     address_n = tools.parse_path(address)
     network = ethereum.network_from_address_n(address_n, DEFINITIONS_SOURCE)
-    defs = EthereumDefinitions(encoded_network=network)
+    defs = Definitions(encoded_ethereum_network=network)
     data = json.loads(file.read())
     ret = ethereum.sign_typed_data(
         client,
