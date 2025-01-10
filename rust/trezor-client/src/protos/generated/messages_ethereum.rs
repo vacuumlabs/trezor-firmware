@@ -865,7 +865,7 @@ pub struct EthereumSignTx {
     // @@protoc_insertion_point(field:hw.trezor.messages.ethereum.EthereumSignTx.tx_type)
     pub tx_type: ::std::option::Option<u32>,
     // @@protoc_insertion_point(field:hw.trezor.messages.ethereum.EthereumSignTx.definitions)
-    pub definitions: ::protobuf::MessageField<super::messages_ethereum_definitions::EthereumDefinitions>,
+    pub definitions: ::protobuf::MessageField<super::messages_definitions::Definitions>,
     // @@protoc_insertion_point(field:hw.trezor.messages.ethereum.EthereumSignTx.chunkify)
     pub chunkify: ::std::option::Option<bool>,
     // special fields
@@ -1229,7 +1229,7 @@ impl EthereumSignTx {
             |m: &EthereumSignTx| { &m.tx_type },
             |m: &mut EthereumSignTx| { &mut m.tx_type },
         ));
-        fields.push(::protobuf::reflect::rt::v2::make_message_field_accessor::<_, super::messages_ethereum_definitions::EthereumDefinitions>(
+        fields.push(::protobuf::reflect::rt::v2::make_message_field_accessor::<_, super::messages_definitions::Definitions>(
             "definitions",
             |m: &EthereumSignTx| { &m.definitions },
             |m: &mut EthereumSignTx| { &mut m.definitions },
@@ -1497,7 +1497,7 @@ pub struct EthereumSignTxEIP1559 {
     // @@protoc_insertion_point(field:hw.trezor.messages.ethereum.EthereumSignTxEIP1559.access_list)
     pub access_list: ::std::vec::Vec<ethereum_sign_tx_eip1559::EthereumAccessList>,
     // @@protoc_insertion_point(field:hw.trezor.messages.ethereum.EthereumSignTxEIP1559.definitions)
-    pub definitions: ::protobuf::MessageField<super::messages_ethereum_definitions::EthereumDefinitions>,
+    pub definitions: ::protobuf::MessageField<super::messages_definitions::Definitions>,
     // @@protoc_insertion_point(field:hw.trezor.messages.ethereum.EthereumSignTxEIP1559.chunkify)
     pub chunkify: ::std::option::Option<bool>,
     // special fields
@@ -1883,7 +1883,7 @@ impl EthereumSignTxEIP1559 {
             |m: &EthereumSignTxEIP1559| { &m.access_list },
             |m: &mut EthereumSignTxEIP1559| { &mut m.access_list },
         ));
-        fields.push(::protobuf::reflect::rt::v2::make_message_field_accessor::<_, super::messages_ethereum_definitions::EthereumDefinitions>(
+        fields.push(::protobuf::reflect::rt::v2::make_message_field_accessor::<_, super::messages_definitions::Definitions>(
             "definitions",
             |m: &EthereumSignTxEIP1559| { &m.definitions },
             |m: &mut EthereumSignTxEIP1559| { &mut m.definitions },
@@ -4095,63 +4095,63 @@ impl ::protobuf::reflect::ProtobufValue for EthereumTypedDataSignature {
 
 static file_descriptor_proto_data: &'static [u8] = b"\
     \n\x17messages-ethereum.proto\x12\x1bhw.trezor.messages.ethereum\x1a\x15\
-    messages-common.proto\x1a#messages-ethereum-definitions.proto\"V\n\x14Et\
-    hereumGetPublicKey\x12\x1b\n\taddress_n\x18\x01\x20\x03(\rR\x08addressN\
-    \x12!\n\x0cshow_display\x18\x02\x20\x01(\x08R\x0bshowDisplay\"b\n\x11Eth\
-    ereumPublicKey\x129\n\x04node\x18\x01\x20\x02(\x0b2%.hw.trezor.messages.\
-    common.HDNodeTypeR\x04node\x12\x12\n\x04xpub\x18\x02\x20\x02(\tR\x04xpub\
-    \"\x99\x01\n\x12EthereumGetAddress\x12\x1b\n\taddress_n\x18\x01\x20\x03(\
-    \rR\x08addressN\x12!\n\x0cshow_display\x18\x02\x20\x01(\x08R\x0bshowDisp\
-    lay\x12'\n\x0fencoded_network\x18\x03\x20\x01(\x0cR\x0eencodedNetwork\
-    \x12\x1a\n\x08chunkify\x18\x04\x20\x01(\x08R\x08chunkify\"Q\n\x0fEthereu\
-    mAddress\x12$\n\x0c_old_address\x18\x01\x20\x01(\x0cR\nOldAddressB\x02\
-    \x18\x01\x12\x18\n\x07address\x18\x02\x20\x01(\tR\x07address\"\xad\x03\n\
-    \x0eEthereumSignTx\x12\x1b\n\taddress_n\x18\x01\x20\x03(\rR\x08addressN\
-    \x12\x16\n\x05nonce\x18\x02\x20\x01(\x0c:\0R\x05nonce\x12\x1b\n\tgas_pri\
-    ce\x18\x03\x20\x02(\x0cR\x08gasPrice\x12\x1b\n\tgas_limit\x18\x04\x20\
-    \x02(\x0cR\x08gasLimit\x12\x10\n\x02to\x18\x0b\x20\x01(\t:\0R\x02to\x12\
-    \x16\n\x05value\x18\x06\x20\x01(\x0c:\0R\x05value\x12.\n\x12data_initial\
-    _chunk\x18\x07\x20\x01(\x0c:\0R\x10dataInitialChunk\x12\"\n\x0bdata_leng\
-    th\x18\x08\x20\x01(\r:\x010R\ndataLength\x12\x19\n\x08chain_id\x18\t\x20\
-    \x02(\x04R\x07chainId\x12\x17\n\x07tx_type\x18\n\x20\x01(\rR\x06txType\
-    \x12^\n\x0bdefinitions\x18\x0c\x20\x01(\x0b2<.hw.trezor.messages.ethereu\
-    m_definitions.EthereumDefinitionsR\x0bdefinitions\x12\x1a\n\x08chunkify\
-    \x18\r\x20\x01(\x08R\x08chunkify\"\xfc\x04\n\x15EthereumSignTxEIP1559\
-    \x12\x1b\n\taddress_n\x18\x01\x20\x03(\rR\x08addressN\x12\x14\n\x05nonce\
-    \x18\x02\x20\x02(\x0cR\x05nonce\x12\x1e\n\x0bmax_gas_fee\x18\x03\x20\x02\
-    (\x0cR\tmaxGasFee\x12(\n\x10max_priority_fee\x18\x04\x20\x02(\x0cR\x0ema\
-    xPriorityFee\x12\x1b\n\tgas_limit\x18\x05\x20\x02(\x0cR\x08gasLimit\x12\
-    \x10\n\x02to\x18\x06\x20\x01(\t:\0R\x02to\x12\x14\n\x05value\x18\x07\x20\
-    \x02(\x0cR\x05value\x12.\n\x12data_initial_chunk\x18\x08\x20\x01(\x0c:\0\
-    R\x10dataInitialChunk\x12\x1f\n\x0bdata_length\x18\t\x20\x02(\rR\ndataLe\
-    ngth\x12\x19\n\x08chain_id\x18\n\x20\x02(\x04R\x07chainId\x12f\n\x0bacce\
-    ss_list\x18\x0b\x20\x03(\x0b2E.hw.trezor.messages.ethereum.EthereumSignT\
-    xEIP1559.EthereumAccessListR\naccessList\x12^\n\x0bdefinitions\x18\x0c\
-    \x20\x01(\x0b2<.hw.trezor.messages.ethereum_definitions.EthereumDefiniti\
-    onsR\x0bdefinitions\x12\x1a\n\x08chunkify\x18\r\x20\x01(\x08R\x08chunkif\
-    y\x1aQ\n\x12EthereumAccessList\x12\x18\n\x07address\x18\x01\x20\x02(\tR\
-    \x07address\x12!\n\x0cstorage_keys\x18\x02\x20\x03(\x0cR\x0bstorageKeys\
-    \"\x97\x01\n\x11EthereumTxRequest\x12\x1f\n\x0bdata_length\x18\x01\x20\
-    \x01(\rR\ndataLength\x12\x1f\n\x0bsignature_v\x18\x02\x20\x01(\rR\nsigna\
-    tureV\x12\x1f\n\x0bsignature_r\x18\x03\x20\x01(\x0cR\nsignatureR\x12\x1f\
-    \n\x0bsignature_s\x18\x04\x20\x01(\x0cR\nsignatureS\".\n\rEthereumTxAck\
-    \x12\x1d\n\ndata_chunk\x18\x01\x20\x02(\x0cR\tdataChunk\"\x91\x01\n\x13E\
-    thereumSignMessage\x12\x1b\n\taddress_n\x18\x01\x20\x03(\rR\x08addressN\
-    \x12\x18\n\x07message\x18\x02\x20\x02(\x0cR\x07message\x12'\n\x0fencoded\
-    _network\x18\x03\x20\x01(\x0cR\x0eencodedNetwork\x12\x1a\n\x08chunkify\
-    \x18\x04\x20\x01(\x08R\x08chunkify\"R\n\x18EthereumMessageSignature\x12\
-    \x1c\n\tsignature\x18\x02\x20\x02(\x0cR\tsignature\x12\x18\n\x07address\
-    \x18\x03\x20\x02(\tR\x07address\"\x85\x01\n\x15EthereumVerifyMessage\x12\
-    \x1c\n\tsignature\x18\x02\x20\x02(\x0cR\tsignature\x12\x18\n\x07message\
-    \x18\x03\x20\x02(\x0cR\x07message\x12\x18\n\x07address\x18\x04\x20\x02(\
-    \tR\x07address\x12\x1a\n\x08chunkify\x18\x05\x20\x01(\x08R\x08chunkify\"\
-    \xb4\x01\n\x15EthereumSignTypedHash\x12\x1b\n\taddress_n\x18\x01\x20\x03\
-    (\rR\x08addressN\x122\n\x15domain_separator_hash\x18\x02\x20\x02(\x0cR\
-    \x13domainSeparatorHash\x12!\n\x0cmessage_hash\x18\x03\x20\x01(\x0cR\x0b\
-    messageHash\x12'\n\x0fencoded_network\x18\x04\x20\x01(\x0cR\x0eencodedNe\
-    twork\"T\n\x1aEthereumTypedDataSignature\x12\x1c\n\tsignature\x18\x01\
-    \x20\x02(\x0cR\tsignature\x12\x18\n\x07address\x18\x02\x20\x02(\tR\x07ad\
-    dressB<\n#com.satoshilabs.trezor.lib.protobufB\x15TrezorMessageEthereum\
+    messages-common.proto\x1a\x1amessages-definitions.proto\"V\n\x14Ethereum\
+    GetPublicKey\x12\x1b\n\taddress_n\x18\x01\x20\x03(\rR\x08addressN\x12!\n\
+    \x0cshow_display\x18\x02\x20\x01(\x08R\x0bshowDisplay\"b\n\x11EthereumPu\
+    blicKey\x129\n\x04node\x18\x01\x20\x02(\x0b2%.hw.trezor.messages.common.\
+    HDNodeTypeR\x04node\x12\x12\n\x04xpub\x18\x02\x20\x02(\tR\x04xpub\"\x99\
+    \x01\n\x12EthereumGetAddress\x12\x1b\n\taddress_n\x18\x01\x20\x03(\rR\
+    \x08addressN\x12!\n\x0cshow_display\x18\x02\x20\x01(\x08R\x0bshowDisplay\
+    \x12'\n\x0fencoded_network\x18\x03\x20\x01(\x0cR\x0eencodedNetwork\x12\
+    \x1a\n\x08chunkify\x18\x04\x20\x01(\x08R\x08chunkify\"Q\n\x0fEthereumAdd\
+    ress\x12$\n\x0c_old_address\x18\x01\x20\x01(\x0cR\nOldAddressB\x02\x18\
+    \x01\x12\x18\n\x07address\x18\x02\x20\x01(\tR\x07address\"\x9c\x03\n\x0e\
+    EthereumSignTx\x12\x1b\n\taddress_n\x18\x01\x20\x03(\rR\x08addressN\x12\
+    \x16\n\x05nonce\x18\x02\x20\x01(\x0c:\0R\x05nonce\x12\x1b\n\tgas_price\
+    \x18\x03\x20\x02(\x0cR\x08gasPrice\x12\x1b\n\tgas_limit\x18\x04\x20\x02(\
+    \x0cR\x08gasLimit\x12\x10\n\x02to\x18\x0b\x20\x01(\t:\0R\x02to\x12\x16\n\
+    \x05value\x18\x06\x20\x01(\x0c:\0R\x05value\x12.\n\x12data_initial_chunk\
+    \x18\x07\x20\x01(\x0c:\0R\x10dataInitialChunk\x12\"\n\x0bdata_length\x18\
+    \x08\x20\x01(\r:\x010R\ndataLength\x12\x19\n\x08chain_id\x18\t\x20\x02(\
+    \x04R\x07chainId\x12\x17\n\x07tx_type\x18\n\x20\x01(\rR\x06txType\x12M\n\
+    \x0bdefinitions\x18\x0c\x20\x01(\x0b2+.hw.trezor.messages.definitions.De\
+    finitionsR\x0bdefinitions\x12\x1a\n\x08chunkify\x18\r\x20\x01(\x08R\x08c\
+    hunkify\"\xeb\x04\n\x15EthereumSignTxEIP1559\x12\x1b\n\taddress_n\x18\
+    \x01\x20\x03(\rR\x08addressN\x12\x14\n\x05nonce\x18\x02\x20\x02(\x0cR\
+    \x05nonce\x12\x1e\n\x0bmax_gas_fee\x18\x03\x20\x02(\x0cR\tmaxGasFee\x12(\
+    \n\x10max_priority_fee\x18\x04\x20\x02(\x0cR\x0emaxPriorityFee\x12\x1b\n\
+    \tgas_limit\x18\x05\x20\x02(\x0cR\x08gasLimit\x12\x10\n\x02to\x18\x06\
+    \x20\x01(\t:\0R\x02to\x12\x14\n\x05value\x18\x07\x20\x02(\x0cR\x05value\
+    \x12.\n\x12data_initial_chunk\x18\x08\x20\x01(\x0c:\0R\x10dataInitialChu\
+    nk\x12\x1f\n\x0bdata_length\x18\t\x20\x02(\rR\ndataLength\x12\x19\n\x08c\
+    hain_id\x18\n\x20\x02(\x04R\x07chainId\x12f\n\x0baccess_list\x18\x0b\x20\
+    \x03(\x0b2E.hw.trezor.messages.ethereum.EthereumSignTxEIP1559.EthereumAc\
+    cessListR\naccessList\x12M\n\x0bdefinitions\x18\x0c\x20\x01(\x0b2+.hw.tr\
+    ezor.messages.definitions.DefinitionsR\x0bdefinitions\x12\x1a\n\x08chunk\
+    ify\x18\r\x20\x01(\x08R\x08chunkify\x1aQ\n\x12EthereumAccessList\x12\x18\
+    \n\x07address\x18\x01\x20\x02(\tR\x07address\x12!\n\x0cstorage_keys\x18\
+    \x02\x20\x03(\x0cR\x0bstorageKeys\"\x97\x01\n\x11EthereumTxRequest\x12\
+    \x1f\n\x0bdata_length\x18\x01\x20\x01(\rR\ndataLength\x12\x1f\n\x0bsigna\
+    ture_v\x18\x02\x20\x01(\rR\nsignatureV\x12\x1f\n\x0bsignature_r\x18\x03\
+    \x20\x01(\x0cR\nsignatureR\x12\x1f\n\x0bsignature_s\x18\x04\x20\x01(\x0c\
+    R\nsignatureS\".\n\rEthereumTxAck\x12\x1d\n\ndata_chunk\x18\x01\x20\x02(\
+    \x0cR\tdataChunk\"\x91\x01\n\x13EthereumSignMessage\x12\x1b\n\taddress_n\
+    \x18\x01\x20\x03(\rR\x08addressN\x12\x18\n\x07message\x18\x02\x20\x02(\
+    \x0cR\x07message\x12'\n\x0fencoded_network\x18\x03\x20\x01(\x0cR\x0eenco\
+    dedNetwork\x12\x1a\n\x08chunkify\x18\x04\x20\x01(\x08R\x08chunkify\"R\n\
+    \x18EthereumMessageSignature\x12\x1c\n\tsignature\x18\x02\x20\x02(\x0cR\
+    \tsignature\x12\x18\n\x07address\x18\x03\x20\x02(\tR\x07address\"\x85\
+    \x01\n\x15EthereumVerifyMessage\x12\x1c\n\tsignature\x18\x02\x20\x02(\
+    \x0cR\tsignature\x12\x18\n\x07message\x18\x03\x20\x02(\x0cR\x07message\
+    \x12\x18\n\x07address\x18\x04\x20\x02(\tR\x07address\x12\x1a\n\x08chunki\
+    fy\x18\x05\x20\x01(\x08R\x08chunkify\"\xb4\x01\n\x15EthereumSignTypedHas\
+    h\x12\x1b\n\taddress_n\x18\x01\x20\x03(\rR\x08addressN\x122\n\x15domain_\
+    separator_hash\x18\x02\x20\x02(\x0cR\x13domainSeparatorHash\x12!\n\x0cme\
+    ssage_hash\x18\x03\x20\x01(\x0cR\x0bmessageHash\x12'\n\x0fencoded_networ\
+    k\x18\x04\x20\x01(\x0cR\x0eencodedNetwork\"T\n\x1aEthereumTypedDataSigna\
+    ture\x12\x1c\n\tsignature\x18\x01\x20\x02(\x0cR\tsignature\x12\x18\n\x07\
+    address\x18\x02\x20\x02(\tR\x07addressB<\n#com.satoshilabs.trezor.lib.pr\
+    otobufB\x15TrezorMessageEthereum\
 ";
 
 /// `FileDescriptorProto` object which was a source for this generated file
@@ -4170,7 +4170,7 @@ pub fn file_descriptor() -> &'static ::protobuf::reflect::FileDescriptor {
         let generated_file_descriptor = generated_file_descriptor_lazy.get(|| {
             let mut deps = ::std::vec::Vec::with_capacity(2);
             deps.push(super::messages_common::file_descriptor().clone());
-            deps.push(super::messages_ethereum_definitions::file_descriptor().clone());
+            deps.push(super::messages_definitions::file_descriptor().clone());
             let mut messages = ::std::vec::Vec::with_capacity(14);
             messages.push(EthereumGetPublicKey::generated_message_descriptor_data());
             messages.push(EthereumPublicKey::generated_message_descriptor_data());
