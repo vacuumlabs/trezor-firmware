@@ -1046,6 +1046,8 @@ pub struct SolanaTxAdditionalInfo {
     // message fields
     // @@protoc_insertion_point(field:hw.trezor.messages.solana.SolanaTxAdditionalInfo.token_accounts_infos)
     pub token_accounts_infos: ::std::vec::Vec<SolanaTxTokenAccountInfo>,
+    // @@protoc_insertion_point(field:hw.trezor.messages.solana.SolanaTxAdditionalInfo.rent_fees)
+    pub rent_fees: ::std::option::Option<u64>,
     // special fields
     // @@protoc_insertion_point(special_field:hw.trezor.messages.solana.SolanaTxAdditionalInfo.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
@@ -1062,13 +1064,37 @@ impl SolanaTxAdditionalInfo {
         ::std::default::Default::default()
     }
 
+    // optional uint64 rent_fees = 2;
+
+    pub fn rent_fees(&self) -> u64 {
+        self.rent_fees.unwrap_or(0)
+    }
+
+    pub fn clear_rent_fees(&mut self) {
+        self.rent_fees = ::std::option::Option::None;
+    }
+
+    pub fn has_rent_fees(&self) -> bool {
+        self.rent_fees.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_rent_fees(&mut self, v: u64) {
+        self.rent_fees = ::std::option::Option::Some(v);
+    }
+
     fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
-        let mut fields = ::std::vec::Vec::with_capacity(1);
+        let mut fields = ::std::vec::Vec::with_capacity(2);
         let mut oneofs = ::std::vec::Vec::with_capacity(0);
         fields.push(::protobuf::reflect::rt::v2::make_vec_simpler_accessor::<_, _>(
             "token_accounts_infos",
             |m: &SolanaTxAdditionalInfo| { &m.token_accounts_infos },
             |m: &mut SolanaTxAdditionalInfo| { &mut m.token_accounts_infos },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_option_accessor::<_, _>(
+            "rent_fees",
+            |m: &SolanaTxAdditionalInfo| { &m.rent_fees },
+            |m: &mut SolanaTxAdditionalInfo| { &mut m.rent_fees },
         ));
         ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<SolanaTxAdditionalInfo>(
             "SolanaTxAdditionalInfo",
@@ -1096,6 +1122,9 @@ impl ::protobuf::Message for SolanaTxAdditionalInfo {
                 10 => {
                     self.token_accounts_infos.push(is.read_message()?);
                 },
+                16 => {
+                    self.rent_fees = ::std::option::Option::Some(is.read_uint64()?);
+                },
                 tag => {
                     ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
                 },
@@ -1112,6 +1141,9 @@ impl ::protobuf::Message for SolanaTxAdditionalInfo {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
         };
+        if let Some(v) = self.rent_fees {
+            my_size += ::protobuf::rt::uint64_size(2, v);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
         self.special_fields.cached_size().set(my_size as u32);
         my_size
@@ -1121,6 +1153,9 @@ impl ::protobuf::Message for SolanaTxAdditionalInfo {
         for v in &self.token_accounts_infos {
             ::protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
         };
+        if let Some(v) = self.rent_fees {
+            os.write_uint64(2, v)?;
+        }
         os.write_unknown_fields(self.special_fields.unknown_fields())?;
         ::std::result::Result::Ok(())
     }
@@ -1139,12 +1174,14 @@ impl ::protobuf::Message for SolanaTxAdditionalInfo {
 
     fn clear(&mut self) {
         self.token_accounts_infos.clear();
+        self.rent_fees = ::std::option::Option::None;
         self.special_fields.clear();
     }
 
     fn default_instance() -> &'static SolanaTxAdditionalInfo {
         static instance: SolanaTxAdditionalInfo = SolanaTxAdditionalInfo {
             token_accounts_infos: ::std::vec::Vec::new(),
+            rent_fees: ::std::option::Option::None,
             special_fields: ::protobuf::SpecialFields::new(),
         };
         &instance
@@ -1547,14 +1584,15 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     TokenAccountInfo\x12!\n\x0cbase_address\x18\x01\x20\x02(\tR\x0bbaseAddre\
     ss\x12#\n\rtoken_program\x18\x02\x20\x02(\tR\x0ctokenProgram\x12\x1d\n\n\
     token_mint\x18\x03\x20\x02(\tR\ttokenMint\x12#\n\rtoken_account\x18\x04\
-    \x20\x02(\tR\x0ctokenAccount\"\x7f\n\x16SolanaTxAdditionalInfo\x12e\n\
-    \x14token_accounts_infos\x18\x01\x20\x03(\x0b23.hw.trezor.messages.solan\
-    a.SolanaTxTokenAccountInfoR\x12tokenAccountsInfos\"\xac\x01\n\x0cSolanaS\
-    ignTx\x12\x1b\n\taddress_n\x18\x01\x20\x03(\rR\x08addressN\x12#\n\rseria\
-    lized_tx\x18\x02\x20\x02(\x0cR\x0cserializedTx\x12Z\n\x0fadditional_info\
-    \x18\x03\x20\x01(\x0b21.hw.trezor.messages.solana.SolanaTxAdditionalInfo\
-    R\x0eadditionalInfo\"1\n\x11SolanaTxSignature\x12\x1c\n\tsignature\x18\
-    \x01\x20\x02(\x0cR\tsignature\
+    \x20\x02(\tR\x0ctokenAccount\"\x9c\x01\n\x16SolanaTxAdditionalInfo\x12e\
+    \n\x14token_accounts_infos\x18\x01\x20\x03(\x0b23.hw.trezor.messages.sol\
+    ana.SolanaTxTokenAccountInfoR\x12tokenAccountsInfos\x12\x1b\n\trent_fees\
+    \x18\x02\x20\x01(\x04R\x08rentFees\"\xac\x01\n\x0cSolanaSignTx\x12\x1b\n\
+    \taddress_n\x18\x01\x20\x03(\rR\x08addressN\x12#\n\rserialized_tx\x18\
+    \x02\x20\x02(\x0cR\x0cserializedTx\x12Z\n\x0fadditional_info\x18\x03\x20\
+    \x01(\x0b21.hw.trezor.messages.solana.SolanaTxAdditionalInfoR\x0eadditio\
+    nalInfo\"1\n\x11SolanaTxSignature\x12\x1c\n\tsignature\x18\x01\x20\x02(\
+    \x0cR\tsignature\
 ";
 
 /// `FileDescriptorProto` object which was a source for this generated file
