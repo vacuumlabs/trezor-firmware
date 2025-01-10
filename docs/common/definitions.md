@@ -83,8 +83,8 @@ from the following URL:
 
 ## Definition format
 
-Each definition is encoded as a protobuf message `EthereumNetworkInfo` or
-`EthereumTokenInfo` and packaged in the following binary format.
+Each definition is encoded as a protobuf message `EthereumNetworkInfo`, `EthereumTokenInfo`, or `SolanaTokenInfo` and
+packaged in the following binary format.
 
 All numbers are unsigned little endian.
 
