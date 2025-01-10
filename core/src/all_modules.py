@@ -111,6 +111,8 @@ trezor.enums.DebugWaitType
 import trezor.enums.DebugWaitType
 trezor.enums.DecredStakingSpendType
 import trezor.enums.DecredStakingSpendType
+trezor.enums.DefinitionType
+import trezor.enums.DefinitionType
 trezor.enums.DisplayRotation
 import trezor.enums.DisplayRotation
 trezor.enums.FailureType
@@ -315,6 +317,10 @@ apps.common.coininfo
 import apps.common.coininfo
 apps.common.coins
 import apps.common.coins
+apps.common.definitions
+import apps.common.definitions
+apps.common.definitions_constants
+import apps.common.definitions_constants
 apps.common.keychain
 import apps.common.keychain
 apps.common.passphrase
@@ -439,8 +445,6 @@ if not utils.BITCOIN_ONLY:
     import trezor.enums.CardanoTxWitnessType
     trezor.enums.EthereumDataType
     import trezor.enums.EthereumDataType
-    trezor.enums.EthereumDefinitionType
-    import trezor.enums.EthereumDefinitionType
     trezor.enums.MoneroNetworkType
     import trezor.enums.MoneroNetworkType
     trezor.enums.NEMImportanceTransferMode
@@ -549,8 +553,6 @@ if not utils.BITCOIN_ONLY:
     import apps.ethereum
     apps.ethereum.definitions
     import apps.ethereum.definitions
-    apps.ethereum.definitions_constants
-    import apps.ethereum.definitions_constants
     apps.ethereum.get_address
     import apps.ethereum.get_address
     apps.ethereum.get_public_key
@@ -725,6 +727,8 @@ if not utils.BITCOIN_ONLY:
     import apps.solana
     apps.solana.constants
     import apps.solana.constants
+    apps.solana.definitions
+    import apps.solana.definitions
     apps.solana.format
     import apps.solana.format
     apps.solana.get_address
