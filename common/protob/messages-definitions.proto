@@ -1,0 +1,26 @@
+syntax = "proto2";
+package hw.trezor.messages.definitions;
+
+// Sugar for easier handling in Java
+option java_package = "com.satoshilabs.trezor.lib.protobuf";
+option java_outer_classname = "TrezorMessageDefinitions";
+
+/**
+ * Definitions type enum.
+ * Used to check the encoded EthereumNetworkInfo/EthereumTokenInfo/SolanaTokenInfo message.
+ */
+enum DefinitionType {
+    ETHEREUM_NETWORK = 0;
+    ETHEREUM_TOKEN = 1;
+    SOLANA_TOKEN = 2;
+}
+
+/**
+ * Contains an encoded network and/or token definition. See definitions.md for details.
+ * @embed
+ */
+message Definitions {
+    optional bytes encoded_ethereum_network = 1; // encoded ethereum network
+    optional bytes encoded_ethereum_token = 2;   // encoded ethereum token
+    optional bytes encoded_solana_token = 3;     // encoded solana token
+}

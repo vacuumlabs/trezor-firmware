@@ -1,0 +1,28 @@
+syntax = "proto2";
+package hw.trezor.messages.solana_definitions;
+
+/**
+ * Solana token standard type enum.
+ */
+enum SolanaTokenStandard {
+    SPL = 0;
+    TOKEN22 = 1;
+}
+
+/**
+ * Solana token definition. Used to (de)serialize the definition.
+ *
+ * Definition types should not be cross-parseable, i.e., it should not be possible to
+ * incorrectly parse Ethereum network info as Solana token info or vice versa.
+ * To achieve that, the first two fields are wire type length-delimited.
+ * They are a mismatch for the Ethereum network and token definitions.
+ *
+ * @embed
+ */
+message SolanaTokenInfo {
+    optional string name = 1;
+    required string ticker = 2;
+    required bytes address = 3;
+    required SolanaTokenStandard standard = 4;
+    required uint32 decimals = 5;
+}

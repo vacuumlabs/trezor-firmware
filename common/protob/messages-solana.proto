@@ -1,6 +1,8 @@
 syntax = "proto2";
 package hw.trezor.messages.solana;
 
+import "messages-definitions.proto";
+
 /**
  * Request: Ask device for public key corresponding to address_n path
  * @start
@@ -64,9 +66,10 @@ message SolanaTxAdditionalInfo {
  * @next Failure
  */
 message SolanaSignTx {
-    repeated uint32 address_n = 1;      // BIP-32 path to derive the key to sign with
-    required bytes serialized_tx = 2;   // serialized tx to be signed
-    optional SolanaTxAdditionalInfo additional_info = 3;
+    repeated uint32 address_n = 1;                        // BIP-32 path to derive the key to sign with
+    required bytes serialized_tx = 2;                     // serialized tx to be signed
+    optional SolanaTxAdditionalInfo additional_info = 3;  // additional info with token accounts info
+    optional definitions.Definitions definitions = 4;     // token definition for tx
 }
 
 /**
