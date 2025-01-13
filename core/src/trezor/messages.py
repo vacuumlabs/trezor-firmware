@@ -42,9 +42,9 @@ if TYPE_CHECKING:
     from trezor.enums import DebugSwipeDirection  # noqa: F401
     from trezor.enums import DebugWaitType  # noqa: F401
     from trezor.enums import DecredStakingSpendType  # noqa: F401
+    from trezor.enums import DefinitionType  # noqa: F401
     from trezor.enums import DisplayRotation  # noqa: F401
     from trezor.enums import EthereumDataType  # noqa: F401
-    from trezor.enums import EthereumDefinitionType  # noqa: F401
     from trezor.enums import FailureType  # noqa: F401
     from trezor.enums import HomescreenFormat  # noqa: F401
     from trezor.enums import InputScriptType  # noqa: F401
@@ -62,6 +62,7 @@ if TYPE_CHECKING:
     from trezor.enums import RequestType  # noqa: F401
     from trezor.enums import SafetyCheckLevel  # noqa: F401
     from trezor.enums import SdProtectOperationType  # noqa: F401
+    from trezor.enums import SolanaTokenStandard  # noqa: F401
     from trezor.enums import StellarAssetType  # noqa: F401
     from trezor.enums import StellarMemoType  # noqa: F401
     from trezor.enums import StellarSignerType  # noqa: F401
@@ -3019,6 +3020,24 @@ if TYPE_CHECKING:
         def is_type_of(cls, msg: Any) -> TypeGuard["DebugLinkOptigaSetSecMax"]:
             return isinstance(msg, cls)
 
+    class Definitions(protobuf.MessageType):
+        encoded_ethereum_network: "bytes | None"
+        encoded_ethereum_token: "bytes | None"
+        encoded_solana_token: "bytes | None"
+
+        def __init__(
+            self,
+            *,
+            encoded_ethereum_network: "bytes | None" = None,
+            encoded_ethereum_token: "bytes | None" = None,
+            encoded_solana_token: "bytes | None" = None,
+        ) -> None:
+            pass
+
+        @classmethod
+        def is_type_of(cls, msg: Any) -> TypeGuard["Definitions"]:
+            return isinstance(msg, cls)
+
     class EosGetPublicKey(protobuf.MessageType):
         address_n: "list[int]"
         show_display: "bool | None"
@@ -3589,27 +3608,11 @@ if TYPE_CHECKING:
         def is_type_of(cls, msg: Any) -> TypeGuard["EthereumTokenInfo"]:
             return isinstance(msg, cls)
 
-    class EthereumDefinitions(protobuf.MessageType):
-        encoded_network: "bytes | None"
-        encoded_token: "bytes | None"
-
-        def __init__(
-            self,
-            *,
-            encoded_network: "bytes | None" = None,
-            encoded_token: "bytes | None" = None,
-        ) -> None:
-            pass
-
-        @classmethod
-        def is_type_of(cls, msg: Any) -> TypeGuard["EthereumDefinitions"]:
-            return isinstance(msg, cls)
-
     class EthereumSignTypedData(protobuf.MessageType):
         address_n: "list[int]"
         primary_type: "str"
         metamask_v4_compat: "bool"
-        definitions: "EthereumDefinitions | None"
+        definitions: "Definitions | None"
 
         def __init__(
             self,
@@ -3617,7 +3620,7 @@ if TYPE_CHECKING:
             primary_type: "str",
             address_n: "list[int] | None" = None,
             metamask_v4_compat: "bool | None" = None,
-            definitions: "EthereumDefinitions | None" = None,
+            definitions: "Definitions | None" = None,
         ) -> None:
             pass
 
@@ -3794,7 +3797,7 @@ if TYPE_CHECKING:
         data_length: "int"
         chain_id: "int"
         tx_type: "int | None"
-        definitions: "EthereumDefinitions | None"
+        definitions: "Definitions | None"
         chunkify: "bool | None"
 
         def __init__(
@@ -3810,7 +3813,7 @@ if TYPE_CHECKING:
             data_initial_chunk: "bytes | None" = None,
             data_length: "int | None" = None,
             tx_type: "int | None" = None,
-            definitions: "EthereumDefinitions | None" = None,
+            definitions: "Definitions | None" = None,
             chunkify: "bool | None" = None,
         ) -> None:
             pass
@@ -3831,7 +3834,7 @@ if TYPE_CHECKING:
         data_length: "int"
         chain_id: "int"
         access_list: "list[EthereumAccessList]"
-        definitions: "EthereumDefinitions | None"
+        definitions: "Definitions | None"
         chunkify: "bool | None"
 
         def __init__(
@@ -3848,7 +3851,7 @@ if TYPE_CHECKING:
             access_list: "list[EthereumAccessList] | None" = None,
             to: "str | None" = None,
             data_initial_chunk: "bytes | None" = None,
-            definitions: "EthereumDefinitions | None" = None,
+            definitions: "Definitions | None" = None,
             chunkify: "bool | None" = None,
         ) -> None:
             pass
@@ -5271,6 +5274,28 @@ if TYPE_CHECKING:
         def is_type_of(cls, msg: Any) -> TypeGuard["RipplePayment"]:
             return isinstance(msg, cls)
 
+    class SolanaTokenInfo(protobuf.MessageType):
+        name: "str | None"
+        ticker: "str"
+        address: "bytes"
+        standard: "SolanaTokenStandard"
+        decimals: "int"
+
+        def __init__(
+            self,
+            *,
+            ticker: "str",
+            address: "bytes",
+            standard: "SolanaTokenStandard",
+            decimals: "int",
+            name: "str | None" = None,
+        ) -> None:
+            pass
+
+        @classmethod
+        def is_type_of(cls, msg: Any) -> TypeGuard["SolanaTokenInfo"]:
+            return isinstance(msg, cls)
+
     class SolanaGetPublicKey(protobuf.MessageType):
         address_n: "list[int]"
         show_display: "bool | None"
@@ -5371,6 +5396,7 @@ if TYPE_CHECKING:
         address_n: "list[int]"
         serialized_tx: "bytes"
         additional_info: "SolanaTxAdditionalInfo | None"
+        definitions: "Definitions | None"
 
         def __init__(
             self,
@@ -5378,6 +5404,7 @@ if TYPE_CHECKING:
             serialized_tx: "bytes",
             address_n: "list[int] | None" = None,
             additional_info: "SolanaTxAdditionalInfo | None" = None,
+            definitions: "Definitions | None" = None,
         ) -> None:
             pass
 

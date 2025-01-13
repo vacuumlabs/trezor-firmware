@@ -281,9 +281,10 @@ if TYPE_CHECKING:
         NEXT_LAYOUT = 1
         CURRENT_LAYOUT = 2
 
-    class EthereumDefinitionType(IntEnum):
-        NETWORK = 0
-        TOKEN = 1
+    class DefinitionType(IntEnum):
+        ETHEREUM_NETWORK = 0
+        ETHEREUM_TOKEN = 1
+        SOLANA_TOKEN = 2
 
     class EthereumDataType(IntEnum):
         UINT = 1
@@ -316,6 +317,10 @@ if TYPE_CHECKING:
     class NEMImportanceTransferMode(IntEnum):
         ImportanceTransfer_Activate = 1
         ImportanceTransfer_Deactivate = 2
+
+    class SolanaTokenStandard(IntEnum):
+        SPL = 0
+        TOKEN22 = 1
 
     class StellarAssetType(IntEnum):
         NATIVE = 0
