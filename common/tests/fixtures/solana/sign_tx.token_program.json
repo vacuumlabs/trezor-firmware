@@ -5,6 +5,48 @@
   },
   "tests": [
     {
+      "description": "Initialize Mint",
+      "parameters": {
+        "address": "m/44'/501'/0'/0'",
+        "construct": {
+          "version": null,
+          "header": {
+            "signers": 1,
+            "readonly_signers": 0,
+            "readonly_non_signers": 1
+          },
+          "accounts": [
+            "FUqrjRRtF1LiptdFqaFxipE8R3YfCE4k56xwm5n1piqX",
+            "SysvarRent111111111111111111111111111111111",
+            "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          ],
+          "blockhash": "2p4rYZAaFfV5Uk5ugdG5KPNty9Uda9B3b4gWB8qnNqak",
+          "instructions": [
+            {
+              "program_index": 2,
+              "accounts": {
+                "mint_to_initialize": 0,
+                "rent_sysvar": 1
+              },
+              "data": {
+                "instruction_id": 0,
+                "decimals": 6,
+                "mint_authority": "14CCvQzQzHCVgZM3j9soPnXuJXh1RmCfwLVUcdfbZVBS",
+                "freeze_authority": {
+                  "is_included": true,
+                  "value": "14CCvQzQzHCVgZM3j9soPnXuJXh1RmCfwLVUcdfbZVBS"
+                }
+              }
+            }
+          ],
+          "luts": []
+        }
+      },
+      "result": {
+        "expected_signature": "d1de4f9f05d9b0404e5fc04936790f7f14e7135f17bc6fbde5748f67f7ef86eb7e1dae688fcdea612a1052856ac2b5f928645027362a5d1e81132f828481270e"
+      }
+    },
+    {
       "description": "Initialize Account",
       "parameters": {
         "address": "m/44'/501'/0'/0'",
