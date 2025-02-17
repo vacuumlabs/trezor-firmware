@@ -62,6 +62,7 @@ _STAKE_PROGRAM_ID_INS_SET_LOCKUP_CHECKED = const(12)
 _COMPUTE_BUDGET_PROGRAM_ID_INS_REQUEST_HEAP_FRAME = const(1)
 _COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_LIMIT = const(2)
 _COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_PRICE = const(3)
+_TOKEN_PROGRAM_ID_INS_INITIALIZE_MINT = const(0)
 _TOKEN_PROGRAM_ID_INS_INITIALIZE_ACCOUNT = const(1)
 _TOKEN_PROGRAM_ID_INS_INITIALIZE_MULTISIG = const(2)
 _TOKEN_PROGRAM_ID_INS_TRANSFER = const(3)
@@ -81,6 +82,7 @@ _TOKEN_PROGRAM_ID_INS_INITIALIZE_ACCOUNT_2 = const(16)
 _TOKEN_PROGRAM_ID_INS_SYNC_NATIVE = const(17)
 _TOKEN_PROGRAM_ID_INS_INITIALIZE_ACCOUNT_3 = const(18)
 _TOKEN_PROGRAM_ID_INS_INITIALIZE_IMMUTABLE_OWNER = const(22)
+_TOKEN_2022_PROGRAM_ID_INS_INITIALIZE_MINT = const(0)
 _TOKEN_2022_PROGRAM_ID_INS_INITIALIZE_ACCOUNT = const(1)
 _TOKEN_2022_PROGRAM_ID_INS_INITIALIZE_MULTISIG = const(2)
 _TOKEN_2022_PROGRAM_ID_INS_TRANSFER = const(3)
@@ -187,6 +189,8 @@ def __getattr__(name: str) -> Type[Instruction]:
                 _COMPUTE_BUDGET_PROGRAM_ID,
                 _COMPUTE_BUDGET_PROGRAM_ID_INS_SET_COMPUTE_UNIT_PRICE,
             )
+        if name == "TokenProgramInitializeMintInstruction":
+            return (_TOKEN_PROGRAM_ID, _TOKEN_PROGRAM_ID_INS_INITIALIZE_MINT)
         if name == "TokenProgramInitializeAccountInstruction":
             return (_TOKEN_PROGRAM_ID, _TOKEN_PROGRAM_ID_INS_INITIALIZE_ACCOUNT)
         if name == "TokenProgramInitializeMultisigInstruction":
@@ -225,6 +229,8 @@ def __getattr__(name: str) -> Type[Instruction]:
             return (_TOKEN_PROGRAM_ID, _TOKEN_PROGRAM_ID_INS_INITIALIZE_ACCOUNT_3)
         if name == "TokenProgramInitializeImmutableOwnerInstruction":
             return (_TOKEN_PROGRAM_ID, _TOKEN_PROGRAM_ID_INS_INITIALIZE_IMMUTABLE_OWNER)
+        if name == "Token2022ProgramInitializeMintInstruction":
+            return (_TOKEN_2022_PROGRAM_ID, _TOKEN_2022_PROGRAM_ID_INS_INITIALIZE_MINT)
         if name == "Token2022ProgramInitializeAccountInstruction":
             return (
                 _TOKEN_2022_PROGRAM_ID,
@@ -526,6 +532,14 @@ if TYPE_CHECKING:
     class ComputeBudgetProgramSetComputeUnitPriceInstruction(Instruction):
         lamports: int
 
+    class TokenProgramInitializeMintInstruction(Instruction):
+        decimals: int
+        mint_authority: Account
+        freeze_authority: Account
+
+        mint_to_initialize: Account
+        rent_sysvar: Account
+
     class TokenProgramInitializeAccountInstruction(Instruction):
 
         account_to_initialize: Account
@@ -652,6 +666,14 @@ if TYPE_CHECKING:
     class TokenProgramInitializeImmutableOwnerInstruction(Instruction):
 
         account_to_initialize: Account
+
+    class Token2022ProgramInitializeMintInstruction(Instruction):
+        decimals: int
+        mint_authority: Account
+        freeze_authority: Account
+
+        mint_to_initialize: Account
+        rent_sysvar: Account
 
     class Token2022ProgramInitializeAccountInstruction(Instruction):
 
@@ -2920,6 +2942,84 @@ def get_instruction(
             False,
         )
     if program_id == _TOKEN_PROGRAM_ID:
+        if instruction_id == _TOKEN_PROGRAM_ID_INS_INITIALIZE_MINT:
+            return Instruction(
+                instruction_data,
+                program_id,
+                instruction_accounts,
+                _TOKEN_PROGRAM_ID_INS_INITIALIZE_MINT,
+                [
+                    PropertyTemplate(
+                        "decimals",
+                        False,
+                        False,
+                        parse_byte,
+                        format_int,
+                    ),
+                    PropertyTemplate(
+                        "mint_authority",
+                        True,
+                        False,
+                        parse_pubkey,
+                        format_pubkey,
+                    ),
+                    PropertyTemplate(
+                        "freeze_authority",
+                        True,
+                        True,
+                        parse_pubkey,
+                        format_pubkey,
+                    ),
+                ],
+                [
+                    AccountTemplate(
+                        "mint_to_initialize",
+                        False,
+                        False,
+                    ),
+                    AccountTemplate(
+                        "rent_sysvar",
+                        False,
+                        False,
+                    ),
+                ],
+                [
+                    UIProperty(
+                        None,
+                        "mint_to_initialize",
+                        "Initialize mint",
+                        False,
+                        None,
+                    ),
+                    UIProperty(
+                        "decimals",
+                        None,
+                        "Decimals",
+                        False,
+                        None,
+                    ),
+                    UIProperty(
+                        "mint_authority",
+                        None,
+                        "Mint authority",
+                        False,
+                        None,
+                    ),
+                    UIProperty(
+                        "freeze_authority",
+                        None,
+                        "Freeze authority",
+                        False,
+                        None,
+                    ),
+                ],
+                "Token Program: Initialize Mint",
+                True,
+                True,
+                False,
+                False,
+                None,
+            )
         if instruction_id == _TOKEN_PROGRAM_ID_INS_INITIALIZE_ACCOUNT:
             return Instruction(
                 instruction_data,
@@ -4153,6 +4253,84 @@ def get_instruction(
             False,
         )
     if program_id == _TOKEN_2022_PROGRAM_ID:
+        if instruction_id == _TOKEN_2022_PROGRAM_ID_INS_INITIALIZE_MINT:
+            return Instruction(
+                instruction_data,
+                program_id,
+                instruction_accounts,
+                _TOKEN_2022_PROGRAM_ID_INS_INITIALIZE_MINT,
+                [
+                    PropertyTemplate(
+                        "decimals",
+                        False,
+                        False,
+                        parse_byte,
+                        format_int,
+                    ),
+                    PropertyTemplate(
+                        "mint_authority",
+                        True,
+                        False,
+                        parse_pubkey,
+                        format_pubkey,
+                    ),
+                    PropertyTemplate(
+                        "freeze_authority",
+                        True,
+                        True,
+                        parse_pubkey,
+                        format_pubkey,
+                    ),
+                ],
+                [
+                    AccountTemplate(
+                        "mint_to_initialize",
+                        False,
+                        False,
+                    ),
+                    AccountTemplate(
+                        "rent_sysvar",
+                        False,
+                        False,
+                    ),
+                ],
+                [
+                    UIProperty(
+                        None,
+                        "mint_to_initialize",
+                        "Initialize mint",
+                        False,
+                        None,
+                    ),
+                    UIProperty(
+                        "decimals",
+                        None,
+                        "Decimals",
+                        False,
+                        None,
+                    ),
+                    UIProperty(
+                        "mint_authority",
+                        None,
+                        "Mint authority",
+                        False,
+                        None,
+                    ),
+                    UIProperty(
+                        "freeze_authority",
+                        None,
+                        "Freeze authority",
+                        False,
+                        None,
+                    ),
+                ],
+                "Token 2022 Program: Initialize Mint",
+                True,
+                True,
+                False,
+                False,
+                None,
+            )
         if instruction_id == _TOKEN_2022_PROGRAM_ID_INS_INITIALIZE_ACCOUNT:
             return Instruction(
                 instruction_data,

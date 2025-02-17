@@ -580,6 +580,7 @@ ComputeBudgetProgram_Instruction = Select(
 
 
 class TokenProgramInstruction(Enum):
+    INITIALIZE_MINT = 0
     INITIALIZE_ACCOUNT = 1
     INITIALIZE_MULTISIG = 2
     TRANSFER = 3
@@ -600,6 +601,22 @@ class TokenProgramInstruction(Enum):
     INITIALIZE_ACCOUNT_3 = 18
     INITIALIZE_IMMUTABLE_OWNER = 22
 
+
+TokenProgram_InitializeMint = Struct(
+    "program_index" / Byte,
+    "accounts"
+    / CompactStruct(
+        "mint_to_initialize" / Byte,
+        "rent_sysvar" / Byte,
+    ),
+    "data"
+    / CompactStruct(
+        "instruction_id" / Const(0, Byte),
+        "decimals" / Byte,
+        "mint_authority" / PublicKey,
+        "freeze_authority" / OptionalParameter(PublicKey),
+    ),
+)
 
 TokenProgram_InitializeAccount = Struct(
     "program_index" / Byte,
@@ -896,6 +913,7 @@ TokenProgram_InitializeImmutableOwner = Struct(
 
 
 TokenProgram_Instruction = Select(
+    TokenProgram_InitializeMint,
     TokenProgram_InitializeAccount,
     TokenProgram_InitializeMultisig,
     TokenProgram_Transfer,
@@ -923,6 +941,7 @@ TokenProgram_Instruction = Select(
 
 
 class Token2022ProgramInstruction(Enum):
+    INITIALIZE_MINT = 0
     INITIALIZE_ACCOUNT = 1
     INITIALIZE_MULTISIG = 2
     TRANSFER = 3
@@ -943,6 +962,22 @@ class Token2022ProgramInstruction(Enum):
     INITIALIZE_ACCOUNT_3 = 18
     INITIALIZE_IMMUTABLE_OWNER = 22
 
+
+Token2022Program_InitializeMint = Struct(
+    "program_index" / Byte,
+    "accounts"
+    / CompactStruct(
+        "mint_to_initialize" / Byte,
+        "rent_sysvar" / Byte,
+    ),
+    "data"
+    / CompactStruct(
+        "instruction_id" / Const(0, Byte),
+        "decimals" / Byte,
+        "mint_authority" / PublicKey,
+        "freeze_authority" / OptionalParameter(PublicKey),
+    ),
+)
 
 Token2022Program_InitializeAccount = Struct(
     "program_index" / Byte,
@@ -1239,6 +1274,7 @@ Token2022Program_InitializeImmutableOwner = Struct(
 
 
 Token2022Program_Instruction = Select(
+    Token2022Program_InitializeMint,
     Token2022Program_InitializeAccount,
     Token2022Program_InitializeMultisig,
     Token2022Program_Transfer,

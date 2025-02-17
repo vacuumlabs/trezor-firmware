@@ -1360,6 +1360,58 @@
       "instruction_id_length": 1,
       "instructions": [
         {
+          "id": 0,
+          "name": "Initialize Mint",
+          "is_multisig": false,
+          "parameters": [
+            {
+              "name": "decimals",
+              "type": "u8",
+              "optional": false
+            },
+            {
+              "name": "mint_authority",
+              "type": "authority",
+              "optional": false
+            },
+            {
+              "name": "freeze_authority",
+              "type": "authority",
+              "optional": true
+            }
+          ],
+          "references": [
+            {
+              "name": "mint_to_initialize",
+              "is_authority": false,
+              "optional": false
+            },
+            {
+              "name": "rent_sysvar",
+              "is_authority": false,
+              "optional": false
+            }
+          ],
+          "ui_properties": [
+            {
+              "account": "mint_to_initialize",
+              "display_name": "Initialize mint"
+            },
+            {
+              "parameter": "decimals",
+              "display_name": "Decimals"
+            },
+            {
+              "parameter": "mint_authority",
+              "display_name": "Mint authority"
+            },
+            {
+              "parameter": "freeze_authority",
+              "display_name": "Freeze authority"
+            }
+          ]
+        },
+        {
           "id": 1,
           "name": "Initialize Account",
           "is_multisig": false,
@@ -2174,6 +2226,58 @@
       "name": "Token 2022 Program",
       "instruction_id_length": 1,
       "instructions": [
+        {
+          "id": 0,
+          "name": "Initialize Mint",
+          "is_multisig": false,
+          "parameters": [
+            {
+              "name": "decimals",
+              "type": "u8",
+              "optional": false
+            },
+            {
+              "name": "mint_authority",
+              "type": "authority",
+              "optional": false
+            },
+            {
+              "name": "freeze_authority",
+              "type": "authority",
+              "optional": true
+            }
+          ],
+          "references": [
+            {
+              "name": "mint_to_initialize",
+              "is_authority": false,
+              "optional": false
+            },
+            {
+              "name": "rent_sysvar",
+              "is_authority": false,
+              "optional": false
+            }
+          ],
+          "ui_properties": [
+            {
+              "account": "mint_to_initialize",
+              "display_name": "Initialize mint"
+            },
+            {
+              "parameter": "decimals",
+              "display_name": "Decimals"
+            },
+            {
+              "parameter": "mint_authority",
+              "display_name": "Mint authority"
+            },
+            {
+              "parameter": "freeze_authority",
+              "display_name": "Freeze authority"
+            }
+          ]
+        },
         {
           "id": 1,
           "name": "Initialize Account",

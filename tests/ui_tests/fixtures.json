@@ -5187,6 +5187,7 @@
 "T2T1_en_solana-test_sign_tx.py::test_solana_sign_tx[initialize_account]": "ca2bcf86db8a5c004ce2377e7fb9e77b38a5b41ef3bcab1026dd3dc077c4e50b",
 "T2T1_en_solana-test_sign_tx.py::test_solana_sign_tx[initialize_checked]": "11256f6fed17f33d8c1387a596881a5ff275e31ee8bee2abf52168d9c641e80e",
 "T2T1_en_solana-test_sign_tx.py::test_solana_sign_tx[initialize_immutable_owner]": "5017efe44346781be112b5818c09fe4e6217c54d7f0df86602a5eabad41623eb",
+"T2T1_en_solana-test_sign_tx.py::test_solana_sign_tx[initialize_mint]": "e58beb83597439a73ec282f4c1a29267d4578e36ad81fe3962a2d723c9960605",
 "T2T1_en_solana-test_sign_tx.py::test_solana_sign_tx[initialize_multisig]": "00bffbe9ecb5d29279b3df15f7e8293e02c21424802fd8c76603935004e61db1",
 "T2T1_en_solana-test_sign_tx.py::test_solana_sign_tx[initialize_nonce_account]": "6d76377d2f5fbe8db0f3b5c8b75fae3f53862b16a37c20e0cd16eea7ae734f48",
 "T2T1_en_solana-test_sign_tx.py::test_solana_sign_tx[initialize_stake_account]": "0f9190405943feecc3937f8ec0352187cae6bc1a56506879e6ac4598232479b4",
