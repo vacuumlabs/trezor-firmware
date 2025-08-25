@@ -12,6 +12,7 @@ mod homescreen;
 mod keyboard;
 mod progress_screen;
 mod qr_screen;
+mod regulatory_screen;
 mod select_word_screen;
 mod share_words;
 mod text_screen;
@@ -32,6 +33,7 @@ pub use hold_to_confirm::HoldToConfirmAnim;
 pub use homescreen::{check_homescreen_format, Homescreen, HomescreenMsg};
 pub use keyboard::{
     bip39::Bip39Input,
+    label::{LabelKeyboard, LabelKeyboardMsg},
     mnemonic::{MnemonicInput, MnemonicKeyboard, MnemonicKeyboardMsg},
     passphrase::{PassphraseKeyboard, PassphraseKeyboardMsg},
     pin::{PinKeyboard, PinKeyboardMsg},
@@ -40,6 +42,7 @@ pub use keyboard::{
 };
 pub use progress_screen::ProgressScreen;
 pub use qr_screen::{QrMsg, QrScreen};
+pub use regulatory_screen::{RegulatoryMsg, RegulatoryScreen};
 pub use select_word_screen::{SelectWordMsg, SelectWordScreen};
 pub use share_words::{ShareWordsScreen, ShareWordsScreenMsg};
 pub use text_screen::{AllowedTextContent, TextScreen, TextScreenMsg};
@@ -49,8 +52,8 @@ pub use value_input_screen::{
     DurationInput, NumberInput, ValueInput, ValueInputScreen, ValueInputScreenMsg,
 };
 pub use vertical_menu::{
-    LongMenuGc, MenuItems, ShortMenuVec, VerticalMenu, VerticalMenuMsg, LONG_MENU_ITEMS,
-    SHORT_MENU_ITEMS,
+    LongMenuGc, MediumMenuVec, MenuItems, ShortMenuVec, VerticalMenu, VerticalMenuMsg,
+    LONG_MENU_ITEMS, MEDIUM_MENU_ITEMS, SHORT_MENU_ITEMS,
 };
 pub use vertical_menu_screen::{VerticalMenuScreen, VerticalMenuScreenMsg};
 

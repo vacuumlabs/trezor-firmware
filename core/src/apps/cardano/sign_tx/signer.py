@@ -11,6 +11,7 @@ from trezor.messages import CardanoTxItemAck, CardanoTxOutput
 from trezor.wire import DataError, ProcessError
 from trezor.wire.context import call as ctx_call
 
+from apps.cardano.helpers.chunks import ChunkIterator
 from apps.common import safety_checks
 
 from .. import addresses, certificates, layout, seed
@@ -21,7 +22,7 @@ from ..helpers.hash_builder_collection import (
     HashBuilderList,
     HashBuilderSet,
 )
-from ..helpers.paths import SCHEMA_STAKING
+from ..helpers.paths import SCHEMA_STAKING, SLIP44_ID
 from ..helpers.utils import derive_public_key
 
 if TYPE_CHECKING:
@@ -31,6 +32,7 @@ if TYPE_CHECKING:
     from trezor.enums import CardanoAddressType
 
     from apps.common import cbor
+    from apps.common.keychain import Keychain as Slip21Keychain
     from apps.common.paths import PathSchema
 
     from ..helpers.hash_builder_collection import HashBuilderEmbeddedCBOR
@@ -70,8 +72,6 @@ _DATUM_OPTION_KEY_INLINE = const(1)
 
 _POOL_REGISTRATION_CERTIFICATE_ITEMS_COUNT = const(10)
 
-_MAX_CHUNK_SIZE = const(1024)
-
 
 class SuiteTxType(IntEnum):
     """
@@ -104,11 +104,13 @@ class Signer:
         self,
         msg: messages.CardanoSignTxInit,
         keychain: seed.Keychain,
+        slip21_keychain: Slip21Keychain,
     ) -> None:
         from ..helpers.account_path_check import AccountPathChecker
 
         self.msg = msg
         self.keychain = keychain
+        self.slip21_keychain = slip21_keychain
         self.total_out = 0  # sum of output amounts
         self.change_out = 0  # sum of change amounts
 
@@ -250,6 +252,9 @@ class Signer:
 
         msg = self.msg  # local_cache_attribute
 
+        if msg.payment_req and msg.outputs_count > 1:
+            raise ProcessError("Multiple outputs not supported for payment requests")
+
         if msg.fee > LOVELACE_MAX_SUPPLY:
             raise ProcessError("Fee is out of range!")
         if (
@@ -334,6 +339,8 @@ class Signer:
             raise RuntimeError  # should be unreachable
 
     def _validate_output(self, output: CardanoTxOutput) -> None:
+        from apps.common.payment_request import PaymentRequestVerifier
+
         from ..helpers import OUTPUT_DATUM_HASH_SIZE
 
         address_parameters = output.address_parameters  # local_cache_attribute
@@ -370,11 +377,36 @@ class Signer:
             if output.format != CardanoTxOutputSerializationFormat.MAP_BABBAGE:
                 raise ProcessError("Invalid output")
 
+        if self.msg.payment_req:
+            self.payment_req_verifier = PaymentRequestVerifier(
+                self.msg.payment_req, SLIP44_ID, self.slip21_keychain
+            )
+            assert output.address is not None
+            self.payment_req_verifier.add_output(
+                output.amount, output.address, change=self._is_change_output(output)
+            )
+            self.payment_req_verifier.verify()
+        else:
+            self.payment_req_verifier = None
+
         self.account_path_checker.add_output(output)
 
     async def _show_output_init(
         self, output: CardanoTxOutput, output_index: int
     ) -> None:
+        if self.payment_req_verifier:
+            assert self.msg.payment_req
+            assert output.address
+            address_n = (
+                output.address_parameters.address_n
+                if output.address_parameters
+                else None
+            )
+            await layout.require_confirm_payment_request(
+                output.address, self.msg.payment_req, address_n, self.msg.network_id
+            )
+            return
+
         address_type = self._get_output_address_type(output)
         if (
             output.datum_hash is None
@@ -647,17 +679,11 @@ class Signer:
     ) -> None:
         assert inline_datum_size > 0
 
-        chunks_count = self._get_chunks_count(inline_datum_size)
-        for chunk_number in range(chunks_count):
-            chunk: messages.CardanoTxInlineDatumChunk = await ctx_call(
-                CardanoTxItemAck(), messages.CardanoTxInlineDatumChunk
-            )
-            self._validate_chunk(
-                chunk.data,
-                chunk_number,
-                chunks_count,
-                ProcessError("Invalid inline datum chunk"),
-            )
+        async for chunk_number, chunk in ChunkIterator(
+            total_size=inline_datum_size,
+            ack_msg=CardanoTxItemAck(),
+            chunk_type=messages.CardanoTxInlineDatumChunk,
+        ):
             if chunk_number == 0 and should_show:
                 await self._show_if_showing_details(
                     layout.confirm_inline_datum(chunk.data, inline_datum_size)
@@ -674,17 +700,11 @@ class Signer:
     ) -> None:
         assert reference_script_size > 0
 
-        chunks_count = self._get_chunks_count(reference_script_size)
-        for chunk_number in range(chunks_count):
-            chunk: messages.CardanoTxReferenceScriptChunk = await ctx_call(
-                CardanoTxItemAck(), messages.CardanoTxReferenceScriptChunk
-            )
-            self._validate_chunk(
-                chunk.data,
-                chunk_number,
-                chunks_count,
-                ProcessError("Invalid reference script chunk"),
-            )
+        async for chunk_number, chunk in ChunkIterator(
+            total_size=reference_script_size,
+            ack_msg=CardanoTxItemAck(),
+            chunk_type=messages.CardanoTxReferenceScriptChunk,
+        ):
             if chunk_number == 0 and should_show:
                 await self._show_if_showing_details(
                     layout.confirm_reference_script(chunk.data, reference_script_size)
@@ -1212,22 +1232,6 @@ class Signer:
             self.msg.protocol_magic,
             self.msg.network_id,
         )
-
-    def _get_chunks_count(self, data_size: int) -> int:
-        assert data_size > 0
-        return (data_size - 1) // _MAX_CHUNK_SIZE + 1
-
-    def _validate_chunk(
-        self,
-        chunk_data: bytes,
-        chunk_number: int,
-        chunks_count: int,
-        error: ProcessError,
-    ) -> None:
-        if chunk_number < chunks_count - 1 and len(chunk_data) != _MAX_CHUNK_SIZE:
-            raise error
-        if chunk_number == chunks_count - 1 and len(chunk_data) > _MAX_CHUNK_SIZE:
-            raise error
 
     def _get_byron_witness(
         self, path: list[int], tx_hash: bytes

@@ -1,8 +1,8 @@
 use crate::ui::{
-    constant::SCREEN,
     geometry::{Alignment2D, Offset, Point, Rect},
     lerp::Lerp,
     shape::{self, Renderer},
+    util::animation_disabled,
 };
 
 use super::{
@@ -10,10 +10,13 @@ use super::{
     ScreenBorder,
 };
 
+const SCREEN: Rect = ScreenBorder::SCREEN_SHRUNK;
+
 /// Renders the loader. Higher `progress` reveals the `border` from the top in
 /// clock-wise direction. Used in ProgressScreen and Bootloader. `progress` goes
 /// from 0 to 1000.
 pub fn render_loader<'s>(progress: u16, border: &'s ScreenBorder, target: &mut impl Renderer<'s>) {
+    let progress = if animation_disabled() { 0 } else { progress };
     let progress_ratio = progress_to_ratio(progress);
     // Draw the border first
     border.render(u8::MAX, target);
@@ -33,6 +36,7 @@ pub fn render_loader_indeterminate<'s>(
     border: &'s ScreenBorder,
     target: &mut impl Renderer<'s>,
 ) {
+    let progress = if animation_disabled() { 0 } else { progress };
     let progress_ratio = progress_to_ratio(progress);
     let clip = get_clip_indeterminate(progress_ratio);
     // Draw the border in clip
@@ -55,41 +59,41 @@ fn get_clip_indeterminate(progress_ratio: f32) -> Rect {
     // bit upwards to account for the irregular corner shape
     const PATH_POINTS: [Point; 9] = [
         // Top start
-        Point::new(CLIP_SIZE / 2, -CLIP_SIZE / 2 + ScreenBorder::WIDTH),
+        Point::new(CLIP_SIZE / 2, -CLIP_SIZE / 2 + ScreenBorder::TOTAL_WIDTH),
         // Top end
         Point::new(
             SCREEN.width() - CLIP_SIZE / 2,
-            -CLIP_SIZE / 2 + ScreenBorder::WIDTH,
+            -CLIP_SIZE / 2 + ScreenBorder::TOTAL_WIDTH,
         ),
         // Right start
         Point::new(
-            SCREEN.width() + CLIP_SIZE / 2 - ScreenBorder::WIDTH,
+            SCREEN.width() + CLIP_SIZE / 2 - ScreenBorder::TOTAL_WIDTH,
             CLIP_SIZE / 2,
         ),
         // Right end
         Point::new(
-            SCREEN.width() + CLIP_SIZE / 2 - ScreenBorder::WIDTH,
+            SCREEN.width() + CLIP_SIZE / 2 - ScreenBorder::TOTAL_WIDTH,
             SCREEN.height() - CLIP_SIZE / 2 - 60,
         ),
         // Bottom start
         Point::new(
-            SCREEN.width() - CLIP_SIZE / 2 - ScreenBorder::WIDTH,
-            SCREEN.height() + CLIP_SIZE / 2 - ScreenBorder::WIDTH,
+            SCREEN.width() - CLIP_SIZE / 2 - ScreenBorder::TOTAL_WIDTH,
+            SCREEN.height() + CLIP_SIZE / 2 - ScreenBorder::TOTAL_WIDTH,
         ),
         // Bottom end
         Point::new(
             CLIP_SIZE / 2,
-            SCREEN.height() + CLIP_SIZE / 2 - ScreenBorder::WIDTH,
+            SCREEN.height() + CLIP_SIZE / 2 - ScreenBorder::TOTAL_WIDTH,
         ),
         // Left start
         Point::new(
-            -CLIP_SIZE / 2 + ScreenBorder::WIDTH,
+            -CLIP_SIZE / 2 + ScreenBorder::TOTAL_WIDTH,
             SCREEN.height() - CLIP_SIZE / 2 - 60,
         ),
         // Left end
-        Point::new(-CLIP_SIZE / 2 + ScreenBorder::WIDTH, CLIP_SIZE / 2),
+        Point::new(-CLIP_SIZE / 2 + ScreenBorder::TOTAL_WIDTH, CLIP_SIZE / 2),
         // Top start - duplicate to close the loop
-        Point::new(CLIP_SIZE / 2, -CLIP_SIZE / 2 + ScreenBorder::WIDTH),
+        Point::new(CLIP_SIZE / 2, -CLIP_SIZE / 2 + ScreenBorder::TOTAL_WIDTH),
     ];
 
     // Calculate which segment we're in and how far along that segment
@@ -148,7 +152,7 @@ fn get_progress_covers(progress_ratio: f32) -> impl Iterator<Item = Rect> {
         let width = ((1.0 - progress) * FULL_WIDTH as f32) as i16;
         Rect::snap(
             SCREEN.bottom_left() + Offset::x(ICON_BORDER_BL.toif.width()),
-            Offset::new(width, ScreenBorder::WIDTH),
+            Offset::new(width, ScreenBorder::TOTAL_WIDTH),
             Alignment2D::BOTTOM_LEFT,
         )
     };

@@ -61,9 +61,16 @@ def start_advertising(whitelist: bool, name: str | None):
 
 
 # rust/src/trezorhal/ble/micropython.rs
-def stop_advertising():
+def set_name(name: str | None):
     """
-    Stop advertising.
+    Set advertising name.
+    """
+
+
+# rust/src/trezorhal/ble/micropython.rs
+def switch_off():
+    """
+    Stop advertising and disconnect any connected devices.
     Raises exception if BLE driver reports an error.
     """
 
@@ -87,6 +94,27 @@ def peer_count() -> int:
 def is_connected() -> bool:
     """
     True if a host is connected to us. May or may not be paired.
+    """
+
+
+# rust/src/trezorhal/ble/micropython.rs
+def is_connectable() -> bool:
+    """
+    True if a central/host can connect.
+    """
+
+
+# rust/src/trezorhal/ble/micropython.rs
+def is_pairing() -> bool:
+    """
+    True if BLE is in pairing mode, waiting for a pairing request.
+    """
+
+
+# rust/src/trezorhal/ble/micropython.rs
+def is_pairing_requested() -> bool:
+    """
+    True if BLE pairing request was received.
     """
 
 

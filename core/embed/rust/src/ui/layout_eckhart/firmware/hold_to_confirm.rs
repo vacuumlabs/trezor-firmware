@@ -15,6 +15,12 @@ use super::{
     constant::SCREEN,
 };
 
+#[cfg(feature = "haptic")]
+use pareen;
+
+#[cfg(feature = "haptic")]
+use crate::trezorhal::haptic;
+
 /// A component that displays a border that grows from the bottom of the screen
 /// to the top. The animation is parametrizable by color and duration.
 pub struct HoldToConfirmAnim {
@@ -145,13 +151,17 @@ impl Component for HoldToConfirmAnim {
 
         // Growing animation
         if self.is_active() {
+            let elapsed = self.timer.elapsed();
             // override header with custom text
-            if self.timer.elapsed() > Self::HEADER_OVERLAY_DELAY {
+            if elapsed > Self::HEADER_OVERLAY_DELAY {
                 self.render_header_overlay(target);
             }
             // growing border
-            let (clip, top_gap) = self.get_clips(self.timer.elapsed());
+            let (clip, top_gap) = self.get_clips(elapsed);
             self.render_clipped_border(clip, top_gap, u8::MAX, target);
+
+            #[cfg(feature = "haptic")]
+            haptic::play_custom(self.get_haptic(elapsed), 100);
         }
     }
 }
@@ -168,7 +178,7 @@ impl HoldToConfirmAnim {
             // FIXME: vert_center is precisely aligned with the `Header` title (which uses
             // `Label`) but this solution might break with `Header` changes
             let text_offset = Offset::new(
-                Header::HEADER_INSETS.left,
+                theme::PADDING,
                 font.vert_center(0, Header::HEADER_HEIGHT - 1, "A"),
             );
             let text_pos = header_pad.top_left() + text_offset;
@@ -215,8 +225,10 @@ impl HoldToConfirmAnim {
         let progress = (elapsed / self.rollback_duration()).clamp(0.0, 1.0);
         let clip_width = (progress * SCREEN.width() as f32) as i16;
         Rect::from_center_and_size(
-            SCREEN.top_center().ofs(Offset::y(ScreenBorder::WIDTH / 2)),
-            Offset::new(clip_width, ScreenBorder::WIDTH),
+            SCREEN
+                .top_center()
+                .ofs(Offset::y(ScreenBorder::TOTAL_WIDTH / 2)),
+            Offset::new(clip_width, ScreenBorder::TOTAL_WIDTH),
         )
     }
 
@@ -224,11 +236,15 @@ impl HoldToConfirmAnim {
         let progress = (elapsed / self.total_duration).clamp(0.0, 1.0);
 
         const TOP_GAP_ZERO: Rect = Rect::from_center_and_size(
-            SCREEN.top_center().ofs(Offset::y(ScreenBorder::WIDTH / 2)),
+            SCREEN
+                .top_center()
+                .ofs(Offset::y(ScreenBorder::TOTAL_WIDTH / 2)),
             Offset::zero(),
         );
         const TOP_GAP_FULL: Rect = Rect::from_center_and_size(
-            SCREEN.top_center().ofs(Offset::y(ScreenBorder::WIDTH / 2)),
+            SCREEN
+                .top_center()
+                .ofs(Offset::y(ScreenBorder::TOTAL_WIDTH / 2)),
             Offset::new(SCREEN.width(), ScreenBorder::TOP_ARC_HEIGHT),
         );
         match progress {
@@ -239,8 +255,8 @@ impl HoldToConfirmAnim {
                 let clip = Rect::from_center_and_size(
                     SCREEN
                         .bottom_center()
-                        .ofs(Offset::y(-ScreenBorder::WIDTH / 2)),
-                    Offset::new(width, ScreenBorder::WIDTH),
+                        .ofs(Offset::y(-ScreenBorder::TOTAL_WIDTH / 2)),
+                    Offset::new(width, ScreenBorder::TOTAL_WIDTH),
                 );
                 (clip, TOP_GAP_FULL)
             }
@@ -250,7 +266,7 @@ impl HoldToConfirmAnim {
                 let sides_progress = ((p - Self::BOTTOM_DURATION_RATIO)
                     / Self::SIDES_DURATION_RATIO)
                     .clamp(0.0, 1.0);
-                let height = i16::lerp(ScreenBorder::WIDTH, SCREEN.height(), sides_progress);
+                let height = i16::lerp(ScreenBorder::TOTAL_WIDTH, SCREEN.height(), sides_progress);
                 let clip = Rect::from_bottom_left_and_size(
                     SCREEN.bottom_left(),
                     Offset::new(SCREEN.width(), height),
@@ -272,7 +288,9 @@ impl HoldToConfirmAnim {
                 let eased_progress = ease.eval(top_progress);
                 let width = i16::lerp(SCREEN.width(), 0, eased_progress);
                 let top_gap = Rect::from_center_and_size(
-                    SCREEN.top_center().ofs(Offset::y(ScreenBorder::WIDTH / 2)),
+                    SCREEN
+                        .top_center()
+                        .ofs(Offset::y(ScreenBorder::TOTAL_WIDTH / 2)),
                     Offset::new(width, ScreenBorder::TOP_ARC_HEIGHT),
                 );
                 (SCREEN, top_gap)
@@ -281,6 +299,23 @@ impl HoldToConfirmAnim {
             // Animation complete
             _ => (SCREEN, TOP_GAP_ZERO),
         }
+    }
+
+    #[cfg(feature = "haptic")]
+    fn get_haptic(&self, elapsed: Duration) -> i8 {
+        // Normalize elapsed time
+        let progress = (elapsed / self.total_duration).clamp(0.0, 1.0);
+
+        // Create a linear easing from 0.0 to 1.0 over normalized progress
+        let ease = pareen::constant(0.0).seq_ease_in(
+            0.0,
+            easer::functions::Linear,
+            1.0,
+            pareen::constant(1.0),
+        );
+
+        // Scale eased value to 0–100
+        (100.0 * ease.eval(progress)) as i8
     }
 }
 

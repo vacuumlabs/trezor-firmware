@@ -33,6 +33,7 @@ if __debug__:
             DebugLinkRecordScreen,
             DebugLinkReseedRandom,
             DebugLinkState,
+            WipeDevice,
         )
         from trezor.ui import Layout
         from trezor.wire import WireInterface
@@ -47,15 +48,8 @@ if __debug__:
     _DEADLOCK_SLEEP_MS = const(3000)
     _DEADLOCK_DETECT_SLEEP = loop.sleep(_DEADLOCK_SLEEP_MS)
 
-    def screenshot() -> bool:
-        if storage.save_screen:
-            # Starting with "refresh00", allowing for 100 emulator restarts
-            # without losing the order of the screenshots based on filename.
-            display.save(
-                f"{storage.save_screen_directory.decode()}/refresh{storage.refresh_index:0>2}-"
-            )
-            return True
-        return False
+    class RestartEventLoop(Exception):
+        pass
 
     def notify_layout_change(layout: Layout | None) -> None:
         layout_change_box.put(layout, replace=True)
@@ -85,6 +79,11 @@ if __debug__:
 
         # wait for layout change
         while True:
+            if _EXIT_FLAG:
+                # a response will be sent after restarting the event loop
+                # (since `storage.layout_watcher` is set).
+                return
+
             if not detect_deadlock or not layout_change_box.is_empty():
                 # short-circuit if there is a result already waiting
                 next_layout = await layout_change_box
@@ -293,20 +292,15 @@ if __debug__:
         if msg.channel_id is None:
             raise RuntimeError("Invalid DebugLinkGetPairingInfo message")
 
-        from trezor.wire.thp.channel import Channel
+        from trezor.wire import find_thp_channel
         from trezor.wire.thp.pairing_context import PairingContext
-        from trezor.wire.thp.thp_main import _CHANNELS
 
-        channel_id = int.from_bytes(msg.channel_id, "big")
-        channel: Channel | None = None
-        ctx: PairingContext | None = None
-        try:
-            channel = _CHANNELS[channel_id]
-            ctx = channel.connection_context
-        except KeyError:
-            pass
+        channel = find_thp_channel(msg.channel_id)
+        if channel is None:
+            raise RuntimeError("Channel not found")
 
-        if ctx is None or not isinstance(ctx, PairingContext):
+        ctx = channel.connection_context
+        if not isinstance(ctx, PairingContext):
             raise RuntimeError("Trezor is not in pairing mode")
 
         ctx.nfc_secret_host = msg.nfc_secret_host
@@ -355,9 +349,7 @@ if __debug__:
             # In case emulator is restarted but we still want to record screenshots
             # into the same directory as before, we need to increment the refresh index,
             # so that the screenshots are not overwritten.
-            storage.refresh_index = msg.refresh_index
-            storage.save_screen_directory[:] = msg.target_directory.encode()
-            storage.save_screen = True
+            display.record_start(msg.target_directory.encode(), msg.refresh_index)
 
             # force repaint current layout, in order to take an initial screenshot
             # (doing it this way also clears the red square, because the repaint is
@@ -367,8 +359,8 @@ if __debug__:
             ui.CURRENT_LAYOUT._paint()
 
         else:
-            storage.save_screen = False
-            display.clear_save()  # clear C buffers
+            print("stopping recording")
+            display.record_stop()
 
         return Success()
 
@@ -427,8 +419,41 @@ if __debug__:
             ]
         )
 
+    async def dispatch_WipeDevice(msg: WipeDevice) -> None:
+        """Wipe the device and restart the event loop."""
+        from storage import wipe
+
+        try:
+            wipe(clear_cache=True)
+            assert DEBUG_CONTEXT is not None
+            await DEBUG_CONTEXT.write(Success())
+        finally:
+            raise RestartEventLoop
+
     async def _no_op(_msg: Any) -> Success:
         return Success()
+
+    _EXIT_FLAG = False
+    _EXIT_BOX = loop.mailbox()
+    _SESSION_TASK: loop.spawn | None = None
+
+    _CLOSE_TIMEOUT_MS = const(5000)
+
+    async def close_session() -> None:
+        if _SESSION_TASK is None:
+            return
+
+        global _EXIT_FLAG
+
+        _EXIT_FLAG = True
+        _EXIT_BOX.put(None)
+        if layout_change_box.is_empty():
+            # make sure `DebugLinkGetState` won't get stuck
+            layout_change_box.put(None)
+
+        res = await loop.race(_SESSION_TASK, loop.sleep(_CLOSE_TIMEOUT_MS))
+        if res is not None:
+            log.error(__name__, "debuglink session is stuck")
 
     async def handle_session(iface: WireInterface) -> None:
         from trezor import protobuf, wire
@@ -445,7 +470,15 @@ if __debug__:
             except Exception as e:
                 log.exception(__name__, e)
 
-        while True:
+        read_wait = loop.wait(iface.iface_num() | io.POLL_READ)
+
+        while not _EXIT_FLAG:
+            await loop.race(read_wait, _EXIT_BOX)
+            if _EXIT_FLAG:
+                # in case both `read_wait` and `_EXIT_BOX` are ready,
+                # don't handle the message and exit the loop.
+                break
+
             try:
                 try:
                     msg = await ctx.read_from_wire()
@@ -484,6 +517,9 @@ if __debug__:
                 req_msg = message_handler.wrap_protobuf_load(msg.data, req_type)
                 try:
                     res_msg = await WORKFLOW_HANDLERS[msg.type](req_msg)
+                except RestartEventLoop:
+                    loop.clear()
+                    return
                 except Exception as exc:
                     # Log and ignore, never die.
                     log.exception(__name__, exc)
@@ -508,9 +544,12 @@ if __debug__:
         MessageType.DebugLinkWatchLayout: _no_op,
         MessageType.DebugLinkResetDebugEvents: _no_op,
         MessageType.DebugLinkGetGcInfo: dispatch_DebugLinkGetGcInfo,
+        MessageType.WipeDevice: dispatch_WipeDevice,
     }
 
     def boot() -> None:
         import usb
 
-        loop.schedule(handle_session(usb.iface_debug))
+        global _SESSION_TASK
+
+        _SESSION_TASK = loop.spawn(handle_session(usb.iface_debug))

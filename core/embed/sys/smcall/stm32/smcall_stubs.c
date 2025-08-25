@@ -204,12 +204,10 @@ void optiga_set_sec_max(void) { smcall_invoke0(SMCALL_OPTIGA_SET_SEC_MAX); }
 // storage.h
 // =============================================================================
 
-#include "storage.h"
+#include <sec/storage.h>
 
-void storage_init(PIN_UI_WAIT_CALLBACK callback, const uint8_t *salt,
-                  const uint16_t salt_len) {
-  smcall_invoke3((uint32_t)callback, (uint32_t)salt, salt_len,
-                 SMCALL_STORAGE_INIT);
+void storage_setup(PIN_UI_WAIT_CALLBACK callback) {
+  smcall_invoke1((uint32_t)callback, SMCALL_STORAGE_SETUP);
 }
 
 void storage_wipe(void) { smcall_invoke0(SMCALL_STORAGE_WIPE); }
@@ -291,14 +289,6 @@ secbool storage_next_counter(const uint16_t key, uint32_t *count) {
 }
 
 // =============================================================================
-// entropy.h
-// =============================================================================
-
-void entropy_get(uint8_t *buf) {
-  smcall_invoke1((uint32_t)buf, SMCALL_ENTROPY_GET);
-}
-
-// =============================================================================
 // rng.h
 // =============================================================================
 
@@ -333,19 +323,15 @@ bool tropic_ping(const uint8_t *msg_in, uint8_t *msg_out, uint16_t msg_len) {
                               SMCALL_TROPIC_PING);
 }
 
-bool tropic_get_cert(uint8_t *buf, uint16_t buf_size) {
-  return (bool)smcall_invoke2((uint32_t)buf, buf_size, SMCALL_TROPIC_GET_CERT);
-}
-
 bool tropic_ecc_key_generate(uint16_t slot_index) {
   return (bool)smcall_invoke1((uint32_t)slot_index,
                               SMCALL_TROPIC_ECC_KEY_GENERATE);
 }
 
 bool tropic_ecc_sign(uint16_t key_slot_index, const uint8_t *dig,
-                     uint16_t dig_len, uint8_t *sig, uint16_t sig_len) {
-  return (bool)smcall_invoke5((uint32_t)key_slot_index, (uint32_t)dig, dig_len,
-                              (uint32_t)sig, sig_len, SMCALL_TROPIC_ECC_SIGN);
+                     uint16_t dig_len, uint8_t *sig) {
+  return (bool)smcall_invoke4((uint32_t)key_slot_index, (uint32_t)dig, dig_len,
+                              (uint32_t)sig, SMCALL_TROPIC_ECC_SIGN);
 }
 
 #endif

@@ -23,7 +23,8 @@ use crate::{
             util::{upy_disable_animation, RecoveryType},
         },
         ui_firmware::{
-            FirmwareUI, MAX_CHECKLIST_ITEMS, MAX_GROUP_SHARE_LINES, MAX_WORD_QUIZ_ITEMS,
+            FirmwareUI, MAX_CHECKLIST_ITEMS, MAX_GROUP_SHARE_LINES, MAX_PAIRED_DEVICES,
+            MAX_WORD_QUIZ_ITEMS,
         },
         ModelUI,
     },
@@ -513,8 +514,8 @@ extern "C" fn new_flow_confirm_output(n_args: usize, args: *const Obj, kwargs: *
         let extra: Option<TString> = kwargs.get(Qstr::MP_QSTR_extra)?.try_into_option()?;
         let description: Option<TString> =
             kwargs.get(Qstr::MP_QSTR_description)?.try_into_option()?;
-        let message: Obj = kwargs.get(Qstr::MP_QSTR_message)?;
-        let amount: Option<Obj> = kwargs.get(Qstr::MP_QSTR_amount)?.try_into_option()?;
+        let message: TString = kwargs.get(Qstr::MP_QSTR_message)?.try_into()?;
+        let amount: Option<TString> = kwargs.get(Qstr::MP_QSTR_amount)?.try_into_option()?;
         let chunkify: bool = kwargs.get_or(Qstr::MP_QSTR_chunkify, false)?;
         let text_mono: bool = kwargs.get_or(Qstr::MP_QSTR_text_mono, true)?;
         let account_title: TString = kwargs.get(Qstr::MP_QSTR_account_title)?.try_into()?;
@@ -524,22 +525,9 @@ extern "C" fn new_flow_confirm_output(n_args: usize, args: *const Obj, kwargs: *
         let br_code: u16 = kwargs.get(Qstr::MP_QSTR_br_code)?.try_into()?;
         let br_name: TString = kwargs.get(Qstr::MP_QSTR_br_name)?.try_into()?;
 
-        let address_item = kwargs
-            .get(Qstr::MP_QSTR_address_item)?
-            .try_into_option()?
-            .map(|item| -> Result<(TString, Obj), crate::error::Error> {
-                let pair: [Obj; 2] = util::iter_into_array(item)?;
-                Ok((pair[0].try_into()?, pair[1]))
-            })
-            .transpose()?;
-        let extra_item = kwargs
-            .get(Qstr::MP_QSTR_extra_item)?
-            .try_into_option()?
-            .map(|item| -> Result<(TString, Obj), crate::error::Error> {
-                let pair: [Obj; 2] = util::iter_into_array(item)?;
-                Ok((pair[0].try_into()?, pair[1]))
-            })
-            .transpose()?;
+        let address_item: Option<Obj> =
+            kwargs.get(Qstr::MP_QSTR_address_item)?.try_into_option()?;
+        let extra_item: Option<Obj> = kwargs.get(Qstr::MP_QSTR_extra_item)?.try_into_option()?;
         let summary_items: Option<Obj> =
             kwargs.get(Qstr::MP_QSTR_summary_items)?.try_into_option()?;
         let fee_items: Option<Obj> = kwargs.get(Qstr::MP_QSTR_fee_items)?.try_into_option()?;
@@ -766,9 +754,23 @@ extern "C" fn new_request_pin(n_args: usize, args: *const Obj, kwargs: *mut Map)
 extern "C" fn new_request_passphrase(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
     let block = move |_args: &[Obj], kwargs: &Map| {
         let prompt: TString = kwargs.get(Qstr::MP_QSTR_prompt)?.try_into()?;
-        let max_len: u32 = kwargs.get(Qstr::MP_QSTR_max_len)?.try_into()?;
+        let prompt_empty: TString = kwargs.get(Qstr::MP_QSTR_prompt_empty)?.try_into()?;
+        let max_len: usize = kwargs.get(Qstr::MP_QSTR_max_len)?.try_into()?;
 
-        let layout = ModelUI::request_passphrase(prompt, max_len)?;
+        let layout = ModelUI::request_passphrase(prompt, prompt_empty, max_len)?;
+        Ok(LayoutObj::new_root(layout)?.into())
+    };
+    unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
+}
+
+extern "C" fn new_request_string(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
+    let block = move |_args: &[Obj], kwargs: &Map| {
+        let prompt: TString = kwargs.get(Qstr::MP_QSTR_prompt)?.try_into()?;
+        let max_len: usize = kwargs.get(Qstr::MP_QSTR_max_len)?.try_into()?;
+        let allow_empty: bool = kwargs.get(Qstr::MP_QSTR_allow_empty)?.try_into()?;
+        let prefill: Option<TString> = kwargs.get(Qstr::MP_QSTR_prefill)?.try_into_option()?;
+
+        let layout = ModelUI::request_string(prompt, max_len, allow_empty, prefill)?;
         Ok(LayoutObj::new_root(layout)?.into())
     };
     unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
@@ -936,19 +938,43 @@ extern "C" fn new_show_homescreen(n_args: usize, args: *const Obj, kwargs: *mut 
 extern "C" fn new_show_device_menu(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
     let block = move |_args: &[Obj], kwargs: &Map| {
         let failed_backup: bool = kwargs.get(Qstr::MP_QSTR_failed_backup)?.try_into()?;
-        let firmware_version: TString = kwargs.get(Qstr::MP_QSTR_firmware_version)?.try_into()?;
-        let device_name: TString = kwargs.get(Qstr::MP_QSTR_device_name)?.try_into()?;
         let paired_devices: Obj = kwargs.get(Qstr::MP_QSTR_paired_devices)?;
-        let paired_devices: Vec<TString, 1> = util::iter_into_vec(paired_devices)?;
-        let auto_lock_delay: TString<'static> =
-            kwargs.get(Qstr::MP_QSTR_auto_lock_delay)?.try_into()?;
+        let paired_devices: Vec<TString, MAX_PAIRED_DEVICES> = util::iter_into_vec(paired_devices)?;
+        let connected_idx: Option<usize> =
+            kwargs.get(Qstr::MP_QSTR_connected_idx)?.try_into_option()?;
+        let bluetooth: Option<bool> = kwargs.get(Qstr::MP_QSTR_bluetooth)?.try_into_option()?;
+        let pin_code: Option<bool> = kwargs.get(Qstr::MP_QSTR_pin_code)?.try_into_option()?;
+        let auto_lock_delay: Option<TString> = kwargs
+            .get(Qstr::MP_QSTR_auto_lock_delay)?
+            .try_into_option()?;
+        let wipe_code: Option<bool> = kwargs.get(Qstr::MP_QSTR_wipe_code)?.try_into_option()?;
+        let check_backup: bool = kwargs.get(Qstr::MP_QSTR_check_backup)?.try_into()?;
+        let device_name: Option<TString> =
+            kwargs.get(Qstr::MP_QSTR_device_name)?.try_into_option()?;
+        let screen_brightness: Option<TString> = kwargs
+            .get(Qstr::MP_QSTR_screen_brightness)?
+            .try_into_option()?;
+        let haptic_feedback: Option<bool> = kwargs
+            .get(Qstr::MP_QSTR_haptic_feedback)?
+            .try_into_option()?;
+        let led_enabled: Option<bool> = kwargs.get(Qstr::MP_QSTR_led_enabled)?.try_into_option()?;
+        let about_items: Obj = kwargs.get(Qstr::MP_QSTR_about_items)?;
         let layout = ModelUI::show_device_menu(
             failed_backup,
-            firmware_version,
-            device_name,
             paired_devices,
+            connected_idx,
+            bluetooth,
+            pin_code,
             auto_lock_delay,
+            wipe_code,
+            check_backup,
+            device_name,
+            screen_brightness,
+            haptic_feedback,
+            led_enabled,
+            about_items,
         )?;
+
         let layout_obj = LayoutObj::new_root(layout)?;
         Ok(layout_obj.into())
     };
@@ -1269,6 +1295,7 @@ pub extern "C" fn upy_backlight_fade(_level: Obj) -> Obj {
 pub static mp_module_trezorui_api: Module = obj_module! {
     /// from trezor import utils
     ///
+    /// PropertyType = tuple[str | None, str | bytes | None, bool | None]
     /// T = TypeVar("T")
     ///
     /// class LayoutObj(Generic[T]):
@@ -1561,7 +1588,7 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     ///     *,
     ///     title: str,
     ///     subtitle: str | None = None,
-    ///     items: list[tuple[str | None, str | bytes | None, bool | None]],
+    ///     items: list[PropertyType],
     ///     hold: bool = False,
     ///     verb: str | None = None,
     ///     external_menu: bool = False,
@@ -1581,9 +1608,9 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     ///     fee: str,
     ///     fee_label: str,
     ///     title: str | None = None,
-    ///     account_items: Iterable[tuple[str, str]] | None = None,
+    ///     account_items: list[PropertyType] | None = None,
     ///     account_title: str | None = None,
-    ///     extra_items: Iterable[tuple[str, str]] | None = None,
+    ///     extra_items: list[PropertyType] | None = None,
     ///     extra_title: str | None = None,
     ///     verb_cancel: str | None = None,
     ///     back_button: bool = False,
@@ -1634,10 +1661,10 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     ///     account_path: str | None,
     ///     br_code: ButtonRequestType,
     ///     br_name: str,
-    ///     address_item: (str, str) | None,
-    ///     extra_item: (str, str) | None,
-    ///     summary_items: Iterable[tuple[str, str]] | None = None,
-    ///     fee_items: Iterable[tuple[str, str]] | None = None,
+    ///     address_item: PropertyType | None,
+    ///     extra_item: PropertyType | None,
+    ///     summary_items: list[PropertyType] | None = None,
+    ///     fee_items: list[PropertyType] | None = None,
     ///     summary_title: str | None = None,
     ///     summary_br_code: ButtonRequestType | None = None,
     ///     summary_br_name: str | None = None,
@@ -1761,10 +1788,21 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     /// def request_passphrase(
     ///     *,
     ///     prompt: str,
+    ///     prompt_empty: str,
     ///     max_len: int,
     /// ) -> LayoutObj[str | UiResult]:
     ///     """Passphrase input keyboard."""
     Qstr::MP_QSTR_request_passphrase => obj_fn_kw!(0, new_request_passphrase).as_obj(),
+
+    /// def request_string(
+    ///     *,
+    ///     prompt: str,
+    ///     max_len: int,
+    ///     allow_empty: bool,
+    ///     prefill: str | None,
+    /// ) -> LayoutObj[str | UiResult]:
+    ///     """Label input keyboard."""
+    Qstr::MP_QSTR_request_string => obj_fn_kw!(0, new_request_string).as_obj(),
 
     /// def select_menu(
     ///     *,
@@ -1864,10 +1902,18 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     /// def show_device_menu(
     ///     *,
     ///     failed_backup: bool,
-    ///     firmware_version: str,
-    ///     device_name: str,
     ///     paired_devices: Iterable[str],
-    ///     auto_lock_delay: str,
+    ///     connected_idx: int | None,
+    ///     bluetooth: bool | None,
+    ///     pin_code: bool | None,
+    ///     auto_lock_delay: str | None,
+    ///     wipe_code: bool | None,
+    ///     check_backup: bool,
+    ///     device_name: str | None,
+    ///     screen_brightness: str | None,
+    ///     haptic_feedback: bool | None,
+    ///     led_enabled: bool | None,
+    ///     about_items: list[tuple[str | None, str | bytes | None, bool | None]],
     /// ) -> LayoutObj[UiResult | DeviceMenuResult | tuple[DeviceMenuResult, int]]:
     ///     """Show the device menu."""
     Qstr::MP_QSTR_show_device_menu => obj_fn_kw!(0, new_show_device_menu).as_obj(),
@@ -1912,7 +1958,7 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     /// def show_info_with_cancel(
     ///     *,
     ///     title: str,
-    ///     items: Iterable[tuple[str, str]],
+    ///     items: list[PropertyType],
     ///     horizontal: bool = False,
     ///     chunkify: bool = False,
     /// ) -> LayoutObj[UiResult]:
@@ -1959,7 +2005,7 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     /// def show_properties(
     ///     *,
     ///     title: str,
-    ///     value: list[tuple[str, str]] | str,
+    ///     value: list[PropertyType] | str,
     /// ) -> LayoutObj[None]:
     ///     """Show a list of key-value pairs, or a monospace string."""
     Qstr::MP_QSTR_show_properties => obj_fn_kw!(0, new_show_properties).as_obj(),
@@ -2064,11 +2110,22 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     /// class DeviceMenuResult:
     ///     """Result of a device menu operation."""
     ///     BackupFailed: ClassVar[DeviceMenuResult]
-    ///     DevicePair: ClassVar[DeviceMenuResult]
+    ///     DeviceConnect: ClassVar[DeviceMenuResult]
     ///     DeviceDisconnect: ClassVar[DeviceMenuResult]
-    ///     CheckBackup: ClassVar[DeviceMenuResult]
-    ///     WipeDevice: ClassVar[DeviceMenuResult]
-    ///     ScreenBrightness: ClassVar[DeviceMenuResult]
+    ///     DevicePair: ClassVar[DeviceMenuResult]
+    ///     DeviceUnpair: ClassVar[DeviceMenuResult]
+    ///     DeviceUnpairAll: ClassVar[DeviceMenuResult]
+    ///     Bluetooth: ClassVar[DeviceMenuResult]
+    ///     PinCode: ClassVar[DeviceMenuResult]
+    ///     PinRemove: ClassVar[DeviceMenuResult]
     ///     AutoLockDelay: ClassVar[DeviceMenuResult]
+    ///     WipeCode: ClassVar[DeviceMenuResult]
+    ///     WipeRemove: ClassVar[DeviceMenuResult]
+    ///     CheckBackup: ClassVar[DeviceMenuResult]
+    ///     DeviceName: ClassVar[DeviceMenuResult]
+    ///     ScreenBrightness: ClassVar[DeviceMenuResult]
+    ///     HapticFeedback: ClassVar[DeviceMenuResult]
+    ///     LedEnabled: ClassVar[DeviceMenuResult]
+    ///     WipeDevice: ClassVar[DeviceMenuResult]
     Qstr::MP_QSTR_DeviceMenuResult => DEVICE_MENU_RESULT.as_obj(),
 };

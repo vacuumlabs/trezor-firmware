@@ -23,15 +23,15 @@
 
 #ifdef SECURE_MODE
 
-#ifdef SECRET_MASTER_KEY_SLOT
+#ifdef SECRET_MASTER_KEY_SLOT_SIZE
 
 #define SECRET_KEY_MASKING
 
 #include <ed25519-donna/ed25519.h>
 
-secbool secret_key_mcu_device_auth(curve25519_key dest);
+secbool secret_key_mcu_device_auth(ed25519_secret_key dest);
 
-#endif  // SECRET_MASTER_KEY_SLOT
+#endif  // SECRET_MASTER_KEY_SLOT_SIZE
 
 #ifdef USE_OPTIGA
 
@@ -65,5 +65,10 @@ secbool secret_validate_nrf_pairing(const uint8_t *message, size_t msg_len,
                                     const uint8_t *mac, size_t mac_len);
 
 #endif
+
+#define SECRET_KEY_STORAGE_SALT_SIZE 32
+
+secbool secret_key_storage_salt(uint16_t fw_type,
+                                uint8_t dest[SECRET_KEY_STORAGE_SALT_SIZE]);
 
 #endif  // SECURE_MODE

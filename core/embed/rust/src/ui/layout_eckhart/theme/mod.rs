@@ -1,3 +1,5 @@
+#[cfg(feature = "micropython")]
+pub mod background;
 pub mod backlight;
 #[cfg(any(feature = "bootloader", feature = "prodtest"))]
 pub mod bootloader;
@@ -15,7 +17,8 @@ use crate::ui::{
 };
 
 use super::fonts;
-
+#[cfg(feature = "micropython")]
+pub use background::ScreenBackground;
 pub use gradient::Gradient;
 
 // Color palette.
@@ -49,16 +52,21 @@ pub const BLUE: Color = Color::rgb(0x00, 0x46, 0xFF);
 
 pub const RED: Color = Color::rgb(0xFF, 0x30, 0x30);
 
+// Color palette - LED diode
+pub const LED_WHITE: Color = Color::rgb(0x23, 0x23, 0x20);
+pub const LED_GREEN_LIGHT: Color = Color::rgb(0x04, 0x0D, 0x04);
+pub const LED_GREEN_LIME: Color = Color::rgb(0x23, 0x4B, 0x0A);
+pub const LED_ORANGE: Color = Color::rgb(0xBC, 0x2A, 0x06);
+pub const LED_RED: Color = Color::rgb(0x64, 0x06, 0x03);
+pub const LED_YELLOW: Color = Color::rgb(0x16, 0x10, 0x00);
+pub const LED_BLUE: Color = Color::rgb(0x05, 0x05, 0x32);
+
 // Common constants
 pub const PADDING: i16 = 24; // [px]
 pub const HEADER_HEIGHT: i16 = 96; // [px]
 pub const SIDE_INSETS: Insets = Insets::sides(PADDING);
 pub const ACTION_BAR_HEIGHT: i16 = 90; // [px]
 pub const TEXT_VERTICAL_SPACING: i16 = 24; // [px]
-
-// props settings
-pub const PROP_INNER_SPACING: i16 = 12; // [px]
-pub const PROPS_SPACING: i16 = 16; // [px]
 
 // checklist settings
 pub const CHECKLIST_CHECK_WIDTH: i16 = 32; // [px]
@@ -119,10 +127,6 @@ include_icon!(
     ICON_SPECIAL_CHARS,
     "layout_eckhart/res/keyboard/special_chars_group.toif"
 );
-// Welcome screen.
-include_icon!(ICON_LOGO, "layout_eckhart/res/lock_full.toif");
-// Homescreen notifications.
-include_icon!(ICON_WARNING40, "layout_eckhart/res/warning40.toif");
 
 // Battery icons
 include_icon!(ICON_BATTERY_ZAP, "layout_eckhart/res/battery/zap.toif");
@@ -132,9 +136,9 @@ include_icon!(ICON_BATTERY_LOW, "layout_eckhart/res/battery/low.toif");
 include_icon!(ICON_BATTERY_EMPTY, "layout_eckhart/res/battery/empty.toif");
 
 // Border overlay icons for bootloader screens and hold to confirm animation
-include_icon!(ICON_BORDER_BL, "layout_eckhart/res/border/BL.toif");
-include_icon!(ICON_BORDER_BR, "layout_eckhart/res/border/BR.toif");
-include_icon!(ICON_BORDER_TOP, "layout_eckhart/res/border/TOP.toif");
+include_icon!(ICON_BORDER_BL, "layout_eckhart/res/border/BL_1.toif");
+include_icon!(ICON_BORDER_BR, "layout_eckhart/res/border/BR_1.toif");
+include_icon!(ICON_BORDER_TOP, "layout_eckhart/res/border/TOP_1.toif");
 
 // Icons for number input screen
 include_icon!(ICON_PLUS, "layout_eckhart/res/plus.toif");
@@ -149,6 +153,20 @@ include_icon!(
     ICON_TILE_STRIPES_SLASH, // for "///"
     "layout_eckhart/res/defaut_homescreen/hs_tile2.toif"
 );
+
+// Icon for the bootup screen
+include_icon!(ICON_SEVEN, "layout_eckhart/res/bootloader/7.toif");
+
+// Tutorial screen icons
+include_icon!(ICON_TROPIC, "layout_eckhart/res/tropic.toif");
+include_icon!(ICON_SECURED, "layout_eckhart/res/secured.toif");
+
+// Regulatory screen icons
+include_icon!(ICON_UKRAINE, "layout_eckhart/res/ukraine.toif");
+include_icon!(ICON_KOREA, "layout_eckhart/res/korea_full.toif");
+include_icon!(ICON_EUROPE, "layout_eckhart/res/europe.toif");
+include_icon!(ICON_RCM, "layout_eckhart/res/rcm.toif");
+include_icon!(ICON_FCC, "layout_eckhart/res/fcc.toif");
 
 // Common text styles and button styles must use fonts accessible from both
 // bootloader and firmware

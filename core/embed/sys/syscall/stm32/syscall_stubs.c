@@ -420,6 +420,15 @@ uint32_t touch_get_event(void) {
 #ifdef USE_RGB_LED
 
 #include <io/rgb_led.h>
+
+void rgb_led_set_enabled(bool enabled) {
+  syscall_invoke1((uint32_t)enabled, SYSCALL_RGB_LED_SET_ENABLED);
+}
+
+bool rgb_led_get_enabled(void) {
+  return (bool)syscall_invoke0(SYSCALL_RGB_LED_GET_ENABLED);
+}
+
 void rgb_led_set_color(uint32_t color) {
   syscall_invoke1(color, SYSCALL_RGB_LED_SET_COLOR);
 }
@@ -504,22 +513,20 @@ void optiga_set_sec_max(void) { syscall_invoke0(SYSCALL_OPTIGA_SET_SEC_MAX); }
 // storage.h
 // =============================================================================
 
-#include "storage.h"
+#include <sec/storage.h>
 
 static PIN_UI_WAIT_CALLBACK storage_init_callback = NULL;
 
-static void storage_init_callback_wrapper(uint32_t wait, uint32_t progress,
-                                          enum storage_ui_message_t message) {
+static void storage_callback_wrapper(uint32_t wait, uint32_t progress,
+                                     enum storage_ui_message_t message) {
   secbool retval = storage_init_callback(wait, progress, message);
   return_from_unprivileged_callback(retval);
 }
 
-void storage_init(PIN_UI_WAIT_CALLBACK callback, const uint8_t *salt,
-                  const uint16_t salt_len) {
+void storage_setup(PIN_UI_WAIT_CALLBACK callback) {
   storage_init_callback = callback;
 
-  syscall_invoke3((uint32_t)storage_init_callback_wrapper, (uint32_t)salt,
-                  salt_len, SYSCALL_STORAGE_INIT);
+  syscall_invoke1((uint32_t)storage_callback_wrapper, SYSCALL_STORAGE_SETUP);
 }
 
 void storage_wipe(void) { syscall_invoke0(SYSCALL_STORAGE_WIPE); }
@@ -598,14 +605,6 @@ secbool storage_set_counter(const uint16_t key, const uint32_t count) {
 secbool storage_next_counter(const uint16_t key, uint32_t *count) {
   return (secbool)syscall_invoke2(key, (uint32_t)count,
                                   SYSCALL_STORAGE_NEXT_COUNTER);
-}
-
-// =============================================================================
-// entropy.h
-// =============================================================================
-
-void entropy_get(uint8_t *buf) {
-  syscall_invoke1((uint32_t)buf, SYSCALL_ENTROPY_GET);
 }
 
 // =============================================================================
@@ -691,6 +690,10 @@ bool ble_can_read(void) { return syscall_invoke0(SYSCALL_BLE_CAN_READ); }
 
 uint32_t ble_read(uint8_t *data, uint16_t len) {
   return (uint32_t)syscall_invoke2((uint32_t)data, len, SYSCALL_BLE_READ);
+}
+
+void ble_set_name(const uint8_t *name, size_t len) {
+  syscall_invoke2((uint32_t)name, len, SYSCALL_BLE_SET_NAME);
 }
 
 #endif
@@ -842,20 +845,15 @@ bool tropic_ping(const uint8_t *msg_in, uint8_t *msg_out, uint16_t msg_len) {
                                SYSCALL_TROPIC_PING);
 }
 
-bool tropic_get_cert(uint8_t *buf, uint16_t buf_size) {
-  return (bool)syscall_invoke2((uint32_t)buf, buf_size,
-                               SYSCALL_TROPIC_GET_CERT);
-}
-
 bool tropic_ecc_key_generate(uint16_t slot_index) {
   return (bool)syscall_invoke1((uint32_t)slot_index,
                                SYSCALL_TROPIC_ECC_KEY_GENERATE);
 }
 
 bool tropic_ecc_sign(uint16_t key_slot_index, const uint8_t *dig,
-                     uint16_t dig_len, uint8_t *sig, uint16_t sig_len) {
-  return (bool)syscall_invoke5((uint32_t)key_slot_index, (uint32_t)dig, dig_len,
-                               (uint32_t)sig, sig_len, SYSCALL_TROPIC_ECC_SIGN);
+                     uint16_t dig_len, uint8_t *sig) {
+  return (bool)syscall_invoke4((uint32_t)key_slot_index, (uint32_t)dig, dig_len,
+                               (uint32_t)sig, SYSCALL_TROPIC_ECC_SIGN);
 }
 
 #endif

@@ -1284,6 +1284,7 @@ if TYPE_CHECKING:
         reference_inputs_count: "int"
         chunkify: "bool | None"
         tag_cbor_sets: "bool"
+        payment_req: "PaymentRequest | None"
 
         def __init__(
             self,
@@ -1311,6 +1312,7 @@ if TYPE_CHECKING:
             reference_inputs_count: "int | None" = None,
             chunkify: "bool | None" = None,
             tag_cbor_sets: "bool | None" = None,
+            payment_req: "PaymentRequest | None" = None,
         ) -> None:
             pass
 
@@ -1780,6 +1782,80 @@ if TYPE_CHECKING:
 
         @classmethod
         def is_type_of(cls, msg: Any) -> TypeGuard["CardanoSignTxFinished"]:
+            return isinstance(msg, cls)
+
+    class CardanoSignMessageInit(protobuf.MessageType):
+        protocol_magic: "int | None"
+        network_id: "int | None"
+        signing_path: "list[int]"
+        payload_size: "int"
+        prefer_hex_display: "bool"
+        address_parameters: "CardanoAddressParametersType | None"
+        derivation_type: "CardanoDerivationType"
+
+        def __init__(
+            self,
+            *,
+            payload_size: "int",
+            prefer_hex_display: "bool",
+            derivation_type: "CardanoDerivationType",
+            signing_path: "list[int] | None" = None,
+            protocol_magic: "int | None" = None,
+            network_id: "int | None" = None,
+            address_parameters: "CardanoAddressParametersType | None" = None,
+        ) -> None:
+            pass
+
+        @classmethod
+        def is_type_of(cls, msg: Any) -> TypeGuard["CardanoSignMessageInit"]:
+            return isinstance(msg, cls)
+
+    class CardanoMessageDataRequest(protobuf.MessageType):
+        length: "int"
+        offset: "int"
+
+        def __init__(
+            self,
+            *,
+            length: "int",
+            offset: "int",
+        ) -> None:
+            pass
+
+        @classmethod
+        def is_type_of(cls, msg: Any) -> TypeGuard["CardanoMessageDataRequest"]:
+            return isinstance(msg, cls)
+
+    class CardanoMessageDataResponse(protobuf.MessageType):
+        data: "bytes"
+
+        def __init__(
+            self,
+            *,
+            data: "bytes",
+        ) -> None:
+            pass
+
+        @classmethod
+        def is_type_of(cls, msg: Any) -> TypeGuard["CardanoMessageDataResponse"]:
+            return isinstance(msg, cls)
+
+    class CardanoMessageSignature(protobuf.MessageType):
+        signature: "bytes"
+        address: "bytes"
+        pub_key: "bytes"
+
+        def __init__(
+            self,
+            *,
+            signature: "bytes",
+            address: "bytes",
+            pub_key: "bytes",
+        ) -> None:
+            pass
+
+        @classmethod
+        def is_type_of(cls, msg: Any) -> TypeGuard["CardanoMessageSignature"]:
             return isinstance(msg, cls)
 
     class CipherKeyValue(protobuf.MessageType):
@@ -5452,6 +5528,7 @@ if TYPE_CHECKING:
         address_n: "list[int]"
         serialized_tx: "bytes"
         additional_info: "SolanaTxAdditionalInfo | None"
+        payment_req: "PaymentRequest | None"
 
         def __init__(
             self,
@@ -5459,6 +5536,7 @@ if TYPE_CHECKING:
             serialized_tx: "bytes",
             address_n: "list[int] | None" = None,
             additional_info: "SolanaTxAdditionalInfo | None" = None,
+            payment_req: "PaymentRequest | None" = None,
         ) -> None:
             pass
 
@@ -6268,11 +6346,13 @@ if TYPE_CHECKING:
 
     class ThpPairingRequest(protobuf.MessageType):
         host_name: "str | None"
+        app_name: "str | None"
 
         def __init__(
             self,
             *,
             host_name: "str | None" = None,
+            app_name: "str | None" = None,
         ) -> None:
             pass
 
@@ -6483,12 +6563,14 @@ if TYPE_CHECKING:
     class ThpCredentialMetadata(protobuf.MessageType):
         host_name: "str | None"
         autoconnect: "bool | None"
+        app_name: "str | None"
 
         def __init__(
             self,
             *,
             host_name: "str | None" = None,
             autoconnect: "bool | None" = None,
+            app_name: "str | None" = None,
         ) -> None:
             pass
 

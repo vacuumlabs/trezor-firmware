@@ -17,7 +17,6 @@ BOOTLOADER_CI_BUILD_DIR   = $(BUILD_DIR)/bootloader_ci
 BOOTLOADER_EMU_BUILD_DIR  = $(BUILD_DIR)/bootloader_emu
 PRODTEST_BUILD_DIR    = $(BUILD_DIR)/prodtest
 PRODTEST_EMU_BUILD_DIR    = $(BUILD_DIR)/prodtest_emu
-REFLASH_BUILD_DIR     = $(BUILD_DIR)/reflash
 KERNEL_BUILD_DIR      = $(BUILD_DIR)/kernel
 SECMON_BUILD_DIR      = $(BUILD_DIR)/secmon
 FIRMWARE_BUILD_DIR    = $(BUILD_DIR)/firmware
@@ -49,7 +48,7 @@ TREZOR_EMULATOR_DEBUGGABLE ?= 0
 QUIET_MODE ?= 0
 TREZOR_DISABLE_ANIMATION ?= $(if $(filter 0,$(PYOPT)),1,0)
 STORAGE_INSECURE_TESTING_MODE ?= 0
-UI_DEBUG_OVERLAY ?= 0
+UI_PERFORMANCE_OVERLAY ?= 0
 
 # If set, VCP writes will be blocking, in order to allow reliable debug data transmission over VCP.
 # Disabled by default, to prevent debug firmware from getting stuck while writing log messages (if the host is not reading them).
@@ -145,7 +144,7 @@ SCONS_VARS = \
 	TREZOR_EMULATOR_DEBUGGABLE=$(TREZOR_EMULATOR_DEBUGGABLE) \
 	TREZOR_MEMPERF="$(TREZOR_MEMPERF)" \
 	TREZOR_MODEL="$(TREZOR_MODEL)" \
-	UI_DEBUG_OVERLAY="$(UI_DEBUG_OVERLAY)" \
+	UI_PERFORMANCE_OVERLAY="$(UI_PERFORMANCE_OVERLAY)" \
 	BLOCK_ON_VCP="$(BLOCK_ON_VCP)"
 
 SCONS_OPTS = -Q -j $(JOBS)
@@ -315,11 +314,6 @@ build_prodtest: ## build production test firmware
 build_prodtest_emu: ## build the unix prodtest emulator
 	$(SCONS) $(PRODTEST_EMU_BUILD_DIR)/prodtest.elf
 
-build_reflash: ## build reflash firmware + reflash image
-	$(SCONS) $(REFLASH_BUILD_DIR)/reflash.bin
-	dd if=build/boardloader/boardloader.bin of=$(REFLASH_BUILD_DIR)/sdimage.bin bs=1 seek=0
-	dd if=build/bootloader/bootloader.bin of=$(REFLASH_BUILD_DIR)/sdimage.bin bs=1 seek=49152
-
 build_secmon: ## build security monitor image
 	$(SCONS) $(SECMON_BUILD_DIR)/secmon.bin
 
@@ -351,7 +345,7 @@ build_cross: ## build mpy-cross port
 ## clean commands:
 
 clean: clean_boardloader clean_bootloader clean_bootloader_emu clean_bootloader_ci \
-	clean_prodtest clean_reflash clean_firmware clean_kernel clean_secmon clean_unix clean_cross ## clean all
+	clean_prodtest clean_firmware clean_kernel clean_secmon clean_unix clean_cross ## clean all
 	rm -f ".sconsign.dblite"
 
 clean_boardloader: ## clean boardloader build
@@ -368,9 +362,6 @@ clean_bootloader_emu: ## clean bootloader_emu build
 
 clean_prodtest: ## clean prodtest build
 	rm -rf $(PRODTEST_BUILD_DIR)
-
-clean_reflash: ## clean reflash build
-	rm -rf $(REFLASH_BUILD_DIR)
 
 clean_secmon: ## clean security monitor build
 	rm -rf $(SECMON_BUILD_DIR)

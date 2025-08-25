@@ -21,6 +21,7 @@ from trezor.messages import (
     ThpNfcTagTrezor,
     ThpPairingPreparationsFinished,
     ThpPairingRequest,
+    ThpPairingRequestApproved,
     ThpQrCodeSecret,
     ThpQrCodeTag,
     ThpSelectMethod,
@@ -34,7 +35,13 @@ from trezor.wire.errors import (
     SilentError,
     UnexpectedMessage,
 )
-from trezor.wire.thp import ChannelState, ThpError, crypto, get_enabled_pairing_methods
+from trezor.wire.thp import (
+    ChannelState,
+    ThpError,
+    crypto,
+    get_enabled_pairing_methods,
+    ui,
+)
 from trezor.wire.thp.pairing_context import PairingContext
 
 from .credential_manager import is_credential_autoconnect, issue_credential
@@ -105,14 +112,14 @@ async def handle_pairing_request(
     if not ThpPairingRequest.is_type_of(message):
         raise UnexpectedMessage("Unexpected message")
 
+    # TODO: make app_name required eventually
     if not message.host_name:
         raise DataError("Missing host_name.")
 
     ctx.host_name = message.host_name
-    if __debug__ and not ctx.channel_ctx.should_show_pairing_dialog:
-        await _skip_pairing_dialog(ctx)
-    else:
-        await ctx.show_pairing_dialog()
+    ctx.app_name = message.app_name
+    await ui.show_pairing_dialog(ctx.host_name, ctx.app_name)
+    await ctx.write(ThpPairingRequestApproved())
     assert ThpSelectMethod.MESSAGE_WIRE_TYPE is not None
     select_method_msg = await ctx.read(
         [
@@ -186,11 +193,12 @@ async def handle_credential_phase(
             autoconnect = ctx.channel_ctx.is_channel_to_replace()
         if credential.cred_metadata is not None:
             ctx.host_name = credential.cred_metadata.host_name
-        if ctx.host_name is None:
-            raise DataError("Missing hostname in credential")
+            ctx.app_name = credential.cred_metadata.app_name
+        if ctx.host_name is None and ctx.app_name is None:
+            raise DataError("Missing host/app name in credential")
 
     if show_connection_dialog and not autoconnect:
-        await ctx.show_connection_dialog()
+        await ui.show_connection_dialog(ctx.host_name, ctx.app_name)
 
     while ThpCredentialRequest.is_type_of(message):
         message = await _handle_credential_request(ctx, message)
@@ -216,7 +224,7 @@ async def _handle_code_entry_is_selected(ctx: PairingContext) -> None:
     if ctx.code_entry_secret is None:
         await _handle_code_entry_is_selected_first_time(ctx)
     else:
-        await ctx.write_force(ThpPairingPreparationsFinished())
+        await ctx.write(ThpPairingPreparationsFinished())
 
 
 async def _handle_code_entry_is_selected_first_time(ctx: PairingContext) -> None:
@@ -245,8 +253,8 @@ async def _handle_code_entry_is_selected_first_time(ctx: PairingContext) -> None
         ctx.channel_ctx.get_handshake_hash(),
     )
     assert ctx.code_code_entry is not None
-    ctx.cpace.generate_keys(ctx.code_code_entry.to_bytes(6, "big"))
-    await ctx.write_force(
+    ctx.cpace.generate_keys(f"{ctx.code_code_entry:06}".encode("ascii"))
+    await ctx.write(
         ThpCodeEntryCpaceTrezor(cpace_trezor_public_key=ctx.cpace.trezor_public_key)
     )
 
@@ -254,7 +262,7 @@ async def _handle_code_entry_is_selected_first_time(ctx: PairingContext) -> None
 @check_state_and_log(ChannelState.TP1)
 async def _handle_nfc_is_selected(ctx: PairingContext) -> None:
     ctx.nfc_secret = random.bytes(16)
-    await ctx.write_force(ThpPairingPreparationsFinished())
+    await ctx.write(ThpPairingPreparationsFinished())
 
 
 @check_state_and_log(ChannelState.TP1)
@@ -266,7 +274,7 @@ async def _handle_qr_code_is_selected(ctx: PairingContext) -> None:
     sha_ctx.update(ctx.qr_code_secret)
 
     ctx.code_qr_code = sha_ctx.digest()[:16]
-    await ctx.write_force(ThpPairingPreparationsFinished())
+    await ctx.write(ThpPairingPreparationsFinished())
 
 
 @check_state_and_log(ChannelState.TP3)
@@ -420,11 +428,14 @@ async def _handle_credential_request(
                 "Cannot ask for autoconnect credential without a valid credential!"
             )
 
-        await ctx.show_autoconnect_credential_confirmation_screen()  # TODO add device name
+        await ui.show_autoconnect_credential_confirmation_screen(
+            host_name=ctx.host_name, app_name=ctx.app_name
+        )
 
     trezor_static_public_key = crypto.get_trezor_static_public_key()
     credential_metadata = ThpCredentialMetadata(
         host_name=ctx.host_name,
+        app_name=ctx.app_name,
         autoconnect=autoconnect,
     )
     credential = issue_credential(message.host_static_public_key, credential_metadata)
@@ -470,20 +481,3 @@ def _check_method_is_allowed(ctx: PairingContext, method: ThpPairingMethod) -> N
 def _check_method_is_selected(ctx: PairingContext, method: ThpPairingMethod) -> None:
     if method is not ctx.selected_method:
         raise ThpError("Not selected pairing method")
-
-
-if __debug__:
-
-    async def _skip_pairing_dialog(ctx: PairingContext) -> None:
-        from trezor.enums import ButtonRequestType
-        from trezor.messages import ButtonAck, ButtonRequest, ThpPairingRequestApproved
-        from trezor.wire.errors import ActionCancelled
-
-        resp = await ctx.call(
-            ButtonRequest(code=ButtonRequestType.Other, name="thp_pairing_request"),
-            expected_type=ButtonAck,
-        )
-        if isinstance(resp, ButtonAck):
-            await ctx.write(ThpPairingRequestApproved())
-        else:
-            raise ActionCancelled

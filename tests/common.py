@@ -111,10 +111,15 @@ def parametrize_using_common_fixtures(*paths: str) -> "MarkDecorator":
                     skiplist.append(models.T3B1)
                 if skip_model == "t3t1":
                     skiplist.append(models.T3T1)
+                if skip_model == "t3w1":
+                    skiplist.append(models.T3W1)
             if skiplist:
-                skip_marks = [pytest.mark.models(skip=skiplist)]
+                extra_marks = [pytest.mark.models(skip=skiplist)]
             else:
-                skip_marks = []
+                extra_marks = []
+
+            if test.get("experimental"):
+                extra_marks.append(pytest.mark.experimental)
 
             tests.append(
                 pytest.param(
@@ -126,7 +131,7 @@ def parametrize_using_common_fixtures(*paths: str) -> "MarkDecorator":
                             mnemonic=fixture["setup"]["mnemonic"],
                         )
                     ]
-                    + skip_marks,
+                    + extra_marks,
                     id=test_id,
                 )
             )
@@ -350,7 +355,8 @@ def click_info_button_delizia_eckhart(debug: "DebugLink"):
     layout = debug.read_layout()
     assert "VerticalMenu" in layout.all_components()
     # Click on the first item in the vertical menu
-    debug.click(debug.screen_buttons.vertical_menu_items()[0])
+    debug.button_actions.navigate_to_menu_item(0)
+
     layout = debug.read_layout()
 
     # Go through the info screen pages

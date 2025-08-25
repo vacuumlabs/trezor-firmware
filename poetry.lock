@@ -1119,9 +1119,9 @@ grpcio-tools = ["grpcio-tools (>=1.26.0rc1)"]
 name = "noiseprotocol"
 version = "0.3.1"
 description = "Implementation of Noise Protocol Framework"
-category = "main"
 optional = false
 python-versions = "~=3.5"
+groups = ["main"]
 files = [
     {file = "noiseprotocol-0.3.1-py3-none-any.whl", hash = "sha256:2e1a603a38439636cf0ffd8b3e8b12cee27d368a28b41be7dbe568b2abb23111"},
     {file = "noiseprotocol-0.3.1.tar.gz", hash = "sha256:b092a871b60f6a8f07f17950dc9f7098c8fe7d715b049bd4c24ee3752b90d645"},
@@ -2124,7 +2124,7 @@ test = ["devpi-process (>=1.0.2)", "pytest (>=8.3.4)", "pytest-mock (>=3.14)"]
 
 [[package]]
 name = "trezor"
-version = "0.13.11"
+version = "0.14.0"
 description = "Python library for communicating with Trezor Hardware Wallet"
 optional = false
 python-versions = ">=3.8"
@@ -2136,7 +2136,7 @@ develop = true
 click = ">=7,<8.2"
 construct = ">=2.9,<2.10.55 || >2.10.55"
 construct-classes = ">=0.1.2"
-cryptography = ">=43.0.3"
+cryptography = ">=41"
 ecdsa = ">=0.9"
 libusb1 = ">=1.6.4"
 mnemonic = ">=0.20"
@@ -2163,13 +2163,13 @@ name = "trezor-core-tools"
 version = "0.1.4"
 description = "Collection of CLI tools for trezor-core development"
 optional = false
-python-versions = "^3.8"
+python-versions = ">=3.9,<4"
 groups = ["main"]
 files = []
 develop = true
 
 [package.dependencies]
-trezor = "^0.13.9"
+trezor = "^0.14"
 
 [package.source]
 type = "directory"
@@ -2195,7 +2195,7 @@ url = "tools/trezor-pylint-plugin"
 
 [[package]]
 name = "tvl"
-version = "0.10.1"
+version = "2.2"
 description = "TROPIC Verification Library"
 optional = false
 python-versions = "^3.8"
@@ -2445,5 +2445,5 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more-it
 
 [metadata]
 lock-version = "2.1"
-python-versions = "^3.9"
-content-hash = "cbd46c4adf2c48ea4f80ac75d7ca76da5a3c204efe361354719395cb59336093"
+python-versions = ">=3.9,<4"
+content-hash = "2860557c9cd81bb82b4ae8b0afaea5d769f15d47e0d127ba9e7899ebe3793211"

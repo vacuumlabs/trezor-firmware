@@ -35,6 +35,15 @@ def memcpy(
 
 
 # upymod/modtrezorutils/modtrezorutils.c
+def memzero(
+    dst: bytearray | memoryview,
+) -> None:
+    """
+    Zeroes all bytes at `dst`.
+    """
+
+
+# upymod/modtrezorutils/modtrezorutils.c
 def halt(msg: str | None = None) -> None:
     """
     Halts execution.
@@ -182,6 +191,8 @@ USE_BACKLIGHT: bool
 """Whether the hardware supports backlight brightness control."""
 USE_HAPTIC: bool
 """Whether the hardware supports haptic feedback."""
+USE_RGB_LED: bool
+"""Whether the hardware supports RGB LED."""
 USE_OPTIGA: bool
 """Whether the hardware supports Optiga secure element."""
 USE_TROPIC: bool

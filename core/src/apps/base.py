@@ -231,7 +231,7 @@ if utils.USE_THP:
 
         Returns an appropriate `Failure` message if session creation fails.
         """
-        from trezor import log, loop
+        from trezor import log
         from trezor.enums import FailureType
         from trezor.messages import Failure
         from trezor.wire import NotInitialized
@@ -281,9 +281,6 @@ if utils.USE_THP:
                 message.passphrase if message.passphrase is not None else "",
             )
 
-        channel.sessions[new_session.session_id] = new_session
-        loop.schedule(new_session.handle())
-
         return Success(message="New session created.")
 
     async def handle_ThpCredentialRequest(
@@ -328,13 +325,15 @@ if utils.USE_THP:
 
         assert credential.cred_metadata is not None
         cred_metadata = ThpCredentialMetadata(
-            host_name=credential.cred_metadata.host_name, autoconnect=autoconnect
+            host_name=credential.cred_metadata.host_name,
+            app_name=credential.cred_metadata.app_name,
+            autoconnect=autoconnect,
         )
         if autoconnect:
             from trezor.wire.thp import ui
 
             await ui.show_autoconnect_credential_confirmation_screen(
-                cred_metadata.host_name
+                cred_metadata.host_name, cred_metadata.app_name
             )
         new_cred = issue_credential(
             host_static_public_key=message.host_static_public_key,

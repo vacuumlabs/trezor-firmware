@@ -562,13 +562,25 @@ access_violation:
 
 // ---------------------------------------------------------------------
 
-void storage_init__verified(PIN_UI_WAIT_CALLBACK callback, const uint8_t *salt,
-                            const uint16_t salt_len) {
-  if (!probe_read_access(salt, salt_len)) {
+static PIN_UI_WAIT_CALLBACK storage_callback = NULL;
+
+static secbool storage_callback_wrapper(uint32_t wait, uint32_t progress,
+                                        enum storage_ui_message_t message) {
+  secbool result;
+
+  applet_t *applet = syscall_get_context();
+  result = systask_invoke_callback(&applet->task, wait, progress, message,
+                                   storage_callback);
+  return result;
+}
+
+void storage_setup__verified(PIN_UI_WAIT_CALLBACK callback) {
+  if (!probe_execute_access(callback)) {
     goto access_violation;
   }
+  storage_callback = callback;
 
-  storage_init(callback, salt, salt_len);
+  storage_setup(storage_callback_wrapper);
   return;
 
 access_violation:
@@ -728,20 +740,6 @@ access_violation:
 
 // ---------------------------------------------------------------------
 
-void entropy_get__verified(uint8_t *buf) {
-  if (!probe_write_access(buf, HW_ENTROPY_LEN)) {
-    goto access_violation;
-  }
-
-  entropy_get(buf);
-  return;
-
-access_violation:
-  apptask_access_violation();
-}
-
-// ---------------------------------------------------------------------
-
 int firmware_hash_start__verified(const uint8_t *challenge,
                                   size_t challenge_len) {
   if (!probe_read_access(challenge, challenge_len)) {
@@ -843,6 +841,20 @@ access_violation:
   apptask_access_violation();
   return 0;
 }
+
+void ble_set_name__verified(const uint8_t *name, size_t len) {
+  if (!probe_read_access(name, len)) {
+    goto access_violation;
+  }
+
+  ble_set_name(name, len);
+
+  return;
+
+access_violation:
+  apptask_access_violation();
+}
+
 #endif
 
 // ---------------------------------------------------------------------
@@ -1201,6 +1213,7 @@ access_violation:
 
 #ifdef USE_TROPIC
 #include <sec/tropic.h>
+#include "ecdsa.h"
 
 bool tropic_ping__verified(const uint8_t *msg_out, uint8_t *msg_in,
                            uint16_t msg_len) {
@@ -1218,33 +1231,21 @@ access_violation:
   return false;
 }
 
-bool tropic_get_cert__verified(uint8_t *buf, uint16_t buf_size) {
-  if (!probe_write_access(buf, buf_size)) {
-    goto access_violation;
-  }
-
-  return tropic_get_cert(buf, buf_size);
-access_violation:
-  apptask_access_violation();
-  return false;
-}
-
 bool tropic_ecc_key_generate__verified(uint16_t slot_index) {
   return tropic_ecc_key_generate(slot_index);
 }
 
 bool tropic_ecc_sign__verified(uint16_t key_slot_index, const uint8_t *dig,
-                               uint16_t dig_len, uint8_t *sig,
-                               uint16_t sig_len) {
+                               uint16_t dig_len, uint8_t *sig) {
   if (!probe_read_access(dig, dig_len)) {
     goto access_violation;
   }
 
-  if (!probe_write_access(sig, sig_len)) {
+  if (!probe_write_access(sig, ECDSA_RAW_SIGNATURE_SIZE)) {
     goto access_violation;
   }
 
-  return tropic_ecc_sign(key_slot_index, dig, dig_len, sig, sig_len);
+  return tropic_ecc_sign(key_slot_index, dig, dig_len, sig);
 access_violation:
   apptask_access_violation();
   return false;

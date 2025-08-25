@@ -17,6 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef KERNEL_MODE
+
 // Turning off the stack protector for this file significantly improves
 // the performance of the syscall dispatching and interrupt handling.
 #pragma GCC optimize("no-stack-protector")
@@ -28,11 +30,10 @@
 #include <rtl/sizedefs.h>
 #include <sys/irq.h>
 #include <sys/mpu.h>
+#include <util/flash.h>
 #include <util/image.h>
 
 #include "stm32u5xx_ll_cortex.h"
-
-#ifdef KERNEL_MODE
 
 // region type
 #define MPUX_TYPE_FLASH_CODE 0
@@ -127,7 +128,7 @@ static void mpu_set_attributes(void) {
   MPU->MAIR0 |= 0x44 << 24;
 }
 
-#define STORAGE_SIZE NORCOW_SECTOR_SIZE* STORAGE_AREAS_COUNT
+#define STORAGE_SIZE (NORCOW_SECTOR_SIZE * NORCOW_SECTOR_COUNT)
 _Static_assert(NORCOW_SECTOR_SIZE == STORAGE_1_MAXSIZE, "norcow misconfigured");
 _Static_assert(NORCOW_SECTOR_SIZE == STORAGE_2_MAXSIZE, "norcow misconfigured");
 
@@ -436,6 +437,12 @@ mpu_mode_t mpu_reconfig(mpu_mode_t mode) {
     case MPU_MODE_BOARDCAPS:
       //      REGION   ADDRESS                 SIZE                TYPE       WRITE   UNPRIV
       SET_REGION( 6, BOARDLOADER_START,        BOARDLOADER_MAXSIZE,FLASH_DATA,   NO,    NO );
+      break;
+#endif
+#if !defined(BOARDLOADER) && !PRODUCTION
+    case MPU_MODE_BOARDLOADER:
+      //      REGION   ADDRESS                 SIZE                TYPE       WRITE   UNPRIV
+      SET_REGION( 6, BOARDLOADER_START,        BOARDLOADER_MAXSIZE,FLASH_DATA,  YES,    NO );
       break;
 #endif
 #if !defined(BOOTLOADER) && !defined(BOARDLOADER)

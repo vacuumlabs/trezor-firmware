@@ -16,6 +16,8 @@ pub const MAX_WORD_QUIZ_ITEMS: usize = 3;
 pub const MAX_GROUP_SHARE_LINES: usize = 4;
 pub const MAX_MENU_ITEMS: usize = 5;
 
+pub const MAX_PAIRED_DEVICES: usize = 8; // Maximum number of paired devices in the device menu
+
 pub const ERROR_NOT_IMPLEMENTED: Error = Error::ValueError(c"not implemented");
 
 pub trait FirmwareUI {
@@ -186,8 +188,8 @@ pub trait FirmwareUI {
         subtitle: Option<TString<'static>>,
         description: Option<TString<'static>>,
         extra: Option<TString<'static>>,
-        message: Obj,        // TODO: replace Obj
-        amount: Option<Obj>, // TODO: replace Obj
+        message: TString<'static>,
+        amount: Option<TString<'static>>,
         chunkify: bool,
         text_mono: bool,
         account_title: TString<'static>,
@@ -195,8 +197,8 @@ pub trait FirmwareUI {
         account_path: Option<TString<'static>>,
         br_code: u16,
         br_name: TString<'static>,
-        address_item: Option<(TString<'static>, Obj)>,
-        extra_item: Option<(TString<'static>, Obj)>,
+        address_item: Option<Obj>,
+        extra_item: Option<Obj>,
         summary_items: Option<Obj>, // TODO: replace Obj
         fee_items: Option<Obj>,     // TODO: replace Obj
         summary_title: Option<TString<'static>>,
@@ -287,7 +289,15 @@ pub trait FirmwareUI {
 
     fn request_passphrase(
         prompt: TString<'static>,
-        max_len: u32,
+        prompt_empty: TString<'static>,
+        max_len: usize,
+    ) -> Result<impl LayoutMaybeTrace, Error>;
+
+    fn request_string(
+        prompt: TString<'static>,
+        max_len: usize,
+        allow_empty: bool,
+        prefill: Option<TString<'static>>,
     ) -> Result<impl LayoutMaybeTrace, Error>;
 
     fn select_menu(
@@ -350,12 +360,21 @@ pub trait FirmwareUI {
         lockable: bool,
     ) -> Result<impl LayoutMaybeTrace, Error>;
 
+    #[allow(clippy::too_many_arguments)]
     fn show_device_menu(
         failed_backup: bool,
-        firmware_version: TString<'static>,
-        device_name: TString<'static>,
-        paired_devices: Vec<TString<'static>, 1>,
-        auto_lock_delay: TString<'static>,
+        paired_devices: heapless::Vec<TString<'static>, MAX_PAIRED_DEVICES>,
+        connected_idx: Option<usize>,
+        bluetooth: Option<bool>,
+        pin_code: Option<bool>,
+        auto_lock_delay: Option<TString<'static>>,
+        wipe_code: Option<bool>,
+        check_backup: bool,
+        device_name: Option<TString<'static>>,
+        screen_brightness: Option<TString<'static>>,
+        haptic_feedback: Option<bool>,
+        led_enabled: Option<bool>,
+        about_items: Obj,
     ) -> Result<impl LayoutMaybeTrace, Error>;
 
     fn show_pairing_device_name(

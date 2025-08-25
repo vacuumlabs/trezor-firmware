@@ -33,6 +33,7 @@ const DEFAULT_BINDGEN_MACROS_COMMON: &[&str] = &[
     "-I../../../storage",
     "-I../../vendor/micropython",
     "-I../../vendor/micropython/lib/uzlib",
+    "-I../../vendor/",
     "-I../rtl/inc",
     "-I../gfx/inc",
     "-I../io/ble/inc",
@@ -43,7 +44,7 @@ const DEFAULT_BINDGEN_MACROS_COMMON: &[&str] = &[
     "-I../io/touch/inc",
     "-I../io/rgb_led/inc",
     "-I../io/usb/inc",
-    "-I../sec/entropy/inc",
+    "-I../sec/storage/inc",
     "-I../sys/time/inc",
     "-I../sys/task/inc",
     "-I../sys/power_manager/inc",
@@ -61,6 +62,7 @@ const DEFAULT_BINDGEN_MACROS_COMMON: &[&str] = &[
     "-DUSE_POWER_MANAGER",
     "-DUSE_NRF",
     "-DUSE_HW_JPEG_DECODER",
+    "-DUSE_STORAGE",
 ];
 
 fn add_bindgen_macros<'a>(
@@ -324,19 +326,14 @@ fn generate_trezorhal_bindings() {
         // model
         .allowlist_var("MODEL_INTERNAL_NAME")
         .allowlist_var("MODEL_FULL_NAME")
-        // entropy
-        .allowlist_var("HW_ENTROPY_LEN")
-        .allowlist_function("entropy_get")
         // secbool
         .allowlist_type("secbool")
         .must_use_type("secbool")
         .allowlist_var("sectrue")
         .allowlist_var("secfalse")
-        // flash
-        .allowlist_function("flash_init")
         // storage
         .allowlist_var("EXTERNAL_SALT_SIZE")
-        .allowlist_function("storage_init")
+        .allowlist_function("storage_setup")
         .allowlist_function("storage_wipe")
         .allowlist_function("storage_is_unlocked")
         .allowlist_function("storage_lock")
@@ -366,6 +363,8 @@ fn generate_trezorhal_bindings() {
         .allowlist_function("display_get_frame_buffer")
         .allowlist_function("display_fill")
         .allowlist_function("display_copy_rgb565")
+        .allowlist_function("display_is_recording")
+        .allowlist_function("display_record_screen")
         // gfx_bitblt
         .allowlist_type("gfx_bitblt_t")
         .allowlist_function("gfx_rgb565_fill")
@@ -421,6 +420,7 @@ fn generate_trezorhal_bindings() {
         .allowlist_function("ble_start")
         .allowlist_function("ble_write")
         .allowlist_function("ble_read")
+        .allowlist_function("ble_set_name")
         .allowlist_type("ble_command_t")
         .allowlist_type("ble_state_t")
         .allowlist_type("ble_event_t")

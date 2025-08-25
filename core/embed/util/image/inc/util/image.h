@@ -88,6 +88,22 @@ typedef struct {
 #define VTRUST_ALLOW_PROVISIONING 0x200
 #define VTRUST_ALLOW_UNLIMITED_RUN 0x400
 
+// Globally defined values for the `vendor_header.fw_type` field.
+// !!! Do not modify existing values. Only add new ones if needed.
+//
+typedef enum {
+  // Reserved value (may appear in legacy vendor headers)
+  VENDOR_FW_TYPE_RESERVED = 0,
+  // Custom (unsafe) firmware
+  VENDOR_FW_TYPE_CUSTOM = 1,
+  // Trezor Universal firmware
+  VENDOR_FW_TYPE_UNIVERSAL = 2,
+  // Trezor Bitcoin-only firmware
+  VENDOR_FW_TYPE_BTC_ONLY = 3,
+  // Factory tester firmware
+  VENDOR_FW_TYPE_PRODTEST = 4,
+} vendor_fw_type_t;
+
 typedef struct {
   uint32_t magic;
   uint32_t hdrlen;
@@ -97,6 +113,7 @@ typedef struct {
   uint8_t vsig_n;
   uint16_t vtrust;
   uint32_t hw_model;
+  uint8_t fw_type;
   // uint8_t reserved[10];
   const uint8_t *vpub[MAX_VENDOR_PUBLIC_KEYS];
   uint8_t vstr_len;
@@ -163,9 +180,11 @@ void vendor_header_hash(const vendor_header *const vhdr, uint8_t *hash);
 secbool __wur check_single_hash(const uint8_t *const hash,
                                 const uint8_t *const data, int len);
 
+#ifdef KERNEL_MODE
 secbool __wur check_image_contents(const image_header *const hdr,
                                    uint32_t firstskip,
                                    const flash_area_t *area);
+#endif
 
 void get_image_fingerprint(const image_header *const hdr, uint8_t *const out);
 
@@ -182,7 +201,9 @@ secbool __wur check_secmon_model(const secmon_header_t *const hdr);
 
 secbool __wur check_secmon_header_sig(const secmon_header_t *const hdr);
 
+#ifdef SECURE_MODE
 secbool __wur check_secmon_contents(const secmon_header_t *const hdr,
                                     size_t code_offset,
                                     const flash_area_t *area);
+#endif
 #endif

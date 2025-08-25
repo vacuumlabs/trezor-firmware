@@ -70,10 +70,9 @@ bool __wur optiga_random_buffer__verified(uint8_t *dest, size_t size);
 #endif  // USE_OPTIGA
 
 // ---------------------------------------------------------------------
-#include "storage.h"
+#include <sec/storage.h>
 
-void storage_init__verified(PIN_UI_WAIT_CALLBACK callback, const uint8_t *salt,
-                            const uint16_t salt_len);
+void storage_setup__verified(PIN_UI_WAIT_CALLBACK callback);
 
 secbool storage_unlock__verified(const uint8_t *pin, size_t pin_len,
                                  const uint8_t *ext_salt);
@@ -99,11 +98,6 @@ secbool storage_set__verified(const uint16_t key, const void *val,
 secbool storage_next_counter__verified(const uint16_t key, uint32_t *count);
 
 // ---------------------------------------------------------------------
-#include <sec/entropy.h>
-
-void entropy_get__verified(uint8_t *buf);
-
-// ---------------------------------------------------------------------
 #include <util/fwutils.h>
 
 int firmware_hash_start__verified(const uint8_t *challenge,
@@ -119,13 +113,10 @@ secbool firmware_get_vendor__verified(char *buff, size_t buff_size);
 bool tropic_ping__verified(const uint8_t *msg_out, uint8_t *msg_in,
                            uint16_t msg_len);
 
-bool tropic_get_cert__verified(uint8_t *buf, uint16_t buf_size);
-
 bool tropic_ecc_key_generate__verified(uint16_t slot_index);
 
 bool tropic_ecc_sign__verified(uint16_t key_slot_index, const uint8_t *dig,
-                               uint16_t dig_len, uint8_t *sig,
-                               uint16_t sig_len);
+                               uint16_t dig_len, uint8_t *sig);
 
 #endif
 

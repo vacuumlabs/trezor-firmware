@@ -27,7 +27,7 @@ use crate::{
         },
         ui_firmware::{
             FirmwareUI, ERROR_NOT_IMPLEMENTED, MAX_CHECKLIST_ITEMS, MAX_GROUP_SHARE_LINES,
-            MAX_MENU_ITEMS, MAX_WORD_QUIZ_ITEMS,
+            MAX_MENU_ITEMS, MAX_PAIRED_DEVICES, MAX_WORD_QUIZ_ITEMS,
         },
         ModelUI,
     },
@@ -592,7 +592,7 @@ impl FirmwareUI for UICaesar {
 
                     let mut ops = OpTextLayout::new(theme::TEXT_MONO);
                     for item in unwrap!(IterBuf::new().try_iterate(*info_obj)) {
-                        let [key, value]: [Obj; 2] = unwrap!(util::iter_into_array(item));
+                        let [key, value, _is_data]: [Obj; 3] = unwrap!(util::iter_into_array(item));
                         if !ops.is_empty() {
                             // Each key-value pair is on its own page
                             ops.add_next_page();
@@ -706,8 +706,8 @@ impl FirmwareUI for UICaesar {
         _subtitle: Option<TString<'static>>,
         _description: Option<TString<'static>>,
         _extra: Option<TString<'static>>,
-        _message: Obj,
-        _amount: Option<Obj>,
+        _message: TString<'static>,
+        _amount: Option<TString<'static>>,
         _chunkify: bool,
         _text_mono: bool,
         _account_title: TString<'static>,
@@ -715,8 +715,8 @@ impl FirmwareUI for UICaesar {
         _account_path: Option<TString<'static>>,
         _br_code: u16,
         _br_name: TString<'static>,
-        _address_item: Option<(TString<'static>, Obj)>,
-        _extra_item: Option<(TString<'static>, Obj)>,
+        _address_item: Option<Obj>,
+        _extra_item: Option<Obj>,
         _summary_items: Option<Obj>,
         _fee_items: Option<Obj>,
         _summary_title: Option<TString<'static>>,
@@ -917,11 +917,22 @@ impl FirmwareUI for UICaesar {
 
     fn request_passphrase(
         prompt: TString<'static>,
-        _max_len: u32,
+        _prompt_empty: TString<'static>,
+        max_len: usize,
     ) -> Result<impl LayoutMaybeTrace, Error> {
-        let layout =
-            RootComponent::new(Frame::new(prompt, PassphraseEntry::new()).with_title_centered());
+        let layout = RootComponent::new(
+            Frame::new(prompt, PassphraseEntry::new(max_len)).with_title_centered(),
+        );
         Ok(layout)
+    }
+
+    fn request_string(
+        _prompt: TString<'static>,
+        _max_len: usize,
+        _allow_empty: bool,
+        _prefill: Option<TString<'static>>,
+    ) -> Result<impl LayoutMaybeTrace, Error> {
+        Err::<RootComponent<Empty, ModelUI>, Error>(ERROR_NOT_IMPLEMENTED)
     }
 
     fn select_menu(
@@ -1117,10 +1128,18 @@ impl FirmwareUI for UICaesar {
 
     fn show_device_menu(
         _failed_backup: bool,
-        _firmware_version: TString<'static>,
-        _device_name: TString<'static>,
-        _paired_devices: Vec<TString<'static>, 1>,
-        _auto_lock_delay: TString<'static>,
+        _paired_devices: heapless::Vec<TString<'static>, MAX_PAIRED_DEVICES>,
+        _connected_idx: Option<usize>,
+        _bluetooth: Option<bool>,
+        _pin_code: Option<bool>,
+        _auto_lock_delay: Option<TString<'static>>,
+        _wipe_code: Option<bool>,
+        _check_backup: bool,
+        _device_name: Option<TString<'static>>,
+        _screen_brightness: Option<TString<'static>>,
+        _haptic_feedback: Option<bool>,
+        _led_enabled: Option<bool>,
+        _about_items: Obj,
     ) -> Result<impl LayoutMaybeTrace, Error> {
         Err::<RootComponent<Empty, ModelUI>, Error>(Error::ValueError(
             c"show_device_menu not supported",
@@ -1273,7 +1292,7 @@ impl FirmwareUI for UICaesar {
             add_paragraphs(&mut paragraphs, None, Some(value.try_into()?), true);
         } else {
             for para in IterBuf::new().try_iterate(value)? {
-                let [key, value]: [Obj; 2] = util::iter_into_array(para)?;
+                let [key, value, _is_data]: [Obj; 3] = util::iter_into_array(para)?;
                 add_paragraphs(
                     &mut paragraphs,
                     key.try_into_option()?,

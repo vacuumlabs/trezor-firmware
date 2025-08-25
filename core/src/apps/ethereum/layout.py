@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         EthereumTokenInfo,
         PaymentRequest,
     )
+    from trezor.ui.layouts import PropertyType
 
 
 async def require_confirm_approve(
@@ -33,7 +34,7 @@ async def require_confirm_approve(
     value: int | None,
     address_n: list[int],
     maximum_fee: str,
-    fee_info_items: Iterable[tuple[str, str]],
+    fee_info_items: Iterable[PropertyType],
     chain_id: int,
     network: EthereumNetworkInfo,
     token: EthereumTokenInfo,
@@ -85,7 +86,7 @@ async def require_confirm_tx(
     value: int,
     address_n: list[int],
     maximum_fee: str,
-    fee_info_items: Iterable[tuple[str, str]],
+    fee_info_items: Iterable[PropertyType],
     network: EthereumNetworkInfo,
     token: EthereumTokenInfo | None,
     is_contract_interaction: bool,
@@ -113,16 +114,15 @@ async def require_confirm_payment_request(
     verified_payment_req: PaymentRequest,
     address_n: list[int],
     maximum_fee: str,
-    fee_info_items: Iterable[tuple[str, str]],
+    fee_info_items: Iterable[PropertyType],
     chain_id: int,
     network: EthereumNetworkInfo,
     token: EthereumTokenInfo | None,
     token_address: str,
 ) -> None:
     from trezor import wire
-    from trezor.ui.layouts import confirm_ethereum_payment_request
+    from trezor.ui.layouts import confirm_payment_request
 
-    account, account_path = get_account_and_path(address_n)
     assert (
         verified_payment_req.amount is not None
     )  # amount is required for non-CoinJoin transactions
@@ -159,15 +159,24 @@ async def require_confirm_payment_request(
         else:
             raise wire.DataError("Unrecognized memo type in payment request memo.")
 
-    await confirm_ethereum_payment_request(
+    account, account_path = get_account_and_path(address_n)
+    account_items: list[PropertyType] = []
+    if account:
+        account_items.append((TR.words__account, account, True))
+    if account_path:
+        account_items.append((TR.address_details__derivation_path, account_path, True))
+    if chain_id:
+        account_items.append(
+            (TR.ethereum__approve_chain_id, f"{network.name} ({chain_id})", True)
+        )
+
+    await confirm_payment_request(
         verified_payment_req.recipient_name,
         provider_address,
         texts,
         refunds,
         trades,
-        account,
-        account_path,
-        f"{network.name} ({chain_id})",
+        account_items,
         maximum_fee,
         fee_info_items,
         token_address,
@@ -179,7 +188,7 @@ async def require_confirm_stake(
     value: int,
     address_n: list[int],
     maximum_fee: str,
-    fee_info_items: Iterable[tuple[str, str]],
+    fee_info_items: Iterable[PropertyType],
     network: EthereumNetworkInfo,
     chunkify: bool,
 ) -> None:
@@ -208,7 +217,7 @@ async def require_confirm_unstake(
     value: int,
     address_n: list[int],
     maximum_fee: str,
-    fee_info_items: Iterable[tuple[str, str]],
+    fee_info_items: Iterable[PropertyType],
     network: EthereumNetworkInfo,
     chunkify: bool,
 ) -> None:
@@ -236,7 +245,7 @@ async def require_confirm_claim(
     addr_bytes: bytes,
     address_n: list[int],
     maximum_fee: str,
-    fee_info_items: Iterable[tuple[str, str]],
+    fee_info_items: Iterable[PropertyType],
     network: EthereumNetworkInfo,
     chunkify: bool,
 ) -> None:

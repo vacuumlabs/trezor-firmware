@@ -70,6 +70,7 @@ typedef struct {
 typedef struct {
   bool accept_msgs;
   bool reboot_on_resume;
+  uint8_t peer_count;
   ble_mode_t mode_requested;
   uint8_t connected_addr[6];
   uint8_t connected_addr_type;
@@ -140,6 +141,9 @@ void ble_stop(void);
 // Returns `true` if the command was successfully issued.
 bool ble_issue_command(ble_command_t *command);
 
+// Sets the BLE advertising name, but does not affect advertising
+void ble_set_name(const uint8_t *name, size_t len);
+
 // Reads an event from the BLE module
 //
 // Retrieves the next event from the BLE module's event queue.
@@ -147,9 +151,6 @@ bool ble_issue_command(ble_command_t *command);
 // Returns `true` if an event was successfully read, `false` if no event is
 // available.
 bool ble_get_event(ble_event_t *event);
-
-// Flushes the BLE event queue
-void ble_event_flush(void);
 
 // Retrieves the current state of the BLE module
 //

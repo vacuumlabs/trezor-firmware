@@ -607,6 +607,10 @@ class MessageType(IntEnum):
     CardanoTxInlineDatumChunk = 335
     CardanoTxReferenceScriptChunk = 336
     CardanoTxReferenceInput = 337
+    CardanoSignMessageInit = 338
+    CardanoMessageDataRequest = 339
+    CardanoMessageDataResponse = 340
+    CardanoMessageSignature = 341
     RippleGetAddress = 400
     RippleAddress = 401
     RippleSignTx = 402
@@ -2328,6 +2332,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         21: protobuf.Field("reference_inputs_count", "uint32", repeated=False, required=False, default=0),
         22: protobuf.Field("chunkify", "bool", repeated=False, required=False, default=None),
         23: protobuf.Field("tag_cbor_sets", "bool", repeated=False, required=False, default=False),
+        24: protobuf.Field("payment_req", "PaymentRequest", repeated=False, required=False, default=None),
     }
 
     def __init__(
@@ -2356,6 +2361,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         reference_inputs_count: Optional["int"] = 0,
         chunkify: Optional["bool"] = None,
         tag_cbor_sets: Optional["bool"] = False,
+        payment_req: Optional["PaymentRequest"] = None,
     ) -> None:
         self.signing_mode = signing_mode
         self.protocol_magic = protocol_magic
@@ -2380,6 +2386,7 @@ class CardanoSignTxInit(protobuf.MessageType):
         self.reference_inputs_count = reference_inputs_count
         self.chunkify = chunkify
         self.tag_cbor_sets = tag_cbor_sets
+        self.payment_req = payment_req
 
 
 class CardanoTxInput(protobuf.MessageType):
@@ -2893,6 +2900,89 @@ class CardanoTxBodyHash(protobuf.MessageType):
 
 class CardanoSignTxFinished(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 319
+
+
+class CardanoSignMessageInit(protobuf.MessageType):
+    MESSAGE_WIRE_TYPE = 338
+    FIELDS = {
+        1: protobuf.Field("protocol_magic", "uint32", repeated=False, required=False, default=None),
+        2: protobuf.Field("network_id", "uint32", repeated=False, required=False, default=None),
+        3: protobuf.Field("signing_path", "uint32", repeated=True, required=False, default=None),
+        4: protobuf.Field("payload_size", "uint32", repeated=False, required=True),
+        5: protobuf.Field("prefer_hex_display", "bool", repeated=False, required=True),
+        6: protobuf.Field("address_parameters", "CardanoAddressParametersType", repeated=False, required=False, default=None),
+        7: protobuf.Field("derivation_type", "CardanoDerivationType", repeated=False, required=True),
+    }
+
+    def __init__(
+        self,
+        *,
+        payload_size: "int",
+        prefer_hex_display: "bool",
+        derivation_type: "CardanoDerivationType",
+        signing_path: Optional[Sequence["int"]] = None,
+        protocol_magic: Optional["int"] = None,
+        network_id: Optional["int"] = None,
+        address_parameters: Optional["CardanoAddressParametersType"] = None,
+    ) -> None:
+        self.signing_path: Sequence["int"] = signing_path if signing_path is not None else []
+        self.payload_size = payload_size
+        self.prefer_hex_display = prefer_hex_display
+        self.derivation_type = derivation_type
+        self.protocol_magic = protocol_magic
+        self.network_id = network_id
+        self.address_parameters = address_parameters
+
+
+class CardanoMessageDataRequest(protobuf.MessageType):
+    MESSAGE_WIRE_TYPE = 339
+    FIELDS = {
+        1: protobuf.Field("length", "uint32", repeated=False, required=True),
+        2: protobuf.Field("offset", "uint32", repeated=False, required=True),
+    }
+
+    def __init__(
+        self,
+        *,
+        length: "int",
+        offset: "int",
+    ) -> None:
+        self.length = length
+        self.offset = offset
+
+
+class CardanoMessageDataResponse(protobuf.MessageType):
+    MESSAGE_WIRE_TYPE = 340
+    FIELDS = {
+        1: protobuf.Field("data", "bytes", repeated=False, required=True),
+    }
+
+    def __init__(
+        self,
+        *,
+        data: "bytes",
+    ) -> None:
+        self.data = data
+
+
+class CardanoMessageSignature(protobuf.MessageType):
+    MESSAGE_WIRE_TYPE = 341
+    FIELDS = {
+        1: protobuf.Field("signature", "bytes", repeated=False, required=True),
+        2: protobuf.Field("address", "bytes", repeated=False, required=True),
+        3: protobuf.Field("pub_key", "bytes", repeated=False, required=True),
+    }
+
+    def __init__(
+        self,
+        *,
+        signature: "bytes",
+        address: "bytes",
+        pub_key: "bytes",
+    ) -> None:
+        self.signature = signature
+        self.address = address
+        self.pub_key = pub_key
 
 
 class CipherKeyValue(protobuf.MessageType):
@@ -7064,6 +7154,7 @@ class SolanaSignTx(protobuf.MessageType):
         1: protobuf.Field("address_n", "uint32", repeated=True, required=False, default=None),
         2: protobuf.Field("serialized_tx", "bytes", repeated=False, required=True),
         3: protobuf.Field("additional_info", "SolanaTxAdditionalInfo", repeated=False, required=False, default=None),
+        4: protobuf.Field("payment_req", "PaymentRequest", repeated=False, required=False, default=None),
     }
 
     def __init__(
@@ -7072,10 +7163,12 @@ class SolanaSignTx(protobuf.MessageType):
         serialized_tx: "bytes",
         address_n: Optional[Sequence["int"]] = None,
         additional_info: Optional["SolanaTxAdditionalInfo"] = None,
+        payment_req: Optional["PaymentRequest"] = None,
     ) -> None:
         self.address_n: Sequence["int"] = address_n if address_n is not None else []
         self.serialized_tx = serialized_tx
         self.additional_info = additional_info
+        self.payment_req = payment_req
 
 
 class SolanaTxSignature(protobuf.MessageType):
@@ -8011,14 +8104,17 @@ class ThpPairingRequest(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 1008
     FIELDS = {
         1: protobuf.Field("host_name", "string", repeated=False, required=False, default=None),
+        2: protobuf.Field("app_name", "string", repeated=False, required=False, default=None),
     }
 
     def __init__(
         self,
         *,
         host_name: Optional["str"] = None,
+        app_name: Optional["str"] = None,
     ) -> None:
         self.host_name = host_name
+        self.app_name = app_name
 
 
 class ThpPairingRequestApproved(protobuf.MessageType):
@@ -8222,6 +8318,7 @@ class ThpCredentialMetadata(protobuf.MessageType):
     FIELDS = {
         1: protobuf.Field("host_name", "string", repeated=False, required=False, default=None),
         2: protobuf.Field("autoconnect", "bool", repeated=False, required=False, default=None),
+        3: protobuf.Field("app_name", "string", repeated=False, required=False, default=None),
     }
 
     def __init__(
@@ -8229,9 +8326,11 @@ class ThpCredentialMetadata(protobuf.MessageType):
         *,
         host_name: Optional["str"] = None,
         autoconnect: Optional["bool"] = None,
+        app_name: Optional["str"] = None,
     ) -> None:
         self.host_name = host_name
         self.autoconnect = autoconnect
+        self.app_name = app_name
 
 
 class ThpPairingCredential(protobuf.MessageType):

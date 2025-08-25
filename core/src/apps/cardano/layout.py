@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from trezor import TR
+from trezor import TR, wire
 from trezor.enums import (
     ButtonRequestType,
     CardanoAddressType,
@@ -21,14 +21,18 @@ from .helpers.utils import (
     format_asset_fingerprint,
     format_optional_int,
     format_stake_pool_id,
+    is_unambiguous_ascii,
 )
 
 if TYPE_CHECKING:
-    from typing import Literal
+    from typing import Callable, Literal
 
     from trezor import messages
     from trezor.enums import CardanoNativeScriptHashDisplayFormat
+    from trezor.messages import PaymentRequest
     from trezor.ui.layouts import PropertyType
+
+    from apps.common.paths import Bip32Path
 
     from .helpers.credential import Credential
     from .seed import Keychain
@@ -70,6 +74,8 @@ CERTIFICATE_TYPE_NAMES = {
 BRT_Other = ButtonRequestType.Other  # global_import_cache
 
 CVOTE_REWARD_ELIGIBILITY_WARNING = TR.cardano__reward_eligibility_warning
+
+_DEFAULT_MAX_DISPLAYED_CHUNK_SIZE = 56
 
 
 def format_coin_amount(amount: int, network_id: int) -> str:
@@ -296,7 +302,7 @@ async def confirm_datum_hash(datum_hash: bytes) -> None:
 
 
 async def confirm_inline_datum(first_chunk: bytes, inline_datum_size: int) -> None:
-    await _confirm_data_chunk(
+    await _confirm_tx_data_chunk(
         "confirm_inline_datum",
         TR.cardano__inline_datum,
         first_chunk,
@@ -307,7 +313,7 @@ async def confirm_inline_datum(first_chunk: bytes, inline_datum_size: int) -> No
 async def confirm_reference_script(
     first_chunk: bytes, reference_script_size: int
 ) -> None:
-    await _confirm_data_chunk(
+    await _confirm_tx_data_chunk(
         "confirm_reference_script",
         TR.cardano__reference_script,
         first_chunk,
@@ -315,25 +321,77 @@ async def confirm_reference_script(
     )
 
 
-async def _confirm_data_chunk(
-    br_name: str, title: str, first_chunk: bytes, data_size: int
+async def confirm_message_payload(
+    payload: bytes,
+    payload_size: int,
+    prefer_hex_display: bool,
 ) -> None:
-    MAX_DISPLAYED_SIZE = 56
-    displayed_bytes = first_chunk[:MAX_DISPLAYED_SIZE]
+    props: list[PropertyType]
+
+    if not payload:
+        assert payload_size == 0
+        props = _get_data_chunk_props(
+            title=TR.cardano__empty_message,
+            first_chunk=payload,
+            data_size=payload_size,
+        )
+    elif not prefer_hex_display and is_unambiguous_ascii(payload):
+        props = _get_data_chunk_props(
+            title=TR.cardano__message_text,
+            first_chunk=payload,
+            data_size=payload_size,
+            max_displayed_size=None,
+            decoder=lambda chunk: chunk.decode("ascii"),
+        )
+    else:
+        props = _get_data_chunk_props(
+            title=TR.cardano__message_hex,
+            first_chunk=payload,
+            data_size=payload_size,
+            max_displayed_size=None,
+        )
+
+    await confirm_properties(
+        "confirm_message_payload",
+        title=TR.cardano__confirm_message,
+        props=props,
+        br_code=BRT_Other,
+    )
+
+
+def _get_data_chunk_props(
+    title: str,
+    first_chunk: bytes,
+    data_size: int,
+    max_displayed_size: int | None = _DEFAULT_MAX_DISPLAYED_CHUNK_SIZE,
+    decoder: Callable[[bytes], bytes | str] | None = None,
+) -> list[PropertyType]:
+    displayed_bytes = (
+        first_chunk[:max_displayed_size]
+        if max_displayed_size is not None
+        else first_chunk
+    )
     bytes_optional_plural = "byte" if data_size == 1 else "bytes"
-    props: list[tuple[str, bytes | None, bool | None]] = [
+    props: list[PropertyType] = [
         (
             f"{title} ({data_size} {bytes_optional_plural}):",
-            displayed_bytes,
+            decoder(displayed_bytes) if decoder else displayed_bytes,
             True,
         )
     ]
-    if data_size > MAX_DISPLAYED_SIZE:
+    if max_displayed_size is not None and data_size > max_displayed_size:
         props.append(("...", None, None))
+
+    return props
+
+
+async def _confirm_tx_data_chunk(
+    br_name: str, title: str, first_chunk: bytes, data_size: int
+) -> None:
     await confirm_properties(
         br_name,
         title=TR.cardano__confirm_transaction,
-        props=props,
+        props=_get_data_chunk_props(title, first_chunk, data_size),
         br_code=BRT_Other,
     )
 
@@ -345,6 +403,12 @@ async def show_credentials(
     intro_text = TR.words__address
     await _show_credential(payment_credential, intro_text, purpose="address")
     await _show_credential(stake_credential, intro_text, purpose="address")
+
+
+async def show_message_header_credentials(credentials: list[Credential]) -> None:
+    intro_text = TR.words__address
+    for credential in credentials:
+        await _show_credential(credential, intro_text, purpose="message")
 
 
 async def show_change_output_credentials(
@@ -391,13 +455,14 @@ async def show_cvote_registration_payment_credentials(
 async def _show_credential(
     credential: Credential,
     intro_text: str,
-    purpose: Literal["address", "output", "cvote_reg_payment_address"],
+    purpose: Literal["address", "output", "cvote_reg_payment_address", "message"],
     extra_text: str | None = None,
 ) -> None:
     title = {
         "address": f"{ADDRESS_TYPE_NAMES[credential.address_type]} address",
         "output": TR.cardano__confirm_transaction,
         "cvote_reg_payment_address": TR.cardano__confirm_transaction,
+        "message": TR.cardano__confirm_message,
     }[purpose]
 
     props: list[PropertyType] = []
@@ -509,23 +574,37 @@ async def warn_unknown_total_collateral() -> None:
     )
 
 
+def _get_path_title(path: list[int]) -> str:
+    from . import seed
+
+    if seed.is_multisig_path(path):
+        return TR.cardano__multisig_path
+    elif seed.is_minting_path(path):
+        return TR.cardano__token_minting_path
+    else:
+        return TR.cardano__path
+
+
 async def confirm_witness_request(
     witness_path: list[int],
 ) -> None:
-    from . import seed
-
-    if seed.is_multisig_path(witness_path):
-        path_title = TR.cardano__multisig_path
-    elif seed.is_minting_path(witness_path):
-        path_title = TR.cardano__token_minting_path
-    else:
-        path_title = TR.cardano__path
-
     await layouts.confirm_text(
         "confirm_total",
         TR.cardano__confirm_transaction,
         address_n_to_str(witness_path),
-        TR.cardano__sign_tx_path_template.format(path_title),
+        TR.cardano__sign_tx_path_template.format(_get_path_title(witness_path)),
+        BRT_Other,
+    )
+
+
+async def confirm_message_path(path: list[int]) -> None:
+    path_title = _get_path_title(path)
+    text = TR.cardano__sign_message_path_template.format(path_title)
+    await layouts.confirm_text(
+        "confirm_message_signing_path",
+        TR.cardano__confirm_message,
+        address_n_to_str(path),
+        text,
         BRT_Other,
     )
 
@@ -540,11 +619,15 @@ async def confirm_tx(
 ) -> None:
     total_amount = format_coin_amount(spending, network_id)
     fee_amount = format_coin_amount(fee, network_id)
-    items = (
-        (TR.cardano__network, f"{protocol_magics.to_ui_string(protocol_magic)}"),
-        (TR.cardano__valid_since, f"{format_optional_int(validity_interval_start)}"),
-        (TR.cardano__ttl, f"{format_optional_int(ttl)}"),
-    )
+    items: list[PropertyType] = [
+        (TR.cardano__network, f"{protocol_magics.to_ui_string(protocol_magic)}", True),
+        (
+            TR.cardano__valid_since,
+            f"{format_optional_int(validity_interval_start)}",
+            True,
+        ),
+        (TR.cardano__ttl, f"{format_optional_int(ttl)}", True),
+    ]
 
     await layouts.confirm_cardano_tx(
         total_amount,
@@ -698,7 +781,7 @@ async def confirm_stake_pool_owner(
 ) -> None:
     from trezor import messages
 
-    props: list[tuple[str, str | None, bool | None]] = []
+    props: list[PropertyType] = []
     if owner.staking_key_path:
         props.append(
             (TR.cardano__pool_owner, address_n_to_str(owner.staking_key_path), True)
@@ -868,7 +951,7 @@ def _format_stake_credential(
         raise ValueError
 
 
-def _format_drep(drep: messages.CardanoDRep) -> tuple[str, str, bool]:
+def _format_drep(drep: messages.CardanoDRep) -> PropertyType:
     if drep.type == CardanoDRepType.KEY_HASH:
         assert drep.key_hash is not None  # validate_drep
         return (
@@ -1116,4 +1199,60 @@ async def show_cardano_address(
         account=account,
         network=network_name,
         chunkify=chunkify,
+    )
+
+
+async def require_confirm_payment_request(
+    provider_address: str,
+    verified_payment_request: PaymentRequest,
+    address_n: Bip32Path | None,
+    network_id: int,
+) -> None:
+    from trezor.ui.layouts import confirm_payment_request
+
+    assert verified_payment_request.amount is not None  # required for non-CoinJoin
+    total_amount = format_coin_amount(verified_payment_request.amount, network_id)
+
+    texts: list[tuple[str | None, str]] = []
+    refunds: list[tuple[str, str | None, str | None]] = []
+    trades: list[tuple[str, str, str, str | None, str | None]] = []
+    for memo in verified_payment_request.memos:
+        if memo.text_memo is not None:
+            texts.append((None, memo.text_memo.text))
+        elif memo.text_details_memo is not None:
+            texts.append((memo.text_details_memo.title, memo.text_details_memo.text))
+        elif memo.refund_memo:
+            refund_account_path = address_n_to_str(memo.refund_memo.address_n)
+            refunds.append((memo.refund_memo.address, None, refund_account_path))
+        elif memo.coin_purchase_memo:
+            coin_purchase_account_path = address_n_to_str(
+                memo.coin_purchase_memo.address_n
+            )
+            trades.append(
+                (
+                    f"-\u00A0{total_amount}",
+                    f"+\u00A0{memo.coin_purchase_memo.amount}",
+                    memo.coin_purchase_memo.address,
+                    None,
+                    coin_purchase_account_path,
+                )
+            )
+        else:
+            raise wire.DataError("Unrecognized memo type in payment request memo.")
+
+    account_path = address_n_to_str(address_n) if address_n else None
+    account_items: list[PropertyType] = []
+    if account_path:
+        account_items.append((TR.address_details__derivation_path, account_path, True))
+
+    await confirm_payment_request(
+        verified_payment_request.recipient_name,
+        provider_address,
+        texts,
+        refunds,
+        trades,
+        account_items,
+        None,
+        None,
+        None,
     )

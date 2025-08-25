@@ -141,7 +141,9 @@ def test_pairing_code_entry(
 
     cpace = Cpace(handshake_hash=protocol.handshake_hash)
     cpace.random_bytes = os.urandom
-    cpace.generate_keys_and_secret(code.to_bytes(6, "big"), cpace_trezor_public_key)
+    cpace.generate_keys_and_secret(
+        f"{code:06}".encode("ascii"), cpace_trezor_public_key
+    )
     sha_ctx = sha256(cpace.shared_secret)
     tag = sha_ctx.digest()
 
@@ -404,9 +406,8 @@ def test_credential_phase(client: Client) -> None:
     protocol._noise.noise_protocol.cipher_state_encrypt.n = 250
 
     protocol._send_message(ButtonAck())
-    with pytest.raises(exceptions.ThpError) as e:
+    with pytest.raises(exceptions.DecryptionFailed):
         protocol.read(1)
-    assert e.value.args[0] == "DECRYPTION FAILED"
 
     # Connect using credential with confirmation and ask for autoconnect credential.
     protocol = prepare_protocol_for_handshake(client)
@@ -455,9 +456,8 @@ def test_credential_phase(client: Client) -> None:
     protocol._noise.noise_protocol.cipher_state_encrypt.n = 100
 
     protocol._send_message(ButtonAck())
-    with pytest.raises(exceptions.ThpError) as e:
+    with pytest.raises(exceptions.DecryptionFailed):
         protocol.read(1)
-    assert e.value.args[0] == "DECRYPTION FAILED"
 
     # Connect using autoconnect credential - should work the same as above
     protocol = prepare_protocol_for_handshake(client)

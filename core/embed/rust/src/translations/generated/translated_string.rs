@@ -972,11 +972,7 @@ pub enum TranslatedString {
     #[cfg(feature = "universal_fw")]
     stellar__confirm_memo = 690,  // "Confirm memo"
     #[cfg(feature = "universal_fw")]
-    stellar__confirm_network = 691,  // "Confirm network"
-    #[cfg(feature = "universal_fw")]
     stellar__confirm_operation = 692,  // "Confirm operation"
-    #[cfg(feature = "universal_fw")]
-    stellar__confirm_stellar = 693,  // "Confirm Stellar"
     #[cfg(feature = "universal_fw")]
     stellar__confirm_timebounds = 694,  // "Confirm timebounds"
     #[cfg(feature = "universal_fw")]
@@ -992,7 +988,7 @@ pub enum TranslatedString {
     #[cfg(feature = "universal_fw")]
     stellar__destination = 700,  // "Destination"
     #[cfg(feature = "universal_fw")]
-    stellar__exchanges_require_memo = 701,  // "Important: Many exchanges require a memo when depositing"
+    stellar__exchanges_require_memo = 701,  // "Memo is not set.\nTypically needed when sending to exchanges."
     #[cfg(feature = "universal_fw")]
     stellar__final_confirm = 702,  // "Final confirm"
     #[cfg(feature = "universal_fw")]
@@ -1003,10 +999,6 @@ pub enum TranslatedString {
     stellar__home_domain = 705,  // "Home Domain"
     #[cfg(feature = "universal_fw")]
     stellar__inflation = 706,  // "Inflation"
-    #[cfg(feature = "universal_fw")]
-    stellar__initial_balance = 707,  // "Initial Balance"
-    #[cfg(feature = "universal_fw")]
-    stellar__initialize_signing_with = 708,  // "Initialize signing with"
     #[cfg(feature = "universal_fw")]
     stellar__issuer_template = 709,  // "{0} issuer"
     #[cfg(feature = "universal_fw")]
@@ -1028,8 +1020,6 @@ pub enum TranslatedString {
     #[cfg(feature = "universal_fw")]
     stellar__no_restriction = 718,  // "[no restriction]"
     #[cfg(feature = "universal_fw")]
-    stellar__on_network_template = 719,  // "Transaction is on {0}"
-    #[cfg(feature = "universal_fw")]
     stellar__path_pay = 720,  // "Path Pay"
     #[cfg(feature = "universal_fw")]
     stellar__path_pay_at_least = 721,  // "Path Pay at least"
@@ -1041,8 +1031,6 @@ pub enum TranslatedString {
     stellar__preauth_transaction = 724,  // "Pre-auth transaction"
     #[cfg(feature = "universal_fw")]
     stellar__price_per_template = 725,  // "Price per {0}:"
-    #[cfg(feature = "universal_fw")]
-    stellar__private_network = 726,  // "private network"
     #[cfg(feature = "universal_fw")]
     stellar__remove_signer = 727,  // "Remove Signer"
     #[cfg(feature = "universal_fw")]
@@ -1062,8 +1050,6 @@ pub enum TranslatedString {
     #[cfg(feature = "universal_fw")]
     stellar__source_account = 735,  // "Source account"
     #[cfg(feature = "universal_fw")]
-    stellar__testnet_network = 736,  // "testnet network"
-    #[cfg(feature = "universal_fw")]
     stellar__trusted_account = 737,  // "Trusted Account"
     #[cfg(feature = "universal_fw")]
     stellar__update = 738,  // "Update"
@@ -1075,8 +1061,6 @@ pub enum TranslatedString {
     stellar__value_sha256 = 741,  // "Value (SHA-256):"
     #[cfg(feature = "universal_fw")]
     stellar__wanna_clean_value_key_template = 742,  // "Do you want to clear value key {0}?"
-    #[cfg(feature = "universal_fw")]
-    stellar__your_account = 743,  // " your account"
     #[cfg(feature = "universal_fw")]
     tezos__baker_address = 744,  // "Baker address"
     #[cfg(feature = "universal_fw")]
@@ -1459,12 +1443,58 @@ pub enum TranslatedString {
     tutorial__menu_appendix = 1060,  // "View more info, quit flow, ..."
     tutorial__navigation_ts7 = 1061,  // "Use buttons at the bottom to navigate and confirm your actions."
     tutorial__suite_restart = 1062,  // "Replay this tutorial anytime from the Trezor Suite app."
-    tutorial__tropic = 1063,  // "Secured with TROPIC01"
-    tutorial__tropic_info1 = 1064,  // "TROPIC01 is a next-gen secure element with tamper-proof protection and open architecture."
-    tutorial__tropic_info2 = 1065,  // "Private keys stay on-chip, safeguarded by hardware-enforced boundaries and anti-tamper tech."
-    tutorial__tropic_info3 = 1066,  // "Built for security from the ground up, and open to independent audits."
-    tutorial__welcome_safe7 = 1067,  // "Welcome to\nTrezor\nSafe 7"
+    tutorial__welcome_safe7 = 1067,  // "Welcome\nto Trezor\nSafe 7"
     tutorial__what_is_tropic = 1068,  // "What is TROPIC01?"
+    tutorial__tap_to_start = 1069,  // "Tap to start tutorial"
+    tutorial__tropic_info = 1070,  // "TROPIC01 is a next-gen open-source secure element chip designed for transparent and auditable hardware security."
+    #[cfg(feature = "universal_fw")]
+    stellar__sign_with = 1071,  // "Sign with"
+    #[cfg(feature = "universal_fw")]
+    stellar__timebounds = 1072,  // "Timebounds"
+    #[cfg(feature = "universal_fw")]
+    stellar__token_info = 1073,  // "Token info"
+    #[cfg(feature = "universal_fw")]
+    stellar__transaction_source = 1074,  // "Transaction source"
+    #[cfg(feature = "universal_fw")]
+    stellar__transaction_source_diff_warning = 1075,  // "Transaction source does not belong to this Trezor."
+    device_name__continue_with_empty_label = 1076,  // "Continue with empty device name?"
+    device_name__enter = 1077,  // "Enter device name"
+    regulatory_certification__title = 1078,  // "Regulatory certification"
+    words__name = 1079,  // "Name"
+    device_name__changed = 1080,  // "Device name changed."
+    #[cfg(feature = "universal_fw")]
+    cardano__confirm_message = 1081,  // "Confirm message"
+    #[cfg(feature = "universal_fw")]
+    cardano__empty_message = 1082,  // "Empty message"
+    #[cfg(feature = "universal_fw")]
+    cardano__message_hash = 1083,  // "Message hash:"
+    #[cfg(feature = "universal_fw")]
+    cardano__message_hex = 1084,  // "Message hex"
+    #[cfg(feature = "universal_fw")]
+    cardano__message_text = 1085,  // "Message text"
+    #[cfg(feature = "universal_fw")]
+    cardano__sign_message_hash_path_template = 1086,  // "Sign message hash with {0}"
+    #[cfg(feature = "universal_fw")]
+    cardano__sign_message_path_template = 1087,  // "Sign message with {0}"
+    ble__manage_paired = 1088,  // "Manage paired devices"
+    ble__pair_new = 1089,  // "Pair new device"
+    ble__pair_title = 1090,  // "Pair & connect"
+    ble__version = 1091,  // "Bluetooth version"
+    homescreen__firmware_type = 1092,  // "Firmware type"
+    homescreen__firmware_version = 1093,  // "Firmware version"
+    led__disable = 1094,  // "Disable LED?"
+    led__enable = 1095,  // "Enable LED?"
+    led__title = 1096,  // "LED"
+    words__about = 1097,  // "About"
+    words__connected = 1098,  // "Connected"
+    words__device = 1099,  // "Device"
+    words__disconnect = 1100,  // "Disconnect"
+    words__led = 1101,  // "LED"
+    words__manage = 1102,  // "Manage"
+    words__off = 1103,  // "OFF"
+    words__on = 1104,  // "ON"
+    words__review = 1105,  // "Review"
+    words__security = 1106,  // "Security"
 }
 
 impl TranslatedString {
@@ -2649,11 +2679,7 @@ impl TranslatedString {
             #[cfg(feature = "universal_fw")]
             (Self::stellar__confirm_memo, "Confirm memo"),
             #[cfg(feature = "universal_fw")]
-            (Self::stellar__confirm_network, "Confirm network"),
-            #[cfg(feature = "universal_fw")]
             (Self::stellar__confirm_operation, "Confirm operation"),
-            #[cfg(feature = "universal_fw")]
-            (Self::stellar__confirm_stellar, "Confirm Stellar"),
             #[cfg(feature = "universal_fw")]
             (Self::stellar__confirm_timebounds, "Confirm timebounds"),
             #[cfg(feature = "universal_fw")]
@@ -2669,7 +2695,7 @@ impl TranslatedString {
             #[cfg(feature = "universal_fw")]
             (Self::stellar__destination, "Destination"),
             #[cfg(feature = "universal_fw")]
-            (Self::stellar__exchanges_require_memo, "Important: Many exchanges require a memo when depositing"),
+            (Self::stellar__exchanges_require_memo, "Memo is not set.\nTypically needed when sending to exchanges."),
             #[cfg(feature = "universal_fw")]
             (Self::stellar__final_confirm, "Final confirm"),
             #[cfg(feature = "universal_fw")]
@@ -2680,10 +2706,6 @@ impl TranslatedString {
             (Self::stellar__home_domain, "Home Domain"),
             #[cfg(feature = "universal_fw")]
             (Self::stellar__inflation, "Inflation"),
-            #[cfg(feature = "universal_fw")]
-            (Self::stellar__initial_balance, "Initial Balance"),
-            #[cfg(feature = "universal_fw")]
-            (Self::stellar__initialize_signing_with, "Initialize signing with"),
             #[cfg(feature = "universal_fw")]
             (Self::stellar__issuer_template, "{0} issuer"),
             #[cfg(feature = "universal_fw")]
@@ -2705,8 +2727,6 @@ impl TranslatedString {
             #[cfg(feature = "universal_fw")]
             (Self::stellar__no_restriction, "[no restriction]"),
             #[cfg(feature = "universal_fw")]
-            (Self::stellar__on_network_template, "Transaction is on {0}"),
-            #[cfg(feature = "universal_fw")]
             (Self::stellar__path_pay, "Path Pay"),
             #[cfg(feature = "universal_fw")]
             (Self::stellar__path_pay_at_least, "Path Pay at least"),
@@ -2718,8 +2738,6 @@ impl TranslatedString {
             (Self::stellar__preauth_transaction, "Pre-auth transaction"),
             #[cfg(feature = "universal_fw")]
             (Self::stellar__price_per_template, "Price per {0}:"),
-            #[cfg(feature = "universal_fw")]
-            (Self::stellar__private_network, "private network"),
             #[cfg(feature = "universal_fw")]
             (Self::stellar__remove_signer, "Remove Signer"),
             #[cfg(feature = "universal_fw")]
@@ -2739,8 +2757,6 @@ impl TranslatedString {
             #[cfg(feature = "universal_fw")]
             (Self::stellar__source_account, "Source account"),
             #[cfg(feature = "universal_fw")]
-            (Self::stellar__testnet_network, "testnet network"),
-            #[cfg(feature = "universal_fw")]
             (Self::stellar__trusted_account, "Trusted Account"),
             #[cfg(feature = "universal_fw")]
             (Self::stellar__update, "Update"),
@@ -2752,8 +2768,6 @@ impl TranslatedString {
             (Self::stellar__value_sha256, "Value (SHA-256):"),
             #[cfg(feature = "universal_fw")]
             (Self::stellar__wanna_clean_value_key_template, "Do you want to clear value key {0}?"),
-            #[cfg(feature = "universal_fw")]
-            (Self::stellar__your_account, " your account"),
             #[cfg(feature = "universal_fw")]
             (Self::tezos__baker_address, "Baker address"),
             #[cfg(feature = "universal_fw")]
@@ -3243,12 +3257,58 @@ impl TranslatedString {
             (Self::tutorial__menu_appendix, "View more info, quit flow, ..."),
             (Self::tutorial__navigation_ts7, "Use buttons at the bottom to navigate and confirm your actions."),
             (Self::tutorial__suite_restart, "Replay this tutorial anytime from the Trezor Suite app."),
-            (Self::tutorial__tropic, "Secured with TROPIC01"),
-            (Self::tutorial__tropic_info1, "TROPIC01 is a next-gen secure element with tamper-proof protection and open architecture."),
-            (Self::tutorial__tropic_info2, "Private keys stay on-chip, safeguarded by hardware-enforced boundaries and anti-tamper tech."),
-            (Self::tutorial__tropic_info3, "Built for security from the ground up, and open to independent audits."),
-            (Self::tutorial__welcome_safe7, "Welcome to\nTrezor\nSafe 7"),
+            (Self::tutorial__welcome_safe7, "Welcome\nto Trezor\nSafe 7"),
             (Self::tutorial__what_is_tropic, "What is TROPIC01?"),
+            (Self::tutorial__tap_to_start, "Tap to start tutorial"),
+            (Self::tutorial__tropic_info, "TROPIC01 is a next-gen open-source secure element chip designed for transparent and auditable hardware security."),
+            #[cfg(feature = "universal_fw")]
+            (Self::stellar__sign_with, "Sign with"),
+            #[cfg(feature = "universal_fw")]
+            (Self::stellar__timebounds, "Timebounds"),
+            #[cfg(feature = "universal_fw")]
+            (Self::stellar__token_info, "Token info"),
+            #[cfg(feature = "universal_fw")]
+            (Self::stellar__transaction_source, "Transaction source"),
+            #[cfg(feature = "universal_fw")]
+            (Self::stellar__transaction_source_diff_warning, "Transaction source does not belong to this Trezor."),
+            (Self::device_name__continue_with_empty_label, "Continue with empty device name?"),
+            (Self::device_name__enter, "Enter device name"),
+            (Self::regulatory_certification__title, "Regulatory certification"),
+            (Self::words__name, "Name"),
+            (Self::device_name__changed, "Device name changed."),
+            #[cfg(feature = "universal_fw")]
+            (Self::cardano__confirm_message, "Confirm message"),
+            #[cfg(feature = "universal_fw")]
+            (Self::cardano__empty_message, "Empty message"),
+            #[cfg(feature = "universal_fw")]
+            (Self::cardano__message_hash, "Message hash:"),
+            #[cfg(feature = "universal_fw")]
+            (Self::cardano__message_hex, "Message hex"),
+            #[cfg(feature = "universal_fw")]
+            (Self::cardano__message_text, "Message text"),
+            #[cfg(feature = "universal_fw")]
+            (Self::cardano__sign_message_hash_path_template, "Sign message hash with {0}"),
+            #[cfg(feature = "universal_fw")]
+            (Self::cardano__sign_message_path_template, "Sign message with {0}"),
+            (Self::ble__manage_paired, "Manage paired devices"),
+            (Self::ble__pair_new, "Pair new device"),
+            (Self::ble__pair_title, "Pair & connect"),
+            (Self::ble__version, "Bluetooth version"),
+            (Self::homescreen__firmware_type, "Firmware type"),
+            (Self::homescreen__firmware_version, "Firmware version"),
+            (Self::led__disable, "Disable LED?"),
+            (Self::led__enable, "Enable LED?"),
+            (Self::led__title, "LED"),
+            (Self::words__about, "About"),
+            (Self::words__connected, "Connected"),
+            (Self::words__device, "Device"),
+            (Self::words__disconnect, "Disconnect"),
+            (Self::words__led, "LED"),
+            (Self::words__manage, "Manage"),
+            (Self::words__off, "OFF"),
+            (Self::words__on, "ON"),
+            (Self::words__review, "Review"),
+            (Self::words__security, "Security"),
     ];
 
     #[cfg(feature = "micropython")]
@@ -3326,9 +3386,13 @@ impl TranslatedString {
         (Qstr::MP_QSTR_bitcoin__unverified_external_inputs, Self::bitcoin__unverified_external_inputs),
         (Qstr::MP_QSTR_bitcoin__valid_signature, Self::bitcoin__valid_signature),
         (Qstr::MP_QSTR_bitcoin__voting_rights, Self::bitcoin__voting_rights),
+        (Qstr::MP_QSTR_ble__manage_paired, Self::ble__manage_paired),
+        (Qstr::MP_QSTR_ble__pair_new, Self::ble__pair_new),
+        (Qstr::MP_QSTR_ble__pair_title, Self::ble__pair_title),
         (Qstr::MP_QSTR_ble__unpair_all, Self::ble__unpair_all),
         (Qstr::MP_QSTR_ble__unpair_current, Self::ble__unpair_current),
         (Qstr::MP_QSTR_ble__unpair_title, Self::ble__unpair_title),
+        (Qstr::MP_QSTR_ble__version, Self::ble__version),
         (Qstr::MP_QSTR_brightness__change_title, Self::brightness__change_title),
         (Qstr::MP_QSTR_brightness__changed_title, Self::brightness__changed_title),
         (Qstr::MP_QSTR_brightness__title, Self::brightness__title),
@@ -3422,6 +3486,8 @@ impl TranslatedString {
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_cardano__collateral_return, Self::cardano__collateral_return),
         #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_cardano__confirm_message, Self::cardano__confirm_message),
+        #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_cardano__confirm_signing_stake_pool, Self::cardano__confirm_signing_stake_pool),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_cardano__confirm_transaction, Self::cardano__confirm_transaction),
@@ -3448,6 +3514,8 @@ impl TranslatedString {
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_cardano__deposit, Self::cardano__deposit),
         #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_cardano__empty_message, Self::cardano__empty_message),
+        #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_cardano__for_account_and_index_template, Self::cardano__for_account_and_index_template),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_cardano__for_account_template, Self::cardano__for_account_template),
@@ -3471,6 +3539,12 @@ impl TranslatedString {
         (Qstr::MP_QSTR_cardano__key_hash, Self::cardano__key_hash),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_cardano__margin, Self::cardano__margin),
+        #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_cardano__message_hash, Self::cardano__message_hash),
+        #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_cardano__message_hex, Self::cardano__message_hex),
+        #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_cardano__message_text, Self::cardano__message_text),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_cardano__multisig_path, Self::cardano__multisig_path),
         #[cfg(feature = "universal_fw")]
@@ -3539,6 +3613,10 @@ impl TranslatedString {
         (Qstr::MP_QSTR_cardano__sending, Self::cardano__sending),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_cardano__show_simple, Self::cardano__show_simple),
+        #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_cardano__sign_message_hash_path_template, Self::cardano__sign_message_hash_path_template),
+        #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_cardano__sign_message_path_template, Self::cardano__sign_message_path_template),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_cardano__sign_tx_path_template, Self::cardano__sign_tx_path_template),
         #[cfg(feature = "universal_fw")]
@@ -3616,6 +3694,9 @@ impl TranslatedString {
         #[cfg(feature = "debug")]
         (Qstr::MP_QSTR_debug__loading_seed_not_recommended, Self::debug__loading_seed_not_recommended),
         (Qstr::MP_QSTR_device_name__change_template, Self::device_name__change_template),
+        (Qstr::MP_QSTR_device_name__changed, Self::device_name__changed),
+        (Qstr::MP_QSTR_device_name__continue_with_empty_label, Self::device_name__continue_with_empty_label),
+        (Qstr::MP_QSTR_device_name__enter, Self::device_name__enter),
         (Qstr::MP_QSTR_device_name__title, Self::device_name__title),
         (Qstr::MP_QSTR_entropy__send, Self::entropy__send),
         (Qstr::MP_QSTR_entropy__title_confirm, Self::entropy__title_confirm),
@@ -3859,6 +3940,8 @@ impl TranslatedString {
         (Qstr::MP_QSTR_haptic_feedback__title, Self::haptic_feedback__title),
         (Qstr::MP_QSTR_homescreen__click_to_connect, Self::homescreen__click_to_connect),
         (Qstr::MP_QSTR_homescreen__click_to_unlock, Self::homescreen__click_to_unlock),
+        (Qstr::MP_QSTR_homescreen__firmware_type, Self::homescreen__firmware_type),
+        (Qstr::MP_QSTR_homescreen__firmware_version, Self::homescreen__firmware_version),
         (Qstr::MP_QSTR_homescreen__set_default, Self::homescreen__set_default),
         (Qstr::MP_QSTR_homescreen__settings_subtitle, Self::homescreen__settings_subtitle),
         (Qstr::MP_QSTR_homescreen__settings_title, Self::homescreen__settings_title),
@@ -3904,6 +3987,9 @@ impl TranslatedString {
         (Qstr::MP_QSTR_language__changed, Self::language__changed),
         (Qstr::MP_QSTR_language__progress, Self::language__progress),
         (Qstr::MP_QSTR_language__title, Self::language__title),
+        (Qstr::MP_QSTR_led__disable, Self::led__disable),
+        (Qstr::MP_QSTR_led__enable, Self::led__enable),
+        (Qstr::MP_QSTR_led__title, Self::led__title),
         (Qstr::MP_QSTR_lockscreen__tap_to_connect, Self::lockscreen__tap_to_connect),
         (Qstr::MP_QSTR_lockscreen__tap_to_unlock, Self::lockscreen__tap_to_unlock),
         (Qstr::MP_QSTR_lockscreen__title_locked, Self::lockscreen__title_locked),
@@ -4187,6 +4273,7 @@ impl TranslatedString {
         (Qstr::MP_QSTR_recovery__x_more_shares_needed_template_plural, Self::recovery__x_more_shares_needed_template_plural),
         (Qstr::MP_QSTR_recovery__x_of_y_entered_template, Self::recovery__x_of_y_entered_template),
         (Qstr::MP_QSTR_recovery__you_have_entered, Self::recovery__you_have_entered),
+        (Qstr::MP_QSTR_regulatory_certification__title, Self::regulatory_certification__title),
         (Qstr::MP_QSTR_reset__advanced_group_threshold_info, Self::reset__advanced_group_threshold_info),
         (Qstr::MP_QSTR_reset__all_x_of_y_template, Self::reset__all_x_of_y_template),
         (Qstr::MP_QSTR_reset__any_x_of_y_template, Self::reset__any_x_of_y_template),
@@ -4441,11 +4528,7 @@ impl TranslatedString {
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__confirm_memo, Self::stellar__confirm_memo),
         #[cfg(feature = "universal_fw")]
-        (Qstr::MP_QSTR_stellar__confirm_network, Self::stellar__confirm_network),
-        #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__confirm_operation, Self::stellar__confirm_operation),
-        #[cfg(feature = "universal_fw")]
-        (Qstr::MP_QSTR_stellar__confirm_stellar, Self::stellar__confirm_stellar),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__confirm_timebounds, Self::stellar__confirm_timebounds),
         #[cfg(feature = "universal_fw")]
@@ -4473,10 +4556,6 @@ impl TranslatedString {
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__inflation, Self::stellar__inflation),
         #[cfg(feature = "universal_fw")]
-        (Qstr::MP_QSTR_stellar__initial_balance, Self::stellar__initial_balance),
-        #[cfg(feature = "universal_fw")]
-        (Qstr::MP_QSTR_stellar__initialize_signing_with, Self::stellar__initialize_signing_with),
-        #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__issuer_template, Self::stellar__issuer_template),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__key, Self::stellar__key),
@@ -4497,8 +4576,6 @@ impl TranslatedString {
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__no_restriction, Self::stellar__no_restriction),
         #[cfg(feature = "universal_fw")]
-        (Qstr::MP_QSTR_stellar__on_network_template, Self::stellar__on_network_template),
-        #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__path_pay, Self::stellar__path_pay),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__path_pay_at_least, Self::stellar__path_pay_at_least),
@@ -4510,8 +4587,6 @@ impl TranslatedString {
         (Qstr::MP_QSTR_stellar__preauth_transaction, Self::stellar__preauth_transaction),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__price_per_template, Self::stellar__price_per_template),
-        #[cfg(feature = "universal_fw")]
-        (Qstr::MP_QSTR_stellar__private_network, Self::stellar__private_network),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__remove_signer, Self::stellar__remove_signer),
         #[cfg(feature = "universal_fw")]
@@ -4529,9 +4604,17 @@ impl TranslatedString {
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__sign_tx_fee_template, Self::stellar__sign_tx_fee_template),
         #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_stellar__sign_with, Self::stellar__sign_with),
+        #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__source_account, Self::stellar__source_account),
         #[cfg(feature = "universal_fw")]
-        (Qstr::MP_QSTR_stellar__testnet_network, Self::stellar__testnet_network),
+        (Qstr::MP_QSTR_stellar__timebounds, Self::stellar__timebounds),
+        #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_stellar__token_info, Self::stellar__token_info),
+        #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_stellar__transaction_source, Self::stellar__transaction_source),
+        #[cfg(feature = "universal_fw")]
+        (Qstr::MP_QSTR_stellar__transaction_source_diff_warning, Self::stellar__transaction_source_diff_warning),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__trusted_account, Self::stellar__trusted_account),
         #[cfg(feature = "universal_fw")]
@@ -4544,8 +4627,6 @@ impl TranslatedString {
         (Qstr::MP_QSTR_stellar__value_sha256, Self::stellar__value_sha256),
         #[cfg(feature = "universal_fw")]
         (Qstr::MP_QSTR_stellar__wanna_clean_value_key_template, Self::stellar__wanna_clean_value_key_template),
-        #[cfg(feature = "universal_fw")]
-        (Qstr::MP_QSTR_stellar__your_account, Self::stellar__your_account),
         (Qstr::MP_QSTR_storage_msg__processing, Self::storage_msg__processing),
         (Qstr::MP_QSTR_storage_msg__starting, Self::storage_msg__starting),
         (Qstr::MP_QSTR_storage_msg__verifying_pin, Self::storage_msg__verifying_pin),
@@ -4594,6 +4675,7 @@ impl TranslatedString {
         (Qstr::MP_QSTR_tutorial__suite_restart, Self::tutorial__suite_restart),
         (Qstr::MP_QSTR_tutorial__sure_you_want_skip, Self::tutorial__sure_you_want_skip),
         (Qstr::MP_QSTR_tutorial__swipe_up_and_down, Self::tutorial__swipe_up_and_down),
+        (Qstr::MP_QSTR_tutorial__tap_to_start, Self::tutorial__tap_to_start),
         (Qstr::MP_QSTR_tutorial__title_easy_navigation, Self::tutorial__title_easy_navigation),
         (Qstr::MP_QSTR_tutorial__title_handy_menu, Self::tutorial__title_handy_menu),
         (Qstr::MP_QSTR_tutorial__title_hello, Self::tutorial__title_hello),
@@ -4603,10 +4685,7 @@ impl TranslatedString {
         (Qstr::MP_QSTR_tutorial__title_skip, Self::tutorial__title_skip),
         (Qstr::MP_QSTR_tutorial__title_tutorial_complete, Self::tutorial__title_tutorial_complete),
         (Qstr::MP_QSTR_tutorial__title_well_done, Self::tutorial__title_well_done),
-        (Qstr::MP_QSTR_tutorial__tropic, Self::tutorial__tropic),
-        (Qstr::MP_QSTR_tutorial__tropic_info1, Self::tutorial__tropic_info1),
-        (Qstr::MP_QSTR_tutorial__tropic_info2, Self::tutorial__tropic_info2),
-        (Qstr::MP_QSTR_tutorial__tropic_info3, Self::tutorial__tropic_info3),
+        (Qstr::MP_QSTR_tutorial__tropic_info, Self::tutorial__tropic_info),
         (Qstr::MP_QSTR_tutorial__use_trezor, Self::tutorial__use_trezor),
         (Qstr::MP_QSTR_tutorial__welcome_press_right, Self::tutorial__welcome_press_right),
         (Qstr::MP_QSTR_tutorial__welcome_safe5, Self::tutorial__welcome_safe5),
@@ -4641,6 +4720,7 @@ impl TranslatedString {
         (Qstr::MP_QSTR_wipe_code__turn_on, Self::wipe_code__turn_on),
         (Qstr::MP_QSTR_wipe_code__wipe_code_mismatch, Self::wipe_code__wipe_code_mismatch),
         (Qstr::MP_QSTR_word_count__title, Self::word_count__title),
+        (Qstr::MP_QSTR_words__about, Self::words__about),
         (Qstr::MP_QSTR_words__account, Self::words__account),
         (Qstr::MP_QSTR_words__account_colon, Self::words__account_colon),
         (Qstr::MP_QSTR_words__address, Self::words__address),
@@ -4657,10 +4737,13 @@ impl TranslatedString {
         (Qstr::MP_QSTR_words__chain, Self::words__chain),
         (Qstr::MP_QSTR_words__confirm, Self::words__confirm),
         (Qstr::MP_QSTR_words__confirm_fee, Self::words__confirm_fee),
+        (Qstr::MP_QSTR_words__connected, Self::words__connected),
         (Qstr::MP_QSTR_words__contains, Self::words__contains),
         (Qstr::MP_QSTR_words__continue_anyway, Self::words__continue_anyway),
         (Qstr::MP_QSTR_words__continue_anyway_question, Self::words__continue_anyway_question),
         (Qstr::MP_QSTR_words__continue_with, Self::words__continue_with),
+        (Qstr::MP_QSTR_words__device, Self::words__device),
+        (Qstr::MP_QSTR_words__disconnect, Self::words__disconnect),
         (Qstr::MP_QSTR_words__error, Self::words__error),
         (Qstr::MP_QSTR_words__fee, Self::words__fee),
         (Qstr::MP_QSTR_words__from, Self::words__from),
@@ -4669,9 +4752,14 @@ impl TranslatedString {
         (Qstr::MP_QSTR_words__instructions, Self::words__instructions),
         (Qstr::MP_QSTR_words__keep_it_safe, Self::words__keep_it_safe),
         (Qstr::MP_QSTR_words__know_what_your_doing, Self::words__know_what_your_doing),
+        (Qstr::MP_QSTR_words__led, Self::words__led),
+        (Qstr::MP_QSTR_words__manage, Self::words__manage),
         (Qstr::MP_QSTR_words__my_trezor, Self::words__my_trezor),
+        (Qstr::MP_QSTR_words__name, Self::words__name),
         (Qstr::MP_QSTR_words__no, Self::words__no),
         (Qstr::MP_QSTR_words__not_recommended, Self::words__not_recommended),
+        (Qstr::MP_QSTR_words__off, Self::words__off),
+        (Qstr::MP_QSTR_words__on, Self::words__on),
         (Qstr::MP_QSTR_words__operation_cancelled, Self::words__operation_cancelled),
         (Qstr::MP_QSTR_words__outputs, Self::words__outputs),
         (Qstr::MP_QSTR_words__pay_attention, Self::words__pay_attention),
@@ -4682,6 +4770,8 @@ impl TranslatedString {
         (Qstr::MP_QSTR_words__receive, Self::words__receive),
         (Qstr::MP_QSTR_words__recipient, Self::words__recipient),
         (Qstr::MP_QSTR_words__recovery_share, Self::words__recovery_share),
+        (Qstr::MP_QSTR_words__review, Self::words__review),
+        (Qstr::MP_QSTR_words__security, Self::words__security),
         (Qstr::MP_QSTR_words__send, Self::words__send),
         (Qstr::MP_QSTR_words__settings, Self::words__settings),
         (Qstr::MP_QSTR_words__sign, Self::words__sign),

@@ -28,7 +28,7 @@ use crate::{
         },
         ui_firmware::{
             FirmwareUI, ERROR_NOT_IMPLEMENTED, MAX_CHECKLIST_ITEMS, MAX_GROUP_SHARE_LINES,
-            MAX_MENU_ITEMS, MAX_WORD_QUIZ_ITEMS,
+            MAX_MENU_ITEMS, MAX_PAIRED_DEVICES, MAX_WORD_QUIZ_ITEMS,
         },
         ModelUI,
     },
@@ -391,22 +391,23 @@ impl FirmwareUI for UIBolt {
         _subtitle: Option<TString<'static>>,
         items: Obj,
         hold: bool,
-        _verb: Option<TString<'static>>,
-        _external_menu: bool,
+        verb: Option<TString<'static>>,
+        external_menu: bool,
     ) -> Result<impl LayoutMaybeTrace, Error> {
-        let paragraphs = PropsList::new(
-            items,
-            &theme::TEXT_NORMAL,
-            &theme::TEXT_MONO,
-            &theme::TEXT_MONO_DATA,
-        )?;
+        let paragraphs = PropsList::new(items)?;
         let page = if hold {
             ButtonPage::new(paragraphs.into_paragraphs(), theme::BG).with_hold()?
         } else {
             ButtonPage::new(paragraphs.into_paragraphs(), theme::BG)
-                .with_cancel_confirm(None, Some(TR::buttons__confirm.into()))
+                .with_cancel_confirm(None, Some(verb.unwrap_or(TR::buttons__confirm.into())))
         };
-        let layout = RootComponent::new(Frame::left_aligned(theme::label_title(), title, page));
+        let mut frame = Frame::left_aligned(theme::label_title(), title, page);
+        if external_menu {
+            // Note: this could become a hamburger button when we would actually
+            // support menus, but for now all we have on model T is an info button
+            frame = frame.with_info_button();
+        }
+        let layout = RootComponent::new(frame);
         Ok(layout)
     }
 
@@ -579,8 +580,8 @@ impl FirmwareUI for UIBolt {
         _subtitle: Option<TString<'static>>,
         _description: Option<TString<'static>>,
         _extra: Option<TString<'static>>,
-        _message: Obj,
-        _amount: Option<Obj>,
+        _message: TString<'static>,
+        _amount: Option<TString<'static>>,
         _chunkify: bool,
         _text_mono: bool,
         _account_title: TString<'static>,
@@ -588,8 +589,8 @@ impl FirmwareUI for UIBolt {
         _account_path: Option<TString<'static>>,
         _br_code: u16,
         _br_name: TString<'static>,
-        _address_item: Option<(TString<'static>, Obj)>,
-        _extra_item: Option<(TString<'static>, Obj)>,
+        _address_item: Option<Obj>,
+        _extra_item: Option<Obj>,
         _summary_items: Option<Obj>,
         _fee_items: Option<Obj>,
         _summary_title: Option<TString<'static>>,
@@ -722,10 +723,20 @@ impl FirmwareUI for UIBolt {
 
     fn request_passphrase(
         _prompt: TString<'static>,
-        _max_len: u32,
+        _prompt_empty: TString<'static>,
+        max_len: usize,
     ) -> Result<impl LayoutMaybeTrace, Error> {
-        let layout = RootComponent::new(PassphraseKeyboard::new());
+        let layout = RootComponent::new(PassphraseKeyboard::new(max_len));
         Ok(layout)
+    }
+
+    fn request_string(
+        _prompt: TString<'static>,
+        _max_len: usize,
+        _allow_empty: bool,
+        _prefill: Option<TString<'static>>,
+    ) -> Result<impl LayoutMaybeTrace, Error> {
+        Err::<RootComponent<Empty, ModelUI>, Error>(ERROR_NOT_IMPLEMENTED)
     }
 
     fn select_menu(
@@ -923,10 +934,18 @@ impl FirmwareUI for UIBolt {
 
     fn show_device_menu(
         _failed_backup: bool,
-        _firmware_version: TString<'static>,
-        _device_name: TString<'static>,
-        _paired_devices: heapless::Vec<TString<'static>, 1>,
-        _auto_lock_delay: TString<'static>,
+        _paired_devices: heapless::Vec<TString<'static>, MAX_PAIRED_DEVICES>,
+        _connected_idx: Option<usize>,
+        _bluetooth: Option<bool>,
+        _pin_code: Option<bool>,
+        _auto_lock_delay: Option<TString<'static>>,
+        _wipe_code: Option<bool>,
+        _check_backup: bool,
+        _device_name: Option<TString<'static>>,
+        _screen_brightness: Option<TString<'static>>,
+        _haptic_feedback: Option<bool>,
+        _led_enabled: Option<bool>,
+        _about_items: Obj,
     ) -> Result<impl LayoutMaybeTrace, Error> {
         Err::<RootComponent<Empty, ModelUI>, Error>(Error::ValueError(
             c"show_device_menu not supported",
@@ -1012,7 +1031,7 @@ impl FirmwareUI for UIBolt {
         let mut paragraphs = ParagraphVecShort::new();
 
         for para in IterBuf::new().try_iterate(items)? {
-            let [key, value]: [Obj; 2] = util::iter_into_array(para)?;
+            let [key, value, _]: [Obj; 3] = util::iter_into_array(para)?;
             let key: TString = key.try_into()?;
             let value: TString = value.try_into()?;
             paragraphs.add(Paragraph::new(&theme::TEXT_NORMAL, key).no_break());

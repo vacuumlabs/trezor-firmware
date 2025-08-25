@@ -1,5 +1,6 @@
 from typing import *
 from trezor import utils
+PropertyType = tuple[str | None, str | bytes | None, bool | None]
 T = TypeVar("T")
 
 
@@ -282,7 +283,7 @@ def confirm_properties(
     *,
     title: str,
     subtitle: str | None = None,
-    items: list[tuple[str | None, str | bytes | None, bool | None]],
+    items: list[PropertyType],
     hold: bool = False,
     verb: str | None = None,
     external_menu: bool = False,
@@ -304,9 +305,9 @@ def confirm_summary(
     fee: str,
     fee_label: str,
     title: str | None = None,
-    account_items: Iterable[tuple[str, str]] | None = None,
+    account_items: list[PropertyType] | None = None,
     account_title: str | None = None,
-    extra_items: Iterable[tuple[str, str]] | None = None,
+    extra_items: list[PropertyType] | None = None,
     extra_title: str | None = None,
     verb_cancel: str | None = None,
     back_button: bool = False,
@@ -360,10 +361,10 @@ def flow_confirm_output(
     account_path: str | None,
     br_code: ButtonRequestType,
     br_name: str,
-    address_item: (str, str) | None,
-    extra_item: (str, str) | None,
-    summary_items: Iterable[tuple[str, str]] | None = None,
-    fee_items: Iterable[tuple[str, str]] | None = None,
+    address_item: PropertyType | None,
+    extra_item: PropertyType | None,
+    summary_items: list[PropertyType] | None = None,
+    fee_items: list[PropertyType] | None = None,
     summary_title: str | None = None,
     summary_br_code: ButtonRequestType | None = None,
     summary_br_name: str | None = None,
@@ -496,9 +497,21 @@ def request_pin(
 def request_passphrase(
     *,
     prompt: str,
+    prompt_empty: str,
     max_len: int,
 ) -> LayoutObj[str | UiResult]:
     """Passphrase input keyboard."""
+
+
+# rust/src/ui/api/firmware_micropython.rs
+def request_string(
+    *,
+    prompt: str,
+    max_len: int,
+    allow_empty: bool,
+    prefill: str | None,
+) -> LayoutObj[str | UiResult]:
+    """Label input keyboard."""
 
 
 # rust/src/ui/api/firmware_micropython.rs
@@ -610,10 +623,18 @@ def show_homescreen(
 def show_device_menu(
     *,
     failed_backup: bool,
-    firmware_version: str,
-    device_name: str,
     paired_devices: Iterable[str],
-    auto_lock_delay: str,
+    connected_idx: int | None,
+    bluetooth: bool | None,
+    pin_code: bool | None,
+    auto_lock_delay: str | None,
+    wipe_code: bool | None,
+    check_backup: bool,
+    device_name: str | None,
+    screen_brightness: str | None,
+    haptic_feedback: bool | None,
+    led_enabled: bool | None,
+    about_items: list[tuple[str | None, str | bytes | None, bool | None]],
 ) -> LayoutObj[UiResult | DeviceMenuResult | tuple[DeviceMenuResult, int]]:
     """Show the device menu."""
 
@@ -663,7 +684,7 @@ def show_info(
 def show_info_with_cancel(
     *,
     title: str,
-    items: Iterable[tuple[str, str]],
+    items: list[PropertyType],
     horizontal: bool = False,
     chunkify: bool = False,
 ) -> LayoutObj[UiResult]:
@@ -715,7 +736,7 @@ def show_progress_coinjoin(
 def show_properties(
     *,
     title: str,
-    value: list[tuple[str, str]] | str,
+    value: list[PropertyType] | str,
 ) -> LayoutObj[None]:
     """Show a list of key-value pairs, or a monospace string."""
 
@@ -830,9 +851,20 @@ class LayoutState:
 class DeviceMenuResult:
     """Result of a device menu operation."""
     BackupFailed: ClassVar[DeviceMenuResult]
-    DevicePair: ClassVar[DeviceMenuResult]
+    DeviceConnect: ClassVar[DeviceMenuResult]
     DeviceDisconnect: ClassVar[DeviceMenuResult]
-    CheckBackup: ClassVar[DeviceMenuResult]
-    WipeDevice: ClassVar[DeviceMenuResult]
-    ScreenBrightness: ClassVar[DeviceMenuResult]
+    DevicePair: ClassVar[DeviceMenuResult]
+    DeviceUnpair: ClassVar[DeviceMenuResult]
+    DeviceUnpairAll: ClassVar[DeviceMenuResult]
+    Bluetooth: ClassVar[DeviceMenuResult]
+    PinCode: ClassVar[DeviceMenuResult]
+    PinRemove: ClassVar[DeviceMenuResult]
     AutoLockDelay: ClassVar[DeviceMenuResult]
+    WipeCode: ClassVar[DeviceMenuResult]
+    WipeRemove: ClassVar[DeviceMenuResult]
+    CheckBackup: ClassVar[DeviceMenuResult]
+    DeviceName: ClassVar[DeviceMenuResult]
+    ScreenBrightness: ClassVar[DeviceMenuResult]
+    HapticFeedback: ClassVar[DeviceMenuResult]
+    LedEnabled: ClassVar[DeviceMenuResult]
+    WipeDevice: ClassVar[DeviceMenuResult]

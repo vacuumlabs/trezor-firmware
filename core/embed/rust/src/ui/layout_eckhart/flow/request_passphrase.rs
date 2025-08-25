@@ -1,6 +1,6 @@
 use crate::{
     error,
-    strutil::ShortString,
+    strutil::{ShortString, TString},
     translations::TR,
     ui::{
         component::{
@@ -58,16 +58,17 @@ impl FlowController for RequestPassphrase {
     }
 }
 
-pub fn new_request_passphrase() -> Result<SwipeFlow, error::Error> {
+pub fn new_request_passphrase(
+    prompt: TString<'static>,
+    prompt_empty: TString<'static>,
+    max_len: usize,
+) -> Result<SwipeFlow, error::Error> {
     let content_confirm_empty = TextScreen::new(
-        Paragraph::new(
-            &theme::TEXT_REGULAR,
-            TR::passphrase__continue_with_empty_passphrase,
-        )
-        .into_paragraphs()
-        .with_placement(LinearPlacement::vertical()),
+        Paragraph::new(&theme::TEXT_REGULAR, prompt_empty)
+            .into_paragraphs()
+            .with_placement(LinearPlacement::vertical()),
     )
-    .with_header(Header::new(TR::passphrase__title_enter.into()))
+    .with_header(Header::new(prompt))
     .with_action_bar(ActionBar::new_double(
         Button::with_icon(theme::ICON_CHEVRON_LEFT),
         Button::with_text(TR::buttons__confirm.into()),
@@ -79,7 +80,7 @@ pub fn new_request_passphrase() -> Result<SwipeFlow, error::Error> {
         _ => Some(FlowMsg::Cancelled),
     });
 
-    let content_keypad = PassphraseKeyboard::new().map(|msg| match msg {
+    let content_keypad = PassphraseKeyboard::new(prompt, max_len).map(|msg| match msg {
         PassphraseKeyboardMsg::Confirmed(s) => Some(FlowMsg::Text(s)),
         PassphraseKeyboardMsg::Cancelled => Some(FlowMsg::Cancelled),
     });

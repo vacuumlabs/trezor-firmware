@@ -1,6 +1,5 @@
 import builtins
 from micropython import const
-from typing import TYPE_CHECKING
 
 from storage.cache_common import (
     CHANNEL_HOST_STATIC_PUBKEY,
@@ -11,12 +10,6 @@ from storage.cache_common import (
     SESSION_STATE,
     DataCache,
 )
-
-if TYPE_CHECKING:
-    from typing import Tuple
-
-    pass
-
 
 # THP specific constants
 _MAX_CHANNELS_COUNT = const(10)
@@ -182,12 +175,14 @@ def update_session_last_used(channel_id: bytes, session_id: bytes) -> None:
             return
 
 
-def get_all_allocated_channels() -> list[ChannelCache]:
-    _list: list[ChannelCache] = []
+def find_allocated_channel(cid: int) -> ChannelCache | None:
     for channel in _CHANNELS:
-        if channel.get_int(CHANNEL_STATE, _UNALLOCATED_STATE) != _UNALLOCATED_STATE:
-            _list.append(channel)
-    return _list
+        state = channel.get_int(CHANNEL_STATE, _UNALLOCATED_STATE)
+        if state == _UNALLOCATED_STATE:
+            continue
+        if channel.get_int(CHANNEL_ID) == cid:
+            return channel
+    return None
 
 
 def get_allocated_session(
@@ -391,7 +386,7 @@ def clear_all() -> None:
         channel.clear()
 
 
-def clear_all_except_one_session_keys(excluded: Tuple[bytes, bytes]) -> None:
+def clear_all_except_one_session_keys(excluded: tuple[bytes, bytes]) -> None:
     cid, sid = excluded
 
     for channel in _CHANNELS:

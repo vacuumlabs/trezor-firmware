@@ -1,7 +1,6 @@
 use crate::{
     strutil::{ShortString, TString},
     time::Duration,
-    translations::TR,
     ui::{
         component::{
             swipe_detect::SwipeConfig,
@@ -26,8 +25,8 @@ use super::super::{
     constant::SCREEN,
     keyboard::{
         common::{
-            render_pending_marker, MultiTapKeyboard, FADING_ICON_COLORS, FADING_ICON_COUNT,
-            INPUT_TOUCH_HEIGHT, KEYBOARD_INPUT_INSETS, KEYBOARD_INPUT_RADIUS,
+            render_pending_marker, KeyboardLayout, MultiTapKeyboard, FADING_ICON_COLORS,
+            FADING_ICON_COUNT, INPUT_TOUCH_HEIGHT, KEYBOARD_INPUT_INSETS, KEYBOARD_INPUT_RADIUS,
             KEYPAD_VISIBLE_HEIGHT,
         },
         keypad::{ButtonState, Keypad, KeypadButton, KeypadMsg, KeypadState},
@@ -40,50 +39,6 @@ pub enum PassphraseKeyboardMsg {
     Cancelled,
 }
 
-/// Enum keeping track of which keyboard is shown and which comes next. Keep the
-/// number of values and the constant PAGE_COUNT in synch.
-#[repr(u32)]
-#[derive(Copy, Clone, PartialEq)]
-#[cfg_attr(feature = "ui_debug", derive(ufmt::derive::uDebug))]
-enum KeyboardLayout {
-    LettersLower = 0,
-    LettersUpper = 1,
-    Numeric = 2,
-    Special = 3,
-}
-
-impl KeyboardLayout {
-    fn next(self) -> Self {
-        match self {
-            Self::LettersLower => Self::LettersUpper,
-            Self::LettersUpper => Self::Numeric,
-            Self::Numeric => Self::Special,
-            Self::Special => Self::LettersLower,
-        }
-    }
-
-    fn prev(self) -> Self {
-        match self {
-            Self::LettersLower => Self::Special,
-            Self::LettersUpper => Self::LettersLower,
-            Self::Numeric => Self::LettersUpper,
-            Self::Special => Self::Numeric,
-        }
-    }
-}
-
-impl From<KeyboardLayout> for ButtonContent {
-    /// Used to get content for the "next keyboard" button
-    fn from(kl: KeyboardLayout) -> Self {
-        match kl {
-            KeyboardLayout::LettersLower => ButtonContent::single_line_text("abc".into()),
-            KeyboardLayout::LettersUpper => ButtonContent::single_line_text("ABC".into()),
-            KeyboardLayout::Numeric => ButtonContent::single_line_text("123".into()),
-            KeyboardLayout::Special => ButtonContent::Icon(theme::ICON_ASTERISK),
-        }
-    }
-}
-
 pub struct PassphraseKeyboard {
     page_swipe: Swipe,
     input: PassphraseInput,
@@ -93,6 +48,7 @@ pub struct PassphraseKeyboard {
     active_layout: KeyboardLayout,
     swipe_config: SwipeConfig,
     multi_tap: MultiTapKeyboard,
+    max_len: usize,
 }
 
 const PAGE_COUNT: usize = 4;
@@ -105,7 +61,6 @@ const KEYBOARD: [[&str; KEY_COUNT]; PAGE_COUNT] = [
     ["_<>", ".:@", "/|\\", "!()", "+%&", "-[]", "?{}", ",'`", ";\"~", "$^="],
     ];
 
-const MAX_LENGTH: usize = 50; // max length of the passphrase
 const MAX_SHOWN_LEN: usize = 13; // max number of icons per line
 const LAST_DIGIT_TIMEOUT: Duration = Duration::from_secs(1);
 
@@ -115,7 +70,7 @@ const NEXT_BTN_INSETS: Insets =
     Insets::new(NEXT_BTN_PADDING, NEXT_BTN_PADDING, 0, NEXT_BTN_PADDING);
 
 impl PassphraseKeyboard {
-    pub fn new() -> Self {
+    pub fn new(prompt: TString<'static>, max_len: usize) -> Self {
         let active_layout = KeyboardLayout::LettersLower;
         let layout: &[&str; KEY_COUNT] = &KEYBOARD[active_layout as usize];
         let keypad_content: [ButtonContent; KEY_COUNT] =
@@ -129,17 +84,15 @@ impl PassphraseKeyboard {
 
         Self {
             page_swipe: Swipe::horizontal(),
-            input: PassphraseInput::new(),
-            input_prompt: Label::left_aligned(
-                TString::from_translation(TR::passphrase__title_enter),
-                theme::firmware::TEXT_SMALL,
-            )
-            .vertically_centered(),
+            input: PassphraseInput::new(max_len),
+            input_prompt: Label::left_aligned(prompt, theme::firmware::TEXT_SMALL)
+                .vertically_centered(),
             next_btn,
             keypad: Keypad::new_shown().with_keys_content(&keypad_content),
             active_layout,
             swipe_config: SwipeConfig::new(),
             multi_tap: MultiTapKeyboard::new(),
+            max_len,
         }
     }
 
@@ -216,7 +169,7 @@ impl PassphraseKeyboard {
                 }
             }
             _ => {
-                if self.passphrase().len() == MAX_LENGTH {
+                if self.passphrase().len() == self.max_len {
                     if let Some(pending_key) = self.multi_tap.pending_key() {
                         // Disable all except of confirm, erase and the pending key
                         KeypadState {
@@ -309,7 +262,7 @@ impl Component for PassphraseKeyboard {
                 self.input.last_char_timer.start(ctx, LAST_DIGIT_TIMEOUT);
                 self.input.display_style = DisplayStyle::LastOnly;
                 // Disable keypad when the passphrase reached the max length
-                if self.passphrase().len() == MAX_LENGTH {
+                if self.passphrase().len() == self.max_len {
                     self.update_keypad_state(ctx);
                 }
                 return None;
@@ -455,10 +408,10 @@ impl PassphraseInput {
     const ICON_WIDTH: i16 = Self::ICON.toif.width();
     const ICON_SPACE: i16 = 12;
 
-    fn new() -> Self {
+    fn new(max_len: usize) -> Self {
         Self {
             area: Rect::zero(),
-            textbox: TextBox::empty(MAX_LENGTH),
+            textbox: TextBox::empty(max_len),
             display_style: DisplayStyle::Hidden,
             last_char_timer: Timer::new(),
             shown_area: Rect::zero(),

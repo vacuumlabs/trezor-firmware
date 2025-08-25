@@ -28,7 +28,6 @@ class PairingContext(Context):
     def __init__(self, channel_ctx: Channel) -> None:
         super().__init__(channel_ctx.iface, channel_ctx.channel_id, "ThpMessageType")
         self.channel_ctx: Channel = channel_ctx
-        self.incoming_message = loop.mailbox()
         self.nfc_secret: bytes | None = None
         self.qr_code_secret: bytes | None = None
         self.code_entry_secret: bytes | None = None
@@ -44,9 +43,9 @@ class PairingContext(Context):
 
         self.cpace: Cpace
         self.host_name: str | None
+        self.app_name: str | None
 
-    async def handle(self) -> None:
-        next_message: Message | None = None
+    async def handle(self, next_message: Message | None = None) -> None:
 
         while True:
             try:
@@ -54,7 +53,7 @@ class PairingContext(Context):
                     # If the previous run did not keep an unprocessed message for us,
                     # wait for a new one.
                     try:
-                        message: Message = await self.incoming_message
+                        _, message = await self.channel_ctx.decrypt_message()
                     except protocol_common.WireError as e:
                         if __debug__:
                             log.exception(__name__, e, iface=self.iface)
@@ -101,7 +100,7 @@ class PairingContext(Context):
                 iface=self.iface,
             )
 
-        message: Message = await self.incoming_message
+        _, message = await self.channel_ctx.decrypt_message()
         if message.type not in expected_types:
             from trezor.messages import Cancel
 
@@ -118,11 +117,8 @@ class PairingContext(Context):
 
         return message_handler.wrap_protobuf_load(message.data, expected_type)
 
-    async def write(self, msg: protobuf.MessageType) -> None:
-        return await self.channel_ctx.write(msg)
-
-    def write_force(self, msg: protobuf.MessageType) -> Awaitable[None]:
-        return self.channel_ctx.write(msg, force=True)
+    def write(self, msg: protobuf.MessageType) -> Awaitable[None]:
+        return self.channel_ctx.write(msg)
 
     async def call_any(
         self, msg: protobuf.MessageType, *expected_types: int
@@ -135,35 +131,6 @@ class PairingContext(Context):
         if selected_method not in get_enabled_pairing_methods(self.iface):
             raise DataError("Selected pairing method is not supported")
         self.selected_method = selected_method
-
-    async def show_pairing_dialog(self, device_name: str | None = None) -> None:
-        from trezor.messages import ThpPairingRequestApproved
-        from trezor.ui.layouts import confirm_action
-
-        if not device_name:
-            action_string = f"Allow {self.host_name} to pair with this Trezor?"
-        else:
-            action_string = (
-                f"Allow {self.host_name} on {device_name} to pair with this Trezor?"
-            )
-
-        await confirm_action(
-            br_name="thp_pairing_request",
-            title="Before you continue",
-            action=action_string,
-        )
-
-        await self.write(ThpPairingRequestApproved())
-
-    async def show_connection_dialog(self, device_name: str | None = None) -> None:
-        await ui.show_connection_dialog(self.host_name, device_name)
-
-    async def show_autoconnect_credential_confirmation_screen(
-        self, device_name: str | None = None
-    ) -> None:
-        await ui.show_autoconnect_credential_confirmation_screen(
-            self.host_name, device_name
-        )
 
     async def show_pairing_method_screen(
         self, selected_method: ThpPairingMethod | None = None

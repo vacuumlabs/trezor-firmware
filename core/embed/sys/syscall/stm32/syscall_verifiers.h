@@ -147,10 +147,9 @@ bool __wur optiga_random_buffer__verified(uint8_t *dest, size_t size);
 #endif  // USE_OPTIGA
 
 // ---------------------------------------------------------------------
-#include "storage.h"
+#include <sec/storage.h>
 
-void storage_init__verified(PIN_UI_WAIT_CALLBACK callback, const uint8_t *salt,
-                            const uint16_t salt_len);
+void storage_setup__verified(PIN_UI_WAIT_CALLBACK callback);
 
 secbool storage_unlock__verified(const uint8_t *pin, size_t pin_len,
                                  const uint8_t *ext_salt);
@@ -184,11 +183,6 @@ bool translations_write__verified(const uint8_t *data, uint32_t offset,
 const uint8_t *translations_read__verified(uint32_t *len, uint32_t offset);
 
 // ---------------------------------------------------------------------
-#include <sec/entropy.h>
-
-void entropy_get__verified(uint8_t *buf);
-
-// ---------------------------------------------------------------------
 #include <util/fwutils.h>
 
 int firmware_hash_start__verified(const uint8_t *challenge,
@@ -212,6 +206,8 @@ bool ble_get_event__verified(ble_event_t *event);
 bool ble_write__verified(const uint8_t *data, size_t len);
 
 secbool ble_read__verified(uint8_t *data, size_t len);
+
+void ble_set_name__verified(const uint8_t *name, size_t len);
 
 #endif
 
@@ -299,13 +295,10 @@ bool button_get_event__verified(button_event_t *event);
 bool tropic_ping__verified(const uint8_t *msg_out, uint8_t *msg_in,
                            uint16_t msg_len);
 
-bool tropic_get_cert__verified(uint8_t *buf, uint16_t buf_size);
-
 bool tropic_ecc_key_generate__verified(uint16_t slot_index);
 
 bool tropic_ecc_sign__verified(uint16_t key_slot_index, const uint8_t *dig,
-                               uint16_t dig_len, uint8_t *sig,
-                               uint16_t sig_len);
+                               uint16_t dig_len, uint8_t *sig);
 
 #endif
 

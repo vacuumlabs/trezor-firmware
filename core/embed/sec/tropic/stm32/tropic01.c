@@ -27,6 +27,8 @@
 #include <sec/tropic.h>
 #include <sys/systick.h>
 
+#include "rand.h"
+
 typedef struct {
   bool initialized;
   SPI_HandleTypeDef spi;
@@ -108,7 +110,7 @@ lt_ret_t lt_port_init(lt_handle_t *h) {
   drv->spi.Init.CLKPolarity = SPI_POLARITY_LOW;
   drv->spi.Init.CLKPhase = SPI_PHASE_1EDGE;
   drv->spi.Init.NSS = SPI_NSS_HARD_OUTPUT;
-  drv->spi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+  drv->spi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
   drv->spi.Init.FirstBit = SPI_FIRSTBIT_MSB;
   drv->spi.Init.TIMode = SPI_TIMODE_DISABLE;
   drv->spi.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -166,8 +168,8 @@ lt_ret_t lt_port_spi_transfer(lt_handle_t *h, uint8_t offset, uint16_t tx_len,
   if (offset + tx_len > LT_L1_LEN_MAX) {
     return LT_L1_DATA_LEN_ERROR;
   }
-  int ret = HAL_SPI_TransmitReceive(&drv->spi, h->l2_buff + offset,
-                                    h->l2_buff + offset, tx_len, timeout);
+  int ret = HAL_SPI_TransmitReceive(&drv->spi, h->l2.buff + offset,
+                                    h->l2.buff + offset, tx_len, timeout);
   if (ret != HAL_OK) {
     return LT_FAIL;
   }
@@ -183,13 +185,9 @@ lt_ret_t lt_port_delay(lt_handle_t *h, uint32_t ms) {
   return LT_OK;
 }
 
-lt_ret_t lt_port_random_bytes(uint32_t *buff, uint16_t len) {
-  while (len > 0) {
-    uint32_t random = rng_get();
-    *buff = random;
-    buff++;
-    len--;
-  }
+lt_ret_t lt_port_random_bytes(lt_l2_state_t *s2, void *buff, size_t count) {
+  (void)s2;
+  random_buffer((uint8_t *)buff, count);
 
   return LT_OK;
 }

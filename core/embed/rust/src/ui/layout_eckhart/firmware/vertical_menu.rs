@@ -20,10 +20,12 @@ use heapless::Vec;
 /// Number of buttons.
 /// Presently, VerticalMenu holds only fixed number of buttons.
 pub const LONG_MENU_ITEMS: usize = 100;
+pub const MEDIUM_MENU_ITEMS: usize = 10;
 pub const SHORT_MENU_ITEMS: usize = 5;
 
 pub type LongMenuGc = GcBox<Vec<Button, LONG_MENU_ITEMS>>;
 pub type ShortMenuVec = Vec<Button, SHORT_MENU_ITEMS>;
+pub type MediumMenuVec = Vec<Button, MEDIUM_MENU_ITEMS>;
 
 pub trait MenuItems: Default {
     fn empty() -> Self {
@@ -36,7 +38,7 @@ pub trait MenuItems: Default {
     fn get_last(&self) -> Option<&Button>;
 }
 
-impl MenuItems for ShortMenuVec {
+impl<const N: usize> MenuItems for Vec<Button, N> {
     fn push(&mut self, button: Button) {
         unwrap!(self.push(button));
     }
@@ -97,8 +99,6 @@ pub struct VerticalMenu<T = ShortMenuVec> {
     offset_y: i16,
     /// Maximum vertical offset.
     offset_y_max: i16,
-    /// Whether to show separators between buttons.
-    separators: bool,
 }
 
 pub enum VerticalMenuMsg {
@@ -116,17 +116,11 @@ impl<T: MenuItems> VerticalMenu<T> {
             total_height: 0,
             offset_y: 0,
             offset_y_max: 0,
-            separators: false,
         }
     }
 
     pub fn empty() -> Self {
         Self::new(T::default())
-    }
-
-    pub fn with_separators(mut self) -> Self {
-        self.separators = true;
-        self
     }
 
     pub fn with_item(mut self, button: Button) -> Self {
@@ -337,9 +331,7 @@ impl<T: MenuItems> Component for VerticalMenu<T> {
                 self.render_buttons(target);
 
                 // Render separators between buttons
-                if self.separators {
-                    self.render_separators(target);
-                }
+                self.render_separators(target);
             });
         });
     }

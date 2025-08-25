@@ -25,8 +25,8 @@ use super::{
             button_cancel, button_confirm, button_default, button_wipe_confirm, BLD_BG, BLD_FG,
             TEXT_FW_FINGERPRINT, TEXT_WARNING, WELCOME_COLOR,
         },
-        BLACK, BLUE, GREEN_LIGHT, GREY, GREY_LIGHT, ICON_CHECKMARK, ICON_CLOSE, ICON_CROSS, RED,
-        TEXT_NORMAL, TEXT_SMALL_GREY, WHITE,
+        BLACK, BLUE, GREEN_LIGHT, GREY, GREY_LIGHT, ICON_CHECKMARK, ICON_CROSS, RED, TEXT_NORMAL,
+        TEXT_SMALL_GREY, WHITE,
     },
     UIEckhart, CANCEL_MESSAGE, WAIT_FOR_RESTART_MESSAGE, WAIT_MESSAGE,
 };
@@ -43,13 +43,19 @@ const PROGRESS_TEXT_ORIGIN: Point = SCREEN.top_left().ofs(Offset::new(
     theme::PADDING,
     38 + FONT_SATOSHI_REGULAR_38.text_height(),
 ));
-const PROGRESS_WAIT_ORIGIN: Point = SCREEN.bottom_left().ofs(Offset::new(168, -35));
+const PROGRESS_WAIT_ORIGIN: Point = SCREEN.bottom_center().ofs(Offset::new(0, -35));
 const SCREEN_BORDER_BLUE: ScreenBorder = ScreenBorder::new(BLUE);
 const SCREEN_BORDER_RED: ScreenBorder = ScreenBorder::new(RED);
 const SCREEN_BORDER_GREEN_LIGHT: ScreenBorder = ScreenBorder::new(GREEN_LIGHT);
 
 impl UIEckhart {
-    fn screen_progress(text: &str, initialize: bool, loader_progress: u16, border: &ScreenBorder) {
+    fn screen_progress(
+        text: &str,
+        wait_msg: &str,
+        initialize: bool,
+        loader_progress: u16,
+        border: &ScreenBorder,
+    ) {
         if initialize {
             Self::fadeout();
         }
@@ -61,8 +67,8 @@ impl UIEckhart {
                 .with_align(Alignment::Start)
                 .with_fg(GREY_LIGHT)
                 .render(target);
-            shape::Text::new(PROGRESS_WAIT_ORIGIN, WAIT_MESSAGE, FONT_SATOSHI_MEDIUM_26)
-                .with_align(Alignment::Start)
+            shape::Text::new(PROGRESS_WAIT_ORIGIN, wait_msg, FONT_SATOSHI_MEDIUM_26)
+                .with_align(Alignment::Center)
                 .with_fg(GREY)
                 .render(target);
         });
@@ -263,10 +269,7 @@ impl BootloaderUI for UIEckhart {
             .with_action_bar(BldActionBar::new_double(left, right))
             .with_screen_border(SCREEN_BORDER_BLUE)
             .with_more_info(
-                BldHeader::new("FW Fingerprint".into()).with_right_button(
-                    Button::with_icon(ICON_CLOSE).styled(theme::bootloader::button_header()),
-                    BldHeaderMsg::Cancelled,
-                ),
+                BldHeader::new("FW Fingerprint".into()).with_close_button(),
                 Label::left_aligned(fingerprint.into(), TEXT_FW_FINGERPRINT),
             );
 
@@ -365,7 +368,13 @@ impl BootloaderUI for UIEckhart {
     fn screen_boot_stage_1(_fading: bool) {}
 
     fn screen_wipe_progress(progress: u16, initialize: bool) {
-        Self::screen_progress("Resetting Trezor", initialize, progress, &SCREEN_BORDER_RED)
+        Self::screen_progress(
+            "Resetting Trezor",
+            WAIT_MESSAGE,
+            initialize,
+            progress,
+            &SCREEN_BORDER_RED,
+        )
     }
 
     fn screen_install_progress(progress: u16, initialize: bool, initial_setup: bool) {
@@ -374,7 +383,13 @@ impl BootloaderUI for UIEckhart {
         } else {
             &SCREEN_BORDER_BLUE
         };
-        Self::screen_progress("Installing firmware", initialize, progress, border)
+        Self::screen_progress(
+            "Installing firmware",
+            WAIT_MESSAGE,
+            initialize,
+            progress,
+            border,
+        )
     }
 
     fn screen_wipe_success() {
@@ -515,5 +530,16 @@ impl BootloaderUI for UIEckhart {
             screen = screen.with_screen_border(SCREEN_BORDER_BLUE);
         }
         run(&mut screen)
+    }
+
+    #[cfg(feature = "power_manager")]
+    fn screen_bootloader_entry_progress(progress: u16, initialize: bool) {
+        Self::screen_progress(
+            "Starting bootloader...",
+            "Release the button",
+            initialize,
+            progress,
+            &SCREEN_BORDER_BLUE,
+        )
     }
 }

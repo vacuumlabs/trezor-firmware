@@ -14,6 +14,13 @@ use super::{
     *,
 };
 
+// props settings
+pub const PROP_INNER_SPACING: i16 = 12; // [px]
+pub const PROPS_SPACING: i16 = 16; // [px]
+pub const PROPS_KEY_FONT: TextStyle = TEXT_SMALL_LIGHT;
+pub const PROPS_VALUE_FONT: TextStyle = TEXT_MONO_LIGHT;
+pub const PROPS_VALUE_MONO_FONT: TextStyle = TEXT_MONO_LIGHT;
+
 pub const CONFIRM_HOLD_DURATION: ShortDuration = ShortDuration::from_millis(1500);
 pub const ERASE_HOLD_DURATION: ShortDuration = ShortDuration::from_millis(1500);
 /// Duration for the battery status showcase on the ActionBar or Header
@@ -61,6 +68,10 @@ pub const TEXT_SMALL: TextStyle = TextStyle::new(
     GREY_DARK,
 )
 .with_line_spacing(-4);
+pub const TEXT_SMALL_BLACK: TextStyle = TextStyle {
+    text_color: BG,
+    ..TEXT_SMALL
+};
 /// Roboto Mono Medium - 38 (Number value)
 pub const TEXT_MONO_MEDIUM: TextStyle = TextStyle::new(
     fonts::FONT_MONO_MEDIUM_38,
@@ -184,7 +195,7 @@ pub const fn button_default() -> ButtonStyleSheet {
             font: fonts::FONT_SATOSHI_MEDIUM_26,
             text_color: GREY,
             button_color: BG,
-            icon_color: GREY,
+            icon_color: GREY_EXTRA_DARK,
         },
     }
 }
@@ -299,6 +310,30 @@ pub const fn button_header() -> ButtonStyleSheet {
             font: fonts::FONT_SATOSHI_MEDIUM_26,
             text_color: GREY_LIGHT,
             button_color: BG,
+            icon_color: GREY_LIGHT,
+        },
+    }
+}
+
+pub const fn button_header_inverted() -> ButtonStyleSheet {
+    ButtonStyleSheet {
+        normal: &ButtonStyle {
+            font: fonts::FONT_SATOSHI_MEDIUM_26,
+            text_color: BG,
+            button_color: FG,
+            icon_color: BG,
+        },
+        active: &ButtonStyle {
+            font: fonts::FONT_SATOSHI_MEDIUM_26,
+            text_color: GREY_DARK,
+            button_color: GREY_LIGHT,
+            icon_color: GREY_DARK,
+        },
+        // unused
+        disabled: &ButtonStyle {
+            font: fonts::FONT_SATOSHI_MEDIUM_26,
+            text_color: GREY_LIGHT,
+            button_color: GREY_EXTRA_LIGHT,
             icon_color: GREY_LIGHT,
         },
     }

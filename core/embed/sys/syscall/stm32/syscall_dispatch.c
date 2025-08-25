@@ -27,7 +27,6 @@
 #include <io/usb_hid.h>
 #include <io/usb_vcp.h>
 #include <io/usb_webusb.h>
-#include <sec/entropy.h>
 #include <sec/rng.h>
 #include <sec/secret.h>
 #include <sys/bootutils.h>
@@ -87,18 +86,6 @@
 #include "syscall_context.h"
 #include "syscall_internal.h"
 #include "syscall_verifiers.h"
-
-static PIN_UI_WAIT_CALLBACK storage_init_callback = NULL;
-
-static secbool storage_init_callback_wrapper(
-    uint32_t wait, uint32_t progress, enum storage_ui_message_t message) {
-  secbool result;
-
-  applet_t *applet = syscall_get_context();
-  result = systask_invoke_callback(&applet->task, wait, progress, message,
-                                   storage_init_callback);
-  return result;
-}
 
 __attribute((no_stack_protector)) void syscall_handler(uint32_t *args,
                                                        uint32_t syscall,
@@ -467,6 +454,15 @@ __attribute((no_stack_protector)) void syscall_handler(uint32_t *args,
 #endif
 
 #ifdef USE_RGB_LED
+    case SYSCALL_RGB_LED_SET_ENABLED: {
+      bool enabled = (args[0] != 0);
+      rgb_led_set_enabled(enabled);
+    } break;
+
+    case SYSCALL_RGB_LED_GET_ENABLED: {
+      args[0] = rgb_led_get_enabled();
+    } break;
+
     case SYSCALL_RGB_LED_SET_COLOR: {
       uint32_t color = args[0];
       rgb_led_set_color(color);
@@ -545,11 +541,9 @@ __attribute((no_stack_protector)) void syscall_handler(uint32_t *args,
 #endif
 #endif
 
-    case SYSCALL_STORAGE_INIT: {
-      storage_init_callback = (PIN_UI_WAIT_CALLBACK)args[0];
-      const uint8_t *salt = (const uint8_t *)args[1];
-      uint16_t salt_len = args[2];
-      storage_init__verified(storage_init_callback_wrapper, salt, salt_len);
+    case SYSCALL_STORAGE_SETUP: {
+      PIN_UI_WAIT_CALLBACK callback = (PIN_UI_WAIT_CALLBACK)args[0];
+      storage_setup__verified(callback);
     } break;
 
     case SYSCALL_STORAGE_WIPE: {
@@ -651,11 +645,6 @@ __attribute((no_stack_protector)) void syscall_handler(uint32_t *args,
       args[0] = storage_next_counter__verified(key, count);
     } break;
 
-    case SYSCALL_ENTROPY_GET: {
-      uint8_t *buf = (uint8_t *)args[0];
-      entropy_get__verified(buf);
-    } break;
-
     case SYSCALL_TRANSLATIONS_WRITE: {
       const uint8_t *data = (const uint8_t *)args[0];
       uint32_t offset = args[1];
@@ -737,6 +726,12 @@ __attribute((no_stack_protector)) void syscall_handler(uint32_t *args,
       uint8_t *data = (uint8_t *)args[0];
       size_t len = args[1];
       args[0] = ble_read__verified(data, len);
+    } break;
+
+    case SYSCALL_BLE_SET_NAME: {
+      const uint8_t *name = (const uint8_t *)args[0];
+      size_t len = args[1];
+      ble_set_name__verified(name, len);
     } break;
 #endif
 
@@ -877,26 +872,17 @@ __attribute((no_stack_protector)) void syscall_handler(uint32_t *args,
       args[0] = tropic_ping__verified(msg_out, msg_in, msg_len);
     } break;
 
-    case SYSCALL_TROPIC_GET_CERT: {
-      uint8_t *buf = (uint8_t *)args[0];
-      uint16_t buf_size = (uint16_t)args[1];
-      args[0] = tropic_get_cert__verified(buf, buf_size);
-    } break;
     case SYSCALL_TROPIC_ECC_KEY_GENERATE: {
       uint16_t slot_index = (uint16_t)args[0];
       args[0] = tropic_ecc_key_generate__verified(slot_index);
-
     } break;
+
     case SYSCALL_TROPIC_ECC_SIGN: {
       uint16_t key_slot_index = (uint16_t)args[0];
       const uint8_t *dig = (const uint8_t *)args[1];
       uint16_t dig_len = (uint16_t)args[2];
       uint8_t *sig = (uint8_t *)args[3];
-      uint16_t sig_len = (uint16_t)args[4];
-
-      args[0] =
-          tropic_ecc_sign__verified(key_slot_index, dig, dig_len, sig, sig_len);
-
+      args[0] = tropic_ecc_sign__verified(key_slot_index, dig, dig_len, sig);
     } break;
 #endif
 

@@ -52,20 +52,6 @@ See `trezor::ui::layout::base::EventCtx::ANIM_FRAME_TIMER`.
 # allow only one alert at a time to avoid alerts overlapping
 _alert_in_progress = False
 
-# in debug mode, display an indicator in top right corner
-if __debug__:
-
-    def refresh() -> None:
-        from apps.debug import screenshot
-
-        if not screenshot():
-            side = Display.WIDTH // 30
-            display.bar(Display.WIDTH - side, 0, side, side, 0xF800)
-        display.refresh()
-
-else:
-    refresh = display.refresh
-
 
 async def _alert(count: int) -> None:
     short_sleep = loop.sleep(20)
@@ -96,8 +82,6 @@ class Shutdown(Exception):
     pass
 
 
-SHUTDOWN = Shutdown()
-
 CURRENT_LAYOUT: "Layout | ProgressLayout | None" = None
 
 
@@ -114,6 +98,24 @@ def set_current_layout(layout: "Layout | ProgressLayout | None") -> None:
     assert (CURRENT_LAYOUT is None) == (layout is not None)
 
     CURRENT_LAYOUT = layout
+
+
+if utils.USE_POWER_MANAGER:
+
+    def _handle_power_button_press() -> None:
+        """Handle power button press event during firmware operation."""
+        from trezor import config
+
+        from apps.base import lock_device
+        from apps.management.pm.suspend import suspend_device
+
+        if config.has_pin() and config.is_unlocked():
+            lock_device(interrupt_workflow=True)
+            raise Shutdown()
+        else:
+            suspend_device()
+            if CURRENT_LAYOUT is not None:
+                CURRENT_LAYOUT.layout.request_complete_repaint()
 
 
 class Layout(Generic[T]):
@@ -324,8 +326,6 @@ class Layout(Generic[T]):
         import storage.cache as storage_cache
 
         painted = self.layout.paint()
-        if painted:
-            refresh()
         if storage_cache.homescreen_shown is not None and painted:
             storage_cache.homescreen_shown = None
 
@@ -371,13 +371,14 @@ class Layout(Generic[T]):
         assert self.result_box.is_empty()
         self.stop(_kill_taker=False)
         self.result_box.put(msg)
-        raise SHUTDOWN
+        raise Shutdown()
 
     def create_tasks(self) -> Iterator[loop.Task]:
         """Set up background tasks for a layout.
 
         Called from `start()`. Creates and yields a list of background tasks, typically
-        event handlers for different interfaces. Event handlers are enabled conditionally based on build options to prevent stale events in the event queue.
+        event handlers for different interfaces. Event handlers are enabled conditionally
+        based on build options to prevent stale events in the event queue.
 
         Override and then `yield from super().create_tasks()` to add more tasks."""
         if utils.USE_BUTTON:
@@ -398,6 +399,11 @@ class Layout(Generic[T]):
                 while True:
                     # Using `yield` instead of `await` to avoid allocations.
                     event = yield button
+                    if utils.USE_POWER_MANAGER:
+                        event_type, event_button = event
+                        # check for POWER_BUTTON (2), BUTTON_UP (0)
+                        if event_button == 2 and event_type == 0:
+                            _handle_power_button_press()
                     workflow.idle_timer.touch()
                     self._event(self.layout.button_event, *event)
             except Shutdown:
@@ -566,8 +572,7 @@ class ProgressLayout:
         def do_progress_event(val: int) -> None:
             msg = self.layout.progress_event(val, description or "")
             assert msg is None
-            if self.layout.paint():
-                refresh()
+            self.layout.paint()
 
         # animate the progress bar in a blocking fashion
         step = min(self.progress_step, max(value - self.value, 1))
@@ -589,9 +594,7 @@ class ProgressLayout:
         set_current_layout(self)
 
         self.layout.request_complete_repaint()
-        painted = self.layout.paint()
-        if painted:
-            refresh()
+        self.layout.paint()
         backlight_fade(BacklightLevels.NORMAL)
 
     def stop(self) -> None:

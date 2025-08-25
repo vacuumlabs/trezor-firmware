@@ -37,9 +37,6 @@ class TaskClosed(Exception):
     pass
 
 
-TASK_CLOSED = TaskClosed()
-
-
 def schedule(
     task: Task,
     value: Any = None,
@@ -204,9 +201,6 @@ class Timeout(Exception):
     pass
 
 
-_TIMEOUT_ERROR = Timeout()
-
-
 class sleep(Syscall):
     """Pause current task and resume it after given delay.
 
@@ -250,7 +244,7 @@ class wait(Syscall):
         pause(self, self.msg_iface)
         if self.timeout_ms is not None:
             deadline = utime.ticks_add(utime.ticks_ms(), self.timeout_ms)
-            schedule(self, _TIMEOUT_ERROR, deadline)
+            schedule(self, Timeout(), deadline)
 
     def send(self, __value: Any) -> Any:
         assert self.task is not None
@@ -339,7 +333,7 @@ class race(Syscall):
         if not self.finished:
             self.finished = True
             self.exit(task)
-            schedule(self.callback, result)
+            _step(self.callback, result)
 
     def __iter__(self) -> Task:
         try:
@@ -510,7 +504,7 @@ class spawn(Syscall):
         self.finished = True
         if isinstance(value, GeneratorExit):
             # coerce GeneratorExit to a catchable TaskClosed
-            self.return_value = TASK_CLOSED
+            self.return_value = TaskClosed()
         else:
             self.return_value = value
 

@@ -43,7 +43,7 @@ extern "C" fn py_start_advertising(whitelist: Obj, name: Obj) -> Obj {
         let name = name.as_deref().unwrap_or(model::FULL_NAME);
 
         if whitelist {
-            connectable_mode(name)?;
+            switch_on(name)?;
         } else {
             pairing_mode(name)?;
         };
@@ -52,9 +52,21 @@ extern "C" fn py_start_advertising(whitelist: Obj, name: Obj) -> Obj {
     unsafe { util::try_or_raise(block) }
 }
 
-extern "C" fn py_stop_advertising() -> Obj {
+extern "C" fn py_set_name(name: Obj) -> Obj {
     let block = || {
-        stop_advertising()?;
+        let name = name.try_into_option::<StrBuffer>()?;
+        let name = name.as_deref().unwrap_or(model::FULL_NAME);
+
+        set_name(name);
+
+        Ok(Obj::const_none())
+    };
+    unsafe { util::try_or_raise(block) }
+}
+
+extern "C" fn py_switch_off() -> Obj {
+    let block = || {
+        switch_off()?;
         Ok(Obj::const_none())
     };
     unsafe { util::try_or_raise(block) }
@@ -91,6 +103,18 @@ extern "C" fn py_peer_count() -> Obj {
 
 extern "C" fn py_is_connected() -> Obj {
     is_connected().into()
+}
+
+extern "C" fn py_is_connectable() -> Obj {
+    is_connectable().into()
+}
+
+extern "C" fn py_is_pairing() -> Obj {
+    is_pairing().into()
+}
+
+extern "C" fn py_is_pairing_requested() -> Obj {
+    is_pairing_requested().into()
 }
 
 extern "C" fn py_connection_flags() -> Obj {
@@ -237,12 +261,18 @@ pub static mp_module_trezorble: Module = obj_module! {
     ///     """
     Qstr::MP_QSTR_start_advertising => obj_fn_2!(py_start_advertising).as_obj(),
 
-    /// def stop_advertising():
+    /// def set_name(name: str | None):
     ///     """
-    ///     Stop advertising.
+    ///     Set advertising name.
+    ///     """
+    Qstr::MP_QSTR_set_name => obj_fn_1!(py_set_name).as_obj(),
+
+    /// def switch_off():
+    ///     """
+    ///     Stop advertising and disconnect any connected devices.
     ///     Raises exception if BLE driver reports an error.
     ///     """
-    Qstr::MP_QSTR_stop_advertising => obj_fn_0!(py_stop_advertising).as_obj(),
+    Qstr::MP_QSTR_switch_off => obj_fn_0!(py_switch_off).as_obj(),
 
     /// def disconnect():
     ///     """
@@ -262,6 +292,24 @@ pub static mp_module_trezorble: Module = obj_module! {
     ///     True if a host is connected to us. May or may not be paired.
     ///     """
     Qstr::MP_QSTR_is_connected => obj_fn_0!(py_is_connected).as_obj(),
+
+    /// def is_connectable() -> bool:
+    ///     """
+    ///     True if a central/host can connect.
+    ///     """
+    Qstr::MP_QSTR_is_connectable => obj_fn_0!(py_is_connectable).as_obj(),
+
+    /// def is_pairing() -> bool:
+    ///     """
+    ///     True if BLE is in pairing mode, waiting for a pairing request.
+    ///     """
+    Qstr::MP_QSTR_is_pairing => obj_fn_0!(py_is_pairing).as_obj(),
+
+    /// def is_pairing_requested() -> bool:
+    ///     """
+    ///     True if BLE pairing request was received.
+    ///     """
+    Qstr::MP_QSTR_is_pairing_requested => obj_fn_0!(py_is_pairing_requested).as_obj(),
 
     /// def connection_flags() -> list[str]:
     ///     """

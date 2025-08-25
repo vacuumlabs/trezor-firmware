@@ -34,12 +34,7 @@ from mnemonic import Mnemonic
 
 from . import btc, mapping, messages, models, protobuf
 from .client import ProtocolVersion, TrezorClient
-from .exceptions import (
-    Cancelled,
-    DeviceLockedException,
-    TrezorFailure,
-    UnexpectedMessageError,
-)
+from .exceptions import Cancelled, TrezorFailure, UnexpectedMessageError
 from .log import DUMP_BYTES
 from .messages import DebugTouchEventType, DebugWaitType
 from .tools import parse_path
@@ -356,6 +351,16 @@ class LayoutContent(UnstructuredJSONReader):
 
         return [get_button_content(btn_key) for btn_key in button_keys]
 
+    def vertical_menu_content(self) -> list[str]:
+        """Get the content of the vertical menu."""
+
+        vertical_menu = self.find_unique_object_with_key_and_value(
+            "component", "VerticalMenu"
+        )
+        assert isinstance(vertical_menu, dict)
+
+        return [btn_obj["text"] for btn_obj in vertical_menu["buttons"]]
+
     def seed_words(self) -> list[str]:
         """Get all the seed words on the screen in order.
 
@@ -543,7 +548,7 @@ class DebugLink:
 
     @property
     def button_actions(self) -> ButtonActions:
-        return ButtonActions(self.layout_type)
+        return ButtonActions(self)
 
     def open(self) -> None:
         self.transport.open()
@@ -998,12 +1003,13 @@ class DebugUI:
         self.debuglink.press_info()
 
         # TODO: support all core models
-        if self.debuglink.model is models.T3T1:
+        if self.debuglink.layout_type is LayoutType.Delizia:
             item_buttons = self.debuglink.screen_buttons.vertical_menu_items()
             close_button = self.debuglink.screen_buttons.menu()
             _prev, next = self.debuglink.screen_buttons.vertical_menu_prev_next()
             while True:
                 menu_layout = self.debuglink.read_layout()
+                assert "ScrolledVerticalMenu" in menu_layout.all_components()
                 menu_items = menu_layout.find_unique_value_by_key(
                     key="menu_items", default=None, only_type=dict
                 )
@@ -1016,7 +1022,7 @@ class DebugUI:
                     break
                 self.debuglink.click(next)
 
-        if self.debuglink.model in (models.T2B1, models.T3B1):
+        if self.debuglink.layout_type is LayoutType.Caesar:
             menu_items_count = self.debuglink.read_layout().page_count()
             for _ in range(menu_items_count):
                 self.debuglink.press_middle()
@@ -1306,14 +1312,7 @@ class TrezorClientDebugLink(TrezorClient):
         self.pin_callback = get_pin
         self.button_callback = self.ui.button_request
 
-        try:
-            super().__init__(transport)
-        except DeviceLockedException:
-            LOG.debug("Locked device handling")
-            self.debug.input("")
-            self.debug.input(self.debug.encode_pin("1234"))
-            super().__init__(transport)
-
+        super().__init__(transport)
         self.sync_responses()
 
         # So that we can choose right screenshotting logic (T1 vs TT)
@@ -1412,19 +1411,26 @@ class TrezorClientDebugLink(TrezorClient):
         """
         import secrets
 
-        # Start by canceling whatever is on screen. This will work to cancel T1 PIN
-        # prompt, which is in TINY mode and does not respond to `Ping`.
         if self.protocol_version is ProtocolVersion.V1:
             assert isinstance(self.protocol, ProtocolV1Channel)
-            self.protocol.write(messages.Cancel())
-            resp = self.protocol.read()
+            if self.model is models.T1B1:
+                # Start by canceling whatever is on screen. This will work to cancel T1 PIN
+                # prompt, which is in TINY mode and does not respond to `Ping`.
+                self.protocol.write(messages.Cancel())
+
             message = "SYNC" + secrets.token_hex(8)
             self.protocol.write(messages.Ping(message=message))
-            while resp != messages.Success(message=message):
+            success = messages.Success(message=message)
+            while True:
                 try:
-                    resp = self.protocol.read()
+                    if self.protocol.read() == success:
+                        return
                 except Exception:
                     pass
+
+        if self.protocol_version is ProtocolVersion.V2:
+            assert isinstance(self.protocol, ProtocolV2Channel)
+            self.protocol.sync_responses()
 
     def mnemonic_callback(self, _) -> str:
         word, pos = self.debug.read_recovery_word()
@@ -2079,21 +2085,21 @@ PASSPHRASE_SPECIAL = ("_<>", ".:@", "/|\\", "!()", "+%&", "-[]", "?{}", ",'`", "
 
 
 class ButtonActions:
-    def __init__(self, layout_type: LayoutType):
-        self.buttons = ScreenButtons(layout_type)
+    def __init__(self, debuglink: DebugLink):
+        self.debuglink = debuglink
 
     def _passphrase_choices(self, char: str) -> "tuple[str, ...]":
         if char in " *#" or char.islower():
-            if self.buttons.layout_type is LayoutType.Bolt:
+            if self.debuglink.layout_type is LayoutType.Bolt:
                 return PASSPHRASE_LOWERCASE_BOLT
-            elif self.buttons.layout_type in (LayoutType.Delizia, LayoutType.Eckhart):
+            elif self.debuglink.layout_type in (LayoutType.Delizia, LayoutType.Eckhart):
                 return PASSPHRASE_LOWERCASE_DE
             else:
                 raise ValueError("Wrong layout type")
         elif char.isupper():
-            if self.buttons.layout_type is LayoutType.Bolt:
+            if self.debuglink.layout_type is LayoutType.Bolt:
                 return PASSPHRASE_UPPERCASE_BOLT
-            elif self.buttons.layout_type in (LayoutType.Delizia, LayoutType.Eckhart):
+            elif self.debuglink.layout_type in (LayoutType.Delizia, LayoutType.Eckhart):
                 return PASSPHRASE_UPPERCASE_DE
             else:
                 raise ValueError("Wrong layout type")
@@ -2106,7 +2112,7 @@ class ButtonActions:
         choices = self._passphrase_choices(char)
         idx = next(i for i, letters in enumerate(choices) if char in letters)
         click_amount = choices[idx].index(char) + 1
-        return self.buttons.pin_passphrase_index(idx), click_amount
+        return self.debuglink.screen_buttons.pin_passphrase_index(idx), click_amount
 
     def type_word(self, word: str, is_slip39: bool = False) -> t.Iterator[Coords]:
         if is_slip39:
@@ -2119,7 +2125,7 @@ class ButtonActions:
             idx = next(
                 i for i, letters in enumerate(BUTTON_LETTERS_SLIP39) if l in letters
             )
-            yield self.buttons.mnemonic_from_index(idx)
+            yield self.debuglink.screen_buttons.mnemonic_from_index(idx)
 
     def _type_word_bip39(self, word: str) -> t.Iterator[Coords]:
         coords_prev: Coords | None = None
@@ -2139,4 +2145,65 @@ class ButtonActions:
             i for i, letters in enumerate(BUTTON_LETTERS_BIP39) if letter in letters
         )
         click_amount = BUTTON_LETTERS_BIP39[idx].index(letter) + 1
-        return self.buttons.mnemonic_from_index(idx), click_amount
+        return self.debuglink.screen_buttons.mnemonic_from_index(idx), click_amount
+
+    def navigate_to_menu_item(self, idx: int) -> None:
+        """Navigate to the nth item in the vertical menu. Starts from 0."""
+        item_buttons = self.debuglink.screen_buttons.vertical_menu_items()
+        layout = self.debuglink.read_layout()
+        if self.debuglink.layout_type is LayoutType.Delizia:
+            # fido multi-screen menu with 2 items per screen
+            if "PagedVerticalMenu" in layout.all_components():
+                items_per_screen = 2
+                # get to the correct screen
+                for _ in range(idx // items_per_screen):
+                    self.debuglink.swipe_up()
+                    assert (
+                        "PagedVerticalMenu"
+                        in self.debuglink.read_layout().all_components()
+                    )
+                # click the correct item
+                new_idx = idx % items_per_screen
+                self.debuglink.click(item_buttons[new_idx])
+            elif "ScrolledVerticalMenu" in layout.all_components():
+                _prev, next = self.debuglink.screen_buttons.vertical_menu_prev_next()
+                menu = layout.find_unique_value_by_key(
+                    key="menu_items", default=None, only_type=dict
+                )
+                # multi-screen variant
+                if menu["has_next"]:
+                    items_per_screen = 2
+                    # get to the correct screen
+                    for _ in range(idx // items_per_screen):
+                        menu = self.debuglink.read_layout().find_unique_value_by_key(
+                            key="menu_items", default=None, only_type=dict
+                        )
+                        assert menu["has_next"]
+                        self.debuglink.click(next)
+                    # click the correct item
+                    assert (
+                        "ScrolledVerticalMenu"
+                        in self.debuglink.read_layout().all_components()
+                    )
+                    new_idx = idx % items_per_screen
+                    self.debuglink.click(item_buttons[new_idx])
+                # single-screen variant
+                else:
+                    assert len(item_buttons) > idx
+                    self.debuglink.click(item_buttons[idx])
+            # single-screen static menu
+            # FIXME: remove this when the ScrollableVerticalMenu is implemented everywhere
+            else:
+                assert len(item_buttons) > idx
+                self.debuglink.click(item_buttons[idx])
+
+        elif self.debuglink.layout_type is LayoutType.Eckhart:
+            assert "VerticalMenu" in layout.all_components()
+            # swipe up until the idx item gets to the first position
+            for _ in range(idx):
+                self.debuglink.swipe_up()
+            assert "VerticalMenu" in self.debuglink.read_layout().all_components()
+            # click the first item
+            self.debuglink.click(item_buttons[0])
+        else:
+            raise ValueError("Wrong layout type")
